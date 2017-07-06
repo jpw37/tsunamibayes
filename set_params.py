@@ -19,7 +19,7 @@ def create_topo():
     """
     # Step 1
     # Load distribution parameters.
-    params = np.load('param_dist.npy')
+    params = np.load('prior.npy')
 
     # Step 2
     # Take a random draw from the distributions for each parameter.
