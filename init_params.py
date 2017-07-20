@@ -87,7 +87,7 @@ def init_param_dist():
         longitude, latitude])
 
     # Step 2
-    # Set parameters for probability distributions
+    # Set parameters for priors
     # We assume for now each one has a normal distribution with a mean equal
     # to our initial guess. Here we set the standard deviations.
     # EARTHQUAKE SPECIFIC
@@ -109,7 +109,7 @@ def init_param_dist():
         slip_std, rake_std, dip_std, longitude_std, latitude_std])
     probability_params = np.vstack((means, stds))
     probability_params = probability_params.T
-    np.save("param_dist.npy", probability_params)
+    np.save("prior.npy", probability_params)
 
     # Step 4
     # Save initial guesses to samples.npy as described above this function.
