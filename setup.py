@@ -4,23 +4,28 @@
 import os
 import numpy as np
 from gauge import Gauge
+import gauge
 import maketopo as mt
 import json
+from scipy import stats
 
 class Setup:
 
     def __init__(self):
         pass
 
-    def make_input_files():
+    def make_input_files(self):
         """
         Initialize all necessary variables for a GeoClaw run using MCMC and
         put them in their appropriate .npy files to be used later.
         Specifically, initialize the following files:
+        * guesses.npy
         * prior.npy
         * samples.npy
         * output_dist.npy
-        #TODO: add npy_file_guide.txt
+        * gauges.npy
+        * model_bounds.txt
+        #TODO: add file_guide.txt
         NOTE TO USER: Edit all of the marked variables to match the specific
         earthquake you would like to model.
         """
@@ -38,7 +43,7 @@ class Setup:
         latitude = -6.485
         self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
             longitude, latitude])
-        np.save("guesses.npy", guesses)
+        np.save("guesses.npy", self.guesses)
 
         # Parameters for priors
         # Standard deviations
@@ -51,7 +56,7 @@ class Setup:
         dip_std = 1.6
         longitude_std = .27
         latitude_std = .6
-        means = guesses
+        means = self.guesses
         stds = np.array([strike_std, length_std, width_std, depth_std,
             slip_std, rake_std, dip_std, longitude_std, latitude_std])
 
@@ -64,8 +69,11 @@ class Setup:
         arrival_std1 = 2.
         height_mean1 = 8. # in meters
         height_std1 = 2.
+        longitude1 = 129.98
+        latitude1 = -4.54
 
-        gauge1 = Gauge(name1, arrival_mean1, arrival_std1, height_mean1, height_std1)
+        gauge1 = Gauge(name1, arrival_mean1, arrival_std1, height_mean1,
+                        height_std1, longitude1, latitude1)
         gauges.append(gauge1)
 
         # Set gauge values for gauge 2
@@ -74,8 +82,11 @@ class Setup:
         arrival_std2 = 5.
         height_mean2 = 1.8
         height_std2 = .2
+        longitude2 = 128.667
+        latitude2 = -3.667
 
-        gauge2 = Gauge(name2, arrival_mean2, arrival_std2, height_mean2, height_std2)
+        gauge2 = Gauge(name2, arrival_mean2, arrival_std2, height_mean2,
+                        height_std2, longitude2, latitude2)
         gauges.append(gauge2)
 
         # Set gauge values for gauge 3 (if desired)
@@ -94,7 +105,7 @@ class Setup:
 
         # Save files
         # Save means and stds for prior to prior.npy.
-        means = guesses
+        means = self.guesses
         stds = np.array([strike_std, length_std, width_std, depth_std,
             slip_std, rake_std, dip_std, longitude_std, latitude_std])
         probability_params = np.vstack((means, stds))
@@ -103,7 +114,7 @@ class Setup:
 
         # Save initial guesses to samples.npy.
         init_p_w = np.array([0,1])
-        sample = np.hstack((guesses, init_p_w))
+        sample = np.hstack((self.guesses, init_p_w))
         sample = np.vstack((sample, sample))
         np.save("samples.npy", sample)
 
@@ -123,7 +134,7 @@ class Setup:
         # Save gauge names
         gauge_names = []
         for gauge in gauges:
-            gauge_names.append(gauge.name)
+            gauge_names.append([gauge.name, gauge.longitude, gauge.latitude])
         np.save("gauges.npy", np.array(gauge_names))
 
         # Save latitude and longitude bounds and time to run model
@@ -136,45 +147,7 @@ class Setup:
         with open('model_bounds.txt', 'w') as outfile:
             json.dump(data, outfile)
 
-
-    def read_gauges(gauges):
-        """Read GeoClaw output and look for necessary conditions.
-        This will find the max wave height
-
-        Meaning of Gauge columns:
-        - column 0 is gauge number
-        - column 2 is time
-        - column 3 is a scaled water height
-        - column 6 is the graph that appears in plots"""
-        n = len(gauges)
-        # read in file
-        gauge_file = "_output/fort.gauge"
-        lines = []
-        with open(gauge_file, 'r') as f2:
-            lines = f2.readlines()
-
-        A = np.zeros((len(lines),7))
-        for i in xrange(len(lines)):
-            A[i,:] = map(float, lines[i].split())
-
-        # extract wave height and arrival time from each gauge
-        # arrival time in minutes
-        arrivals = np.zeros(n)
-        max_heights = np.zeros(n)
-        for i in xrange(n):
-            h = np.array([A[j,6] for j in xrange(len(A[:,6])) if A[j,0] == gauges[i]])
-            t = np.array([A[j,2] for j in xrange(len(A[:,6])) if A[j,0] == gauges[i]])
-            print i, len(h)
-            max_idx = np.argmax(h)
-            arrivals[i] = t[max_idx]/60.
-            max_heights[i] = h[max_idx]
-        max_heights *= 2.5 # Amplification factor
-
-        return arrivals, max_heights
-
-
-
-    def run_once(guesses):
+    def run_once(self):
         """
         Runs Geoclaw one time using the initial data given above.
         (This initializes the samples.npy file for subsequent runs.)
@@ -190,12 +163,15 @@ class Setup:
         os.system('make clobber')
         os.system('make .output')
 
-        arrivals, max_heights = read_gauges()
+        gauges = np.load('gauges.npy')
+
+        arrivals, max_heights = gauge.read_gauges(gauges[:,0])
 
         # Create probability distributions for each gauge and variable.
         # Then, multiply together the probabilities of each output
         arrivals_and_heights = np.hstack((arrivals, max_heights))
         p = 1.
+        output_params = np.load('output_dist.npy')
         for i, params in enumerate(output_params):
             # Creates normal distribution with given params for each variable and
             # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
