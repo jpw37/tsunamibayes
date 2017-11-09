@@ -9,6 +9,7 @@ Call functions with makeplots==True to create plots of topo, slip, and dtopo.
 """
 
 import os,sys
+import json
 
 try:
     CLAW = os.environ['CLAW']
@@ -80,10 +81,13 @@ def make_dtopo(params, makeplots=False):
         #y = numpy.linspace(-40, -30, 100)
         times = [1.]
 
-        xlower = 90.
-        xupper = 110. # approximate - adjusted below
-        ylower = -10.
-        yupper = 5. # approximate - adjusted below
+        with open('model_bounds.txt') as json_file:
+            model_bounds = json.load(json_file)
+
+        xlower = model_bounds['xlower']
+        xupper = model_bounds['xupper'] # approximate - adjusted below
+        ylower = model_bounds['ylower']
+        yupper = model_bounds['yupper'] # approximate - adjusted below
 
         # dtopo parameters:
 
