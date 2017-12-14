@@ -7,7 +7,7 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
-from scipy import stats
+# from scipy import stats
 
 class Setup:
 
@@ -71,9 +71,10 @@ class Setup:
         height_std1 = 2.
         longitude1 = 129.98
         latitude1 = -4.54
+        distance1 = 2 # in kilometers (max 5)
 
         gauge1 = Gauge(name1, arrival_mean1, arrival_std1, height_mean1,
-                        height_std1, longitude1, latitude1)
+                        height_std1, longitude1, latitude1, distance1)
         gauges.append(gauge1)
 
         # Set gauge values for gauge 2
@@ -84,9 +85,10 @@ class Setup:
         height_std2 = .2
         longitude2 = 128.667
         latitude2 = -3.667
+        distance2 = 2 # in kilometers (max 5)
 
         gauge2 = Gauge(name2, arrival_mean2, arrival_std2, height_mean2,
-                        height_std2, longitude2, latitude2)
+                        height_std2, longitude2, latitude2, distance2)
         gauges.append(gauge2)
 
         # Set gauge values for gauge 3 (if desired)
@@ -134,7 +136,8 @@ class Setup:
         # Save gauge names
         gauge_names = []
         for gauge in gauges:
-            gauge_names.append([gauge.name, gauge.longitude, gauge.latitude])
+            gauge_names.append([gauge.name, gauge.longitude,
+                                gauge.latitude, gauge.distance])
         np.save("gauges.npy", np.array(gauge_names))
 
         # Save latitude and longitude bounds and time to run model
@@ -165,20 +168,21 @@ class Setup:
 
         gauges = np.load('gauges.npy')
 
-        arrivals, max_heights = gauge.read_gauges(gauges[:,0])
-
-        # Create probability distributions for each gauge and variable.
-        # Then, multiply together the probabilities of each output
-        arrivals_and_heights = np.hstack((arrivals, max_heights))
-        p = 1.
-        output_params = np.load('output_dist.npy')
-        for i, params in enumerate(output_params):
-            # Creates normal distribution with given params for each variable and
-            # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
-            # 3. ..., n+1. max height of gauge1, n+2, max height of gauge2, ...
-            dist = stats.norm(params[0], params[1])
-            p_i = dist.pdf(arrivals_and_heights[i])
-            p *= p_i
+        # arrivals, max_heights = gauge.read_gauges(gauges[:,0])
+        #
+        # # Create probability distributions for each gauge and variable.
+        # # Then, multiply together the probabilities of each output
+        # arrivals_and_heights = np.hstack((arrivals, max_heights))
+        # p = 1.
+        # output_params = np.load('output_dist.npy')
+        # for i, params in enumerate(output_params):
+        #     # Creates normal distribution with given params for each variable and
+        #     # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
+        #     # 3. ..., n+1. max height of gauge1, n+2, max height of gauge2, ...
+        #     dist = stats.norm(params[0], params[1])
+        #     p_i = dist.pdf(arrivals_and_heights[i])
+        #     p *= p_i
+        p = gauge.calculate_probability(gauges)
 
         # Change entries in samples.npy
         samples = np.load('samples.npy')

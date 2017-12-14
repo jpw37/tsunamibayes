@@ -6,6 +6,8 @@ that will be read in by the Fortran code.
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import numpy as np
 import json
@@ -111,14 +113,12 @@ def setrun(claw_pkg='geoclaw'):
 
 
     # Restart from checkpoint file of a previous run?
-    # Note: If restarting, you must also change the Makefile to set:
-    #    RESTART = True
     # If restarting, t0 above should be from original run, and the
     # restart_file 'fort.chkNNNNN' specified below should be in
     # the OUTDIR indicated in Makefile.
 
-    clawdata.restart = False               # True to restart from prior results
-    clawdata.restart_file = 'fort.chk00036'  # File to use for restart data
+    clawdata.restart = False              # True to restart from prior results
+    clawdata.restart_file = 'fort.chk00096'  # File to use for restart data
 
     # -------------
     # Output times:
@@ -346,13 +346,12 @@ def setrun(claw_pkg='geoclaw'):
     # ---------------
     rundata.gaugedata.gauges = []
     # for gauges append lines of the form  [gaugeno, x, y, t1, t2]
-    my_gauges = np.load("gauges.npy")
+    my_gauges = np.load('gauges.npy')
     for my_gauge in my_gauges:
         rundata.gaugedata.gauges.append([int(my_gauge[0]), my_gauge[1],
                                             my_gauge[2], 0., 1.e10])
-    # rundata.gaugedata.gauges.append([10000, 129.98, -4.54,  0., 1.e10]) # Change coordinates
-    # rundata.gaugedata.gauges.append([10010, 128.667, -3.667, 0., 1.e10]) # Also these
-   # rundata.gaugedata.gauges.append([10020, -4.5, 129.99, 0., 1.e10])
+    #rundata.gaugedata.gauges.append([32412, -86.392, -17.975, 0., 1.e10])
+
 
     return rundata
     # end of function setrun
@@ -370,7 +369,7 @@ def setgeo(rundata):
     try:
         geo_data = rundata.geo_data
     except:
-        print "*** Error, this rundata has no geo_data attribute"
+        print("*** Error, this rundata has no geo_data attribute")
         raise AttributeError("Missing geo_data attribute")
 
     # == Physics ==

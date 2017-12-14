@@ -5,6 +5,7 @@ import maketopo as mt
 from scipy import stats
 import gauge
 import numpy as np
+# from pmf import PMFData, PMF
 
 class RunModel:
     def __init__(self, iterations, method):
@@ -13,6 +14,19 @@ class RunModel:
         self.prior = np.load('prior.npy')
         self.output_params = np.load('output_dist.npy')
         self.gauges = np.load('gauges.npy')
+
+        # NOTE I don't think I need this here
+        # amplification_data = np.load('amplification_data.npy')
+        # row_header = amplification_data[:,0]
+        # col_header = np.arange(len(data[0]) - 1)/4
+        # self.pmfData = PMFData(row_header, col_header, data[:,1:])
+
+        # pmf = self.pmfData.getPMF(distance from shore, GeoClaw output)
+        # pmf.integrate(stats.norm(6,1)) where the stats.norm object is
+        #  the one that we use from the original gauge data on run up height
+        # #### I need to split up calculation to calculate arrival times
+        #   #### and wave heights separately
+
 
 
     # Run with independant sampling
@@ -77,20 +91,21 @@ class RunModel:
         os.system('make clobber')
         os.system('make .output')
 
-        arrivals, heights = gauge.read_gauges(self.gauges[:,0])
-
-        # Create probability distributions for each gauge and variable.
-        # Then, multiply together the probabilities of each output
-        arrivals_and_heights = np.hstack((arrivals, heights))
-        p = 1.
-        output_params = np.load('output_dist.npy')
-        for i, params in enumerate(output_params):
-            # Creates normal distribution with given params for each variable and
-            # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
-            # 3. ..., n+1. max height of gauge1, n+2, max height of gauge2, ...
-            dist = stats.norm(params[0], params[1])
-            p_i = dist.pdf(arrivals_and_heights[i])
-            p *= p_i
+        # arrivals, heights = gauge.read_gauges(self.gauges[:,0])
+        #
+        # # Create probability distributions for each gauge and variable.
+        # # Then, multiply together the probabilities of each output
+        # arrivals_and_heights = np.hstack((arrivals, heights))
+        # p = 1.
+        # output_params = np.load('output_dist.npy')
+        # for i, params in enumerate(output_params):
+        #     # Creates normal distribution with given params for each variable and
+        #     # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
+        #     # 3. ..., n+1. max height of gauge1, n+2, max height of gauge2, ...
+        #     dist = stats.norm(params[0], params[1])
+        #     p_i = dist.pdf(arrivals_and_heights[i])
+        #     p *= p_i
+        p = gauge.calculate_probability(self.gauges)
 
         # Change entry in samples.npy
         samples = np.load('samples.npy')
@@ -98,17 +113,23 @@ class RunModel:
 
         if self.method == 'is':
             # Find probability to accept new draw over the old draw.
-            accept_prob = min(p/samples[0][-2], 1)
+            accept_prob = min(np.exp(p-samples[0][-2]), 1) # Because it's log-likelihood
 
         elif self.method == 'rw':
-            prior_prob = 1.
-            for i, param in enumerate(self.prior):
-                dist = stats.norm(param[0], param[1])
-                new_prob = dist.pdf(samples[-1][i])
-                old_prob = dist.pdf(samples[0][i])
-                prior_prob *= (new_prob/old_prob)
+            # prior_prob = 1.
+            # Log-Likelihood
+            new_prob = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
+            old_prob = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
+            prior_prob = new_prob - old_prob # Log-Likelihood
 
-            accept_prob = min(1, (p/samples[0][-2])*prior_prob)
+            # DEPRICATED
+            # for i, param in enumerate(self.prior):
+            #     dist = stats.norm(param[0], param[1])
+            #     new_prob = dist.pdf(samples[-1][i])
+            #     old_prob = dist.pdf(samples[0][i])
+            #     prior_prob *= (new_prob/old_prob)
+
+            accept_prob = min(1, np.exp(p-samples[0][-2]+prior_prob)) # Because log-likelihood
 
         # Increment wins. If new, change current 'best'.
         if np.random.random() < accept_prob: # Accept new

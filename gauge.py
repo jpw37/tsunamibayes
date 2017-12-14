@@ -1,5 +1,7 @@
 # A file containing the Gauge class
 import numpy as np
+from scipy import stats
+from pmf import PMFData, PMF
 
 class Gauge:
     """A gauge object class. Has a name and means and standard deviations
@@ -11,9 +13,12 @@ class Gauge:
         arrival_std (float): the standard deviation for arrival time.
         height_mean (float): the mean for wave height.
         height_std (float): the standard deviation for wave height.
+        longitude (float): the longitude location of the gauge.
+        latitude (float): the latitude location of the gauge.
+        distance (float): the distance from the gauge to shore.
     """
     def __init__(self, name, arrival_mean, arrival_std, height_mean,
-                    height_std, longitude, latitude):
+                    height_std, longitude, latitude, distance):
         self.name = name
         self.arrival_mean = arrival_mean
         self.arrival_std = arrival_std
@@ -21,8 +26,9 @@ class Gauge:
         self.height_std = height_std
         self.longitude = longitude
         self.latitude = latitude
+        self.distance = distance
 
-def read_gauges(gauges):
+def read_gauges(gauges): # gauges is list of integers (gauge names)
     """Read GeoClaw output and look for necessary conditions.
     This will find the max wave height
 
@@ -53,12 +59,11 @@ def read_gauges(gauges):
 
         h = data[:,5]
         t = data[:,1]
-        print(i, len(h))
         max_idx = np.argmax(h)
         arrivals[i] = t[max_idx]/60.
         max_heights[i] = h[max_idx]
 
-
+    return arrivals, max_heights
 
 
     # # if gauge file is together
@@ -83,6 +88,54 @@ def read_gauges(gauges):
     #     arrivals[i] = t[max_idx]/60.
     #     max_heights[i] = h[max_idx]
 
-    max_heights *= 2.5 # Amplification factor TODO
+    # The amplification factor will be accounted for in
+    # the function below
+    # max_heights *= 2.5 # Amplification factor
 
-    return arrivals, max_heights
+def calculate_probability(gauges): # gauges is list of gauge names, long, lat, dist in that order
+    arrivals, heights = read_gauges(gauges[:,0])
+
+    # First we calculate p for the arrivals
+    # Create probability distributions for each gauge and variable.
+    # Then, multiply together the probabilities of each output
+
+    # DEPRICATED
+    # p = 1.
+    arrival_params = np.load('output_dist.npy')[:len(arrivals)]
+    p = -sum(((arrivals - arrival_params[:,0])/arrival_params[:,1])**2)/2
+
+    # DEPRICATED
+    # for i, params in enumerate(arrival_params):
+    #     # Creates normal distribution with given params for each variable and
+    #     # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
+    #     # 3. ...
+    #     dist = stats.norm(params[0], params[1])
+    #     p_i = dist.pdf(arrivals[i])
+    #     p *= p_i
+
+    # Next, we calculate p for the heights, using the PMFData and
+    # PMF classes
+    amplification_data = np.load('amplification_data.npy')
+    row_header = amplification_data[:,0]
+    col_header = np.arange(len(amplification_data[0]) - 1)/4
+    pmfData = PMFData(row_header, col_header, amplification_data[:,1:])
+    # Integrate probability distributions for each gauge, using
+    # the PMF class and multiply together the probabilities
+    # with the previous p calculated above.
+    height_params = np.load('output_dist.npy')[len(arrivals):]
+    for i, params in enumerate(height_params):
+        # Creates PMF distribution integrated with normal distribution
+        # where the normal distribution is given from the gauge data
+        # in output_params.npy
+        pmf = pmfData.getPMF(gauges[i][3], heights[i]) # gauges[i][3] gets distance of that gauge
+        p_i = pmf.integrate(stats.norm(params[0], params[1]))
+        p += np.log(p_i) # Take Log-Likelihood
+
+    return p
+
+    # NOTE these are hints for how to run the code
+    # pmf = self.pmfData.getPMF(distance from shore, GeoClaw output)
+    # pmf.integrate(stats.norm(6,1)) where the stats.norm object is
+    #  the one that we use from the original gauge data on run up height
+    # #### I need to split up calculation to calculate arrival times
+    #   #### and wave heights separately
