@@ -1,6 +1,7 @@
 # Makes a histogram of geoclaw parameter
 import numpy as np
 from matplotlib import pyplot as plt
+import sys
 
 def make_hist(param, bins=30):
     """Make a histogram of an individual parameter with the specified number
@@ -24,6 +25,8 @@ def make_hist(param, bins=30):
     if param == 'all':
         for key in d.keys():
             make_hist(key, bins)
+    elif param not in d.keys():
+            print("Invalid parameter value.")
     else:
         column = d[param]
         A = np.load('samples.npy') # Must be in the same directory
@@ -34,6 +37,20 @@ def make_hist(param, bins=30):
         for i in range(len(freq)):
             L += ([values[i]]*int(freq[i]))
 
+        # Can add other things to the plot if desired, like x and y axis
+        # labels, etc.
         plt.hist(L, bins)
         plt.title(param)
         plt.show()
+
+if __name__ == "__main__":
+    # Can be set to any of the 9 parameters in the dictionary, or
+    # to "all"
+    param = sys.argv[1]
+    # initializes to 30 but can change if passed in second command line
+    # argument
+    bins = 30
+    if len(sys.argv) > 2:
+        bins = int(sys.argv[2])
+        
+    make_hist(param, bins)
