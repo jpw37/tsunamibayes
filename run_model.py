@@ -5,9 +5,23 @@ import maketopo as mt
 from scipy import stats
 import gauge
 import numpy as np
-# from pmf import PMFData, PMF
 
 class RunModel:
+    """
+    A class for running the model.
+
+    Attributes:
+        iterations (int): The number of iterations to run.
+        method (str): The method of sampling to use.
+            Can be one of the following:
+                'rw': Random walk method
+                'is': Independent sampler method
+        prior (2d array): Information on the prior distributions
+            of the parameters for making the draws.
+        output_params (2d array): Information on the distributions
+            of the arrival times and heights.
+        gauges (2d array): Specified gauge information.
+    """
     def __init__(self, iterations, method):
         self.iterations = iterations
         self.method = method
@@ -15,27 +29,17 @@ class RunModel:
         self.output_params = np.load('output_dist.npy')
         self.gauges = np.load('gauges.npy')
 
-        # NOTE I don't think I need this here
-        # amplification_data = np.load('amplification_data.npy')
-        # row_header = amplification_data[:,0]
-        # col_header = np.arange(len(data[0]) - 1)/4
-        # self.pmfData = PMFData(row_header, col_header, data[:,1:])
-
-        # pmf = self.pmfData.getPMF(distance from shore, GeoClaw output)
-        # pmf.integrate(stats.norm(6,1)) where the stats.norm object is
-        #  the one that we use from the original gauge data on run up height
-        # #### I need to split up calculation to calculate arrival times
-        #   #### and wave heights separately
-
-
-
-    # Run with independant sampling
     def independant_sampler_draw(self):
-        # Step 1
+        """
+        Draw with the independent sampling method, using the prior
+        to make each of the draws.
+
+        Returns:
+            draws (array): An array of the 9 parameter draws.
+        """
         # Load distribution parameters.
         params = self.prior
 
-        # Step 2
         # Take a random draw from the distributions for each parameter.
         # For now assume all are normal distributions.
         draws = []
@@ -46,8 +50,16 @@ class RunModel:
         print("independent sampler draw:", draws)
         return draws
 
-    # Run with random walk
     def random_walk_draw(self, u):
+        """
+        Draw with the random walk sampling method, using a multivariate_normal
+        distribution with the following specified std deviations to
+        get the distribution of the step size.
+
+        Returns:
+            draws (array): An array of the 9 parameter draws.
+        """
+        # Std deviations for each parameter, the mean is the current location
         strike = 1.
         length = 2.e3
         width = 2.e3
@@ -59,31 +71,35 @@ class RunModel:
         latitude = .25
         mean = np.zeros(9)
         cov = np.diag([strike, length, width, depth, slip, rake,
-                        dip, longitude, latitude])# random draw from normal distribution
+                        dip, longitude, latitude])
+        # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
         print("Random walk difference:", e)
         print("New draw:", u+e)
         return u + e
 
-
-
     def one_run(self):
+        """
+        Run the model one time all the way through.
+        """
+        # Clear previous files
         os.system('rm dtopo.tt3')
         os.system('rm dtopo.data')
 
+        # Draw new proposal
         if self.method == 'is':
             draws = self.independant_sampler_draw()
         elif self.method == 'rw':
             u = np.load('samples.npy')[0][:9]
             draws = self.random_walk_draw(u)
 
-        # Append draws and initialized p and w to samples.npy.
+        # Append draws and initialized p and w to samples.npy
         init_p_w = np.array([0,1])
         sample = np.hstack((draws, init_p_w))
         samples = np.vstack((np.load('samples.npy'), sample))
         np.save('samples.npy', samples)
 
-        # Run GeoClaw using draws.
+        # Run GeoClaw using draws
         mt.get_topo()
         mt.make_dtopo(draws)
 
@@ -91,20 +107,7 @@ class RunModel:
         os.system('make clobber')
         os.system('make .output')
 
-        # arrivals, heights = gauge.read_gauges(self.gauges[:,0])
-        #
-        # # Create probability distributions for each gauge and variable.
-        # # Then, multiply together the probabilities of each output
-        # arrivals_and_heights = np.hstack((arrivals, heights))
-        # p = 1.
-        # output_params = np.load('output_dist.npy')
-        # for i, params in enumerate(output_params):
-        #     # Creates normal distribution with given params for each variable and
-        #     # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
-        #     # 3. ..., n+1. max height of gauge1, n+2, max height of gauge2, ...
-        #     dist = stats.norm(params[0], params[1])
-        #     p_i = dist.pdf(arrivals_and_heights[i])
-        #     p *= p_i
+        # Compute log-likelihood of results
         p = gauge.calculate_probability(self.gauges)
 
         # Change entry in samples.npy
@@ -113,23 +116,25 @@ class RunModel:
 
         if self.method == 'is':
             # Find probability to accept new draw over the old draw.
-            accept_prob = min(np.exp(p-samples[0][-2]), 1) # Because it's log-likelihood
+            # Note we use np.exp(new - old) because it's the log-likelihood
+            accept_prob = min(np.exp(p-samples[0][-2]), 1)
 
         elif self.method == 'rw':
-            # prior_prob = 1.
-            # Log-Likelihood
+            # Log-Likelihood of prior
             new_prob = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
             old_prob = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
             prior_prob = new_prob - old_prob # Log-Likelihood
 
-            # DEPRICATED
+            # DEPRICATED (before changed to log-likelihood)
+            # prior_prob = 1.
             # for i, param in enumerate(self.prior):
             #     dist = stats.norm(param[0], param[1])
             #     new_prob = dist.pdf(samples[-1][i])
             #     old_prob = dist.pdf(samples[0][i])
             #     prior_prob *= (new_prob/old_prob)
 
-            accept_prob = min(1, np.exp(p-samples[0][-2]+prior_prob)) # Because log-likelihood
+            # Note we use np.exp(new - old) because it's the log-likelihood
+            accept_prob = min(1, np.exp(p-samples[0][-2]+prior_prob))
 
         # Increment wins. If new, change current 'best'.
         if np.random.random() < accept_prob: # Accept new
@@ -143,6 +148,9 @@ class RunModel:
 
 
     def run_model(self):
+        """
+        Run the model as many times as desired.
+        """
         for _ in range(self.iterations):
             self.one_run()
 

@@ -7,25 +7,25 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
-# from scipy import stats
 
 class Setup:
+    """
+    A class for setting up the GeoClaw run.
+    Attributes:
+        guesses (array): An array containing the initial guesses
+            for the earthquake parameters. Set in the make_input_files()
+            method and used in the initial run.
+    """
 
     def __init__(self):
         pass
 
     def make_input_files(self):
+        # TODO Add file_guide.txt
         """
         Initialize all necessary variables for a GeoClaw run using MCMC and
-        put them in their appropriate .npy files to be used later.
-        Specifically, initialize the following files:
-        * guesses.npy
-        * prior.npy
-        * samples.npy
-        * output_dist.npy
-        * gauges.npy
-        * model_bounds.txt
-        #TODO: add file_guide.txt
+        put them in their appropriate .npy and .txt files to be used later.
+        Specifically, initialize the files described in file_guide.txt.
         NOTE TO USER: Edit all of the marked variables to match the specific
         earthquake you would like to model.
         """
@@ -61,6 +61,7 @@ class Setup:
             slip_std, rake_std, dip_std, longitude_std, latitude_std])
 
         # Gauge information
+        # TODO Add functionality to accept more than just normal distributions
         # Add as many as you like, repeating this pattern to add new gauges.
         gauges = []
         # Set gauge values for gauge 1
@@ -93,7 +94,7 @@ class Setup:
 
         # Set gauge values for gauge 3 (if desired)
 
-        # latitude and longitude bounds
+        # latitude and longitude bounds (same as etopo file)
         xlower = 127.
         xupper = 134.5
         ylower = -7.5
@@ -107,6 +108,8 @@ class Setup:
 
         # Save files
         # Save means and stds for prior to prior.npy.
+        # TODO this will need to be modified for differently
+        # distributed priors
         means = self.guesses
         stds = np.array([strike_std, length_std, width_std, depth_std,
             slip_std, rake_std, dip_std, longitude_std, latitude_std])
@@ -127,10 +130,6 @@ class Setup:
         for gauge in gauges:
             output_params.append([gauge.height_mean, gauge.height_std])
         output_params = np.array(output_params)
-        # means = np.array([arrival1_mean, arrival2_mean, height1_mean, height2_mean])
-        # stds = np.array([arrival1_std, arrival2_std, height1_std, height2_std])
-        # output_params = np.vstack((means, stds))
-        # output_params = output_params.T
         np.save("output_dist.npy", output_params)
 
         # Save gauge names
@@ -152,7 +151,7 @@ class Setup:
 
     def run_once(self):
         """
-        Runs Geoclaw one time using the initial data given above.
+        Run Geoclaw one time using the initial data given above.
         (This initializes the samples.npy file for subsequent runs.)
         """
         os.system('rm dtopo.tt3')
@@ -167,21 +166,6 @@ class Setup:
         os.system('make .output')
 
         gauges = np.load('gauges.npy')
-
-        # arrivals, max_heights = gauge.read_gauges(gauges[:,0])
-        #
-        # # Create probability distributions for each gauge and variable.
-        # # Then, multiply together the probabilities of each output
-        # arrivals_and_heights = np.hstack((arrivals, max_heights))
-        # p = 1.
-        # output_params = np.load('output_dist.npy')
-        # for i, params in enumerate(output_params):
-        #     # Creates normal distribution with given params for each variable and
-        #     # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
-        #     # 3. ..., n+1. max height of gauge1, n+2, max height of gauge2, ...
-        #     dist = stats.norm(params[0], params[1])
-        #     p_i = dist.pdf(arrivals_and_heights[i])
-        #     p *= p_i
         p = gauge.calculate_probability(gauges)
 
         # Change entries in samples.npy
