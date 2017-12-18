@@ -71,7 +71,7 @@ class PMF:
             for i, val in enumerate(self.vals):
                 total += self.probs[i]*distrb.pdf(val)
             return total
-        elif type(distrb) == type(stats.chi():
+        elif type(distrb) == type(stats.chi()):
             total = 0
             for i, val in enumerate(self.vals):
                 total += self.probs[i]*distrb.pdf(val)
