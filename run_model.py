@@ -103,8 +103,9 @@ class RunModel:
         mt.get_topo()
         mt.make_dtopo(draws)
 
-        os.system('make clean')
-        os.system('make clobber')
+        #os.system('make clean')
+        #os.system('make clobber')
+        os.system('rm .output')
         os.system('make .output')
 
         # Compute log-likelihood of results
