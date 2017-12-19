@@ -1,6 +1,8 @@
 import sys
 from matplotlib import pyplot as plt
 import numpy as np
+import pandas
+from pandas.tools.plotting import scatter_matrix
 
 A = np.load('samples.npy') # Must be in the same directory
 d = dict()
@@ -94,6 +96,10 @@ def make_change_plot(param):
     add_axis_label(param, 'y')
     plt.title(param)
 
+def make_scatter_matrix():
+    df = pandas.DataFrame(data=A[1:,:-2],columns=d.keys())
+    scatter_matrix(df, alpha=0.2, diagonal="hist")
+
 def generate_subplots(kind, bins=30):
     if kind not in ["values", "change"]:
         print("{} is not a valid plot type.".format(kind))
@@ -115,6 +121,9 @@ def plot_stuff(param1, param2, kind, bins=30):
         generate_subplots(kind, bins)
     elif kind == "change":
         make_change_plot(param1)
+        plt.show()
+    elif param1 == "scatter_matrix":
+        make_scatter_matrix()
         plt.show()
     else:
         make_hist(param1, bins)
