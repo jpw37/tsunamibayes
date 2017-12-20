@@ -100,6 +100,19 @@ def make_scatter_matrix():
     df = pandas.DataFrame(data=A[1:,:-2],columns=d.keys())
     scatter_matrix(df, alpha=0.2, diagonal="hist")
 
+def make_correlations():
+    df = pandas.DataFrame(data=A[1:,:-2],columns=d.keys())
+    correlations = df.corr()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(correlations, vmin=-1, vmax=1)
+    fig.colorbar(cax)
+    ticks = numpy.arange(0,9,1)
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks)
+    ax.set_xticklabels(names)
+    ax.set_yticklabels(names)
+
 def generate_subplots(kind, bins=30):
     if kind not in ["values", "change"]:
         print("{} is not a valid plot type.".format(kind))
@@ -124,6 +137,9 @@ def plot_stuff(param1, param2, kind, bins=30):
         plt.show()
     elif param1 == "scatter_matrix":
         make_scatter_matrix()
+        plt.show()
+    elif param1 == "correlations":
+        make_correlations()
         plt.show()
     else:
         make_hist(param1, bins)
