@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas
 from pandas.tools.plotting import scatter_matrix
+import operator
 
 A = np.load('samples.npy') # Must be in the same directory
 d = dict()
@@ -97,17 +98,21 @@ def make_change_plot(param):
     plt.title(param)
 
 def make_scatter_matrix():
-    df = pandas.DataFrame(data=A[1:,:-2],columns=d.keys())
+    sorted_d = sorted(d.items(), key=operator.itemgetter(1))
+    names = [row[0] for row in sorted_d]
+    df = pandas.DataFrame(data=A[1:,:-2],columns=names)
     scatter_matrix(df, alpha=0.2, diagonal="hist")
 
 def make_correlations():
-    df = pandas.DataFrame(data=A[1:,:-2],columns=d.keys())
+    sorted_d = sorted(d.items(), key=operator.itemgetter(1))
+    names = [row[0] for row in sorted_d]
+    df = pandas.DataFrame(data=A[1:,:-2],columns=names)
     correlations = df.corr()
     fig = plt.figure()
     ax = fig.add_subplot(111)
     cax = ax.matshow(correlations, vmin=-1, vmax=1)
     fig.colorbar(cax)
-    ticks = numpy.arange(0,9,1)
+    ticks = np.arange(0,9,1)
     ax.set_xticks(ticks)
     ax.set_yticks(ticks)
     ax.set_xticklabels(names)
