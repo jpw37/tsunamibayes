@@ -152,6 +152,7 @@ def plot_stuff(param1, param2, kind, bins=30):
 
 
 if __name__ == "__main__":
+    # TODO Add flag to automatically generate .png files
     # Can be set to any of the 9 parameters in the dictionary, or
     # to "all"
     param1 = sys.argv[1]
