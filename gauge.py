@@ -8,24 +8,77 @@ class Gauge:
 
     Attributes:
         name (int): the name you wish to give the gauge (a 5 digit number).
-        arrival_mean (float): the mean value for the arrival time. (mins)
-        arrival_std (float): the standard deviation for arrival time.
-        height_mean (float): the mean for wave height. (m)
-        height_std (float): the standard deviation for wave height.
         longitude (float): the longitude location of the gauge.
         latitude (float): the latitude location of the gauge.
         distance (float): the distance from the gauge to shore. (km)
+        kind (list): the type of distribution to be used for the wave
+            arrival time and height respectively. ex: ['norm', 'chi2']
+        arrival_params (list): list of params for the arrival time distribution
+        height_params (list): list of params for the height distribution
+        arrival_dist (stats object): distribution of arrival time at gauge
+        height_dist (stats object): distribution of wave height at gauge
     """
-    def __init__(self, name, arrival_mean, arrival_std, height_mean,
-                    height_std, longitude, latitude, distance):
+    def __init__(self, name, longitude, latitude, distance,
+                    kind, arrival_params, height_params):
         self.name = name
-        self.arrival_mean = arrival_mean
-        self.arrival_std = arrival_std
-        self.height_mean = height_mean
-        self.height_std = height_std
         self.longitude = longitude
         self.latitude = latitude
         self.distance = distance
+        self.kind = kind
+        self.arrival_params = arrival_params
+        self.height_params = height_params
+
+        if name is not None: # Allows for None initialized object
+            if kind[0] == 'norm':
+                mean = arrival_params[0]
+                std = arrival_params[1]
+                self.arrival_dist = stats.norm(mean, std)
+            elif kind[0] == 'chi2':
+                k = arrival_params[0]
+                loc = arrival_params[1]
+                self.arrival_dist = stats.chi2(k, loc=loc)
+            elif kind[0] == 'skewnorm':
+                skew_param = arrival_params[0]
+                mean = arrival_params[1]
+                std = arrival_params[2]
+                self.arrival_dist = stats.skewnorm(skew_param, mean, std)
+
+            if kind[1] == 'norm':
+                mean = height_params[0]
+                std = height_params[1]
+                self.height_dist = stats.norm(mean, std)
+            elif kind[1] == 'chi2':
+                k = height_params[0]
+                loc = height_params[1]
+                self.height_dist = stats.chi2(k, loc=loc)
+            elif kind[2] == 'skewnorm':
+                skew_param = height_params[0]
+                mean = height_params[1]
+                std = height_params[2]
+                self.height_dist = stats.skewnorm(skew_param, mean, std)
+
+
+    def to_json(self):
+        """
+        Convert object to dict of attributes for json
+        """
+        d = dict()
+        d['name'] = self.name
+        d['longitude'] = self.longitude
+        d['latitude'] = self.latitude
+        d['distance'] = self.distance
+        d['kind'] = self.kind
+        d['arrival_params'] = self.arrival_params
+        d['height_params'] = self.height_params
+        return d
+
+    def from_json(self, d):
+        """
+        Converts from json file format into gauge object
+        """
+        self.__init__(d['name'], d['longitude'], d['latitude'],
+                        d['distance'], d['kind'], d['arrival_params'],
+                        d['height_params'])
 
 def read_gauges(gauges):
     """Read GeoClaw output and look for necessary conditions.
@@ -103,52 +156,62 @@ def read_gauges(gauges):
     # return arrivals, max_heights
 
 def calculate_probability(gauges):
-    # TODO Change this so gauges is a list of Gauge objects?
     """
     Calculate the log-likelihood of the data at each of the gauges
     based on our chosen distributions for maximum wave heights and
     arrival times. Return the sum of these log-likelihoods.
 
     Parameters:
-        gauges (2d array): A 2d array where each row represents a
-            different gauge and contains the following information:
-            gauge name, longitude, latitude, and distance from shore
-            in that order.
+        gauges (list): A list of gauge objects
     Returns:
         p (float): The sum of the log-likelihoods of the data of each
             gauge in gauges.
     """
-    arrivals, heights = read_gauges(gauges[:,0])
+    names = []
+    for gauge in gauges:
+        names.append(gauge.name)
+    arrivals, heights = read_gauges(names)
 
-    # Calculate p for the arrivals first
-    arrival_params = np.load('output_dist.npy')[:len(arrivals)]
-    p = -sum(((arrivals - arrival_params[:,0])/arrival_params[:,1])**2)/2
-
-    # DEPRICATED (from before it was log-likelihood)
-    # p = 1.
-    # for i, params in enumerate(arrival_params):
-    #     # Creates normal distribution with given params for each variable and
-    #     # gauge, in this order: 1. arrival of gauge1, 2. arrival of gauge2,
-    #     # 3. ...
-    #     dist = stats.norm(params[0], params[1])
-    #     p_i = dist.pdf(arrivals[i])
-    #     p *= p_i
-
+    # Calculate p for the arrivals and heights
+    p = 0. # init p
     # Calculate p for the heights, using the PMFData and PMF classes
     amplification_data = np.load('amplification_data.npy')
     row_header = amplification_data[:,0]
     col_header = np.arange(len(amplification_data[0]) - 1)/4
     pmfData = PMFData(row_header, col_header, amplification_data[:,1:])
-    # Integrate probability distributions for each gauge, using
-    # the PMF class and add together the log-likelihoods
-    # with the previous p calculated above.
-    height_params = np.load('output_dist.npy')[len(arrivals):]
-    for i, params in enumerate(height_params):
-        # Creates PMF distribution integrated with normal distribution
-        # where the normal distribution is given from the gauge data
-        # in output_params.npy
-        pmf = pmfData.getPMF(gauges[i][3], heights[i])
-        p_i = pmf.integrate(stats.norm(params[0], params[1]))
-        p += np.log(p_i) # Take Log-Likelihood
+    for i, gauge in enumerate(gauges):
+        # arrivals
+        p += np.log(gauge.arrival_dist.pdf(arrivals[i]))
+
+        # heights
+        pmf = pmfData.getPMF(gauge.distance, heights[i])
+        p_i = pmf.integrate(gauge.height_dist)
+        p += np.log(p_i)
 
     return p
+
+
+    # DEPRICATED
+    # arrival_params = np.load('output_dist.npy')[:len(arrivals)]
+    #
+    # p = -sum(((arrivals - arrival_params[:,0])/arrival_params[:,1])**2)/2
+    #
+    #
+    # # Calculate p for the heights, using the PMFData and PMF classes
+    # amplification_data = np.load('amplification_data.npy')
+    # row_header = amplification_data[:,0]
+    # col_header = np.arange(len(amplification_data[0]) - 1)/4
+    # pmfData = PMFData(row_header, col_header, amplification_data[:,1:])
+    # # Integrate probability distributions for each gauge, using
+    # # the PMF class and add together the log-likelihoods
+    # # with the previous p calculated above.
+    # height_params = np.load('output_dist.npy')[len(arrivals):]
+    # for i, params in enumerate(height_params):
+    #     # Creates PMF distribution integrated with normal distribution
+    #     # where the normal distribution is given from the gauge data
+    #     # in output_params.npy
+    #     pmf = pmfData.getPMF(gauges[i][3], heights[i])
+    #     p_i = pmf.integrate(stats.norm(params[0], params[1]))
+    #     p += np.log(p_i) # Take Log-Likelihood
+    #
+    # return p

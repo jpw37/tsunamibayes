@@ -5,6 +5,8 @@ import maketopo as mt
 from scipy import stats
 import gauge
 import numpy as np
+import json
+from gauge import Gauge
 
 class RunModel:
     """
@@ -18,16 +20,21 @@ class RunModel:
                 'is': Independent sampler method
         prior (2d array): Information on the prior distributions
             of the parameters for making the draws.
-        output_params (2d array): Information on the distributions
-            of the arrival times and heights.
-        gauges (2d array): Specified gauge information.
+        gauges (list): List of gauge objects.
     """
     def __init__(self, iterations, method):
         self.iterations = iterations
         self.method = method
         self.prior = np.load('prior.npy')
-        self.output_params = np.load('output_dist.npy')
-        self.gauges = np.load('gauges.npy')
+
+        with open('gauges.txt') as json_file:
+            gauges_json = json.load(json_file)
+        gauges = []
+        for g in gauges_json:
+            G = Gauge(None, None, None, None, None, None, None)
+            G.from_json(g)
+            gauges.append(G)
+        self.gauges = gauges
 
     def independant_sampler_draw(self):
         """
@@ -60,15 +67,15 @@ class RunModel:
             draws (array): An array of the 9 parameter draws.
         """
         # Std deviations for each parameter, the mean is the current location
-        strike = 1.
-        length = 2.e3
-        width = 2.e3
-        depth = .2
-        slip = 2.
-        rake = 1.
-        dip = .5
-        longitude = .25
-        latitude = .25
+        strike = .375
+        length = 4.e3
+        width = 3.e3
+        depth = .1875
+        slip = .01
+        rake = .25
+        dip = .0875
+        longitude = .025
+        latitude = .01875
         mean = np.zeros(9)
         cov = np.diag([strike, length, width, depth, slip, rake,
                         dip, longitude, latitude])

@@ -346,10 +346,11 @@ def setrun(claw_pkg='geoclaw'):
     # ---------------
     rundata.gaugedata.gauges = []
     # for gauges append lines of the form  [gaugeno, x, y, t1, t2]
-    my_gauges = np.load('gauges.npy')
-    for my_gauge in my_gauges:
-        rundata.gaugedata.gauges.append([int(my_gauge[0]), my_gauge[1],
-                                            my_gauge[2], 0., 1.e10])
+    with open('gauges.txt') as json_file:
+        gauges_json = json.load(json_file)
+    for my_gauge in gauges_json:
+        rundata.gaugedata.gauges.append([int(my_gauge['name']), my_gauge['longitude'],
+                                            my_gauge['latitude'], 0., 1.e10])
     #rundata.gaugedata.gauges.append([32412, -86.392, -17.975, 0., 1.e10])
 
 

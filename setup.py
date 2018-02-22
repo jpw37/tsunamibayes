@@ -32,76 +32,128 @@ class Setup:
         # Change the following variables
         #####
         # initial guesses (mean for prior if using normal distribution)
-        strike = 205.0
-        length = 270.e3
-        width = 80.e3
+        strike = 180. # 205.0
+        length = 1200.e3
+        width = 310.e3
         depth = 20.0
-        slip = 9.
-        rake = 90.
+        slip = 15. # 9.
+        rake = 70. # 90.
         dip = 15.
-        longitude = 132.4
-        latitude = -6.485
+        longitude = 119.846021 # 132.4
+        latitude = -6.195083
         self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
             longitude, latitude])
         np.save("guesses.npy", self.guesses)
 
         # Parameters for priors
         # Standard deviations
-        strike_std = 10.
-        length_std = 33.e3
-        width_std = 15.e3
-        depth_std = 3.3
+        strike_std = 7.5
+        length_std = 75.e3
+        width_std = 60.e3
+        depth_std = 3.75
         slip_std = 2.
-        rake_std = 3.
-        dip_std = 1.6
-        longitude_std = .27
-        latitude_std = .6
+        rake_std = 5.
+        dip_std = 1.75
+        longitude_std = .5
+        latitude_std = .375
         means = self.guesses
         stds = np.array([strike_std, length_std, width_std, depth_std,
             slip_std, rake_std, dip_std, longitude_std, latitude_std])
 
         # Gauge information
-        # TODO Add functionality to accept more than just normal distributions
         # Add as many as you like, repeating this pattern to add new gauges.
         gauges = []
         # Set gauge values for gauge 1
-        name1 = 10000
-        arrival_mean1 = 17.5 # in minutes
-        arrival_std1 = 2.
-        height_mean1 = 8. # in meters
-        height_std1 = 2.
-        longitude1 = 129.98
-        latitude1 = -4.54
-        distance1 = 2 # in kilometers (max 5)
+        name = 10000 # BULUKUMBA (Terang-Terang)
+        longitude = 120.205664
+        latitude = -5.571685
+        distance = 2.5 # in kilometers (max 5)
+        # normal distribution for arrival and height, respectively
+        # (also accepts chi2 and skewnorm)
+        kind = ['norm', 'norm']
 
-        gauge1 = Gauge(name1, arrival_mean1, arrival_std1, height_mean1,
-                        height_std1, longitude1, latitude1, distance1)
-        gauges.append(gauge1)
+        # For kind = 'norm'
+        arrival_mean = 30 # in minutes
+        arrival_std = 6.
+        height_mean = 20. # in meters
+        height_std = 1.5
+        arrival_params = [arrival_mean, arrival_std]
+        height_params = [height_mean, height_std]
+
+        # For kind = 'chi2'
+        arrival_k = None # chi2 parameter
+        arrival_lower_bound = None # in meters
+        height_k = None # chi2 param
+        height_lower_bound = None # in meters
+        # arrival_params = [arrival_k, arrival_lower_bound]
+        # height_params = [height_k, height_lower_bound]
+
+        # For kind = 'skewnorm'
+        arrival_skew_param = None
+        arrival_mean = None # in minutes
+        arrival_std = None
+        height_skew_param = None
+        height_mean = None # in meters
+        height_std = None
+        # arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
+        # height_params = [height_skew_param, height_mean, height_std]
+
+        g = Gauge(name, longitude, latitude, distance,
+                        kind, arrival_params, height_params)
+        gauges.append(g.to_json())
+
 
         # Set gauge values for gauge 2
-        name2 = 10010
-        arrival_mean2 = 60.
-        arrival_std2 = 5.
-        height_mean2 = 1.8
-        height_std2 = .2
-        longitude2 = 128.667
-        latitude2 = -3.667
-        distance2 = 2 # in kilometers (max 5)
+        name = 10010 # Bima
+        longitude = 118.709077
+        latitude = -8.335202
+        distance = 5 # in kilometers (max 5)
+        # normal distribution for arrival and height, respectively
+        # (also accepts chi2 and skewnorm)
+        kind = ['norm', 'chi2']
 
-        gauge2 = Gauge(name2, arrival_mean2, arrival_std2, height_mean2,
-                        height_std2, longitude2, latitude2, distance2)
-        gauges.append(gauge2)
+        # For kind = 'norm'
+        arrival_mean = 30. # in minutes
+        arrival_std = 6.
+        height_mean = None # in meters
+        height_std = None
+        arrival_params = [arrival_mean, arrival_std]
+        # height_params = [height_mean, height_std]
 
-        # Set gauge values for gauge 3 (if desired)
+        # For kind = 'chi2'
+        arrival_k = None # chi2 parameter
+        arrival_lower_bound = None # in meters
+        height_k = 5 # chi2 param
+        height_lower_bound = 4 # in meters
+        # arrival_params = [arrival_k, arrival_lower_bound]
+        height_params = [height_k, height_lower_bound]
+
+        # For kind = 'skewnorm'
+        arrival_skew_param = None
+        arrival_mean = None # in minutes
+        arrival_std = None
+        height_skew_param = None
+        height_mean = None # in meters
+        height_std = None
+        # arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
+        # height_params = [height_skew_param, height_mean, height_std]
+
+        g = Gauge(name, longitude, latitude, distance,
+                        kind, arrival_params, height_params)
+        gauges.append(g.to_json())
+
+
+        # Set gauge values for gauge 3 following pattern
+        # as set out above (if desired)
 
         # latitude and longitude bounds (same as etopo file)
-        xlower = 127.
-        xupper = 134.5
-        ylower = -7.5
-        yupper = -2.5
+        xlower = 117.35
+        xupper = 122.35
+        ylower = -8.5
+        yupper = -4.32
 
         # Length of time to run the model (in minutes)
-        time = 90.0
+        time = 60.0
 
         #############################
         # DO NOT MODIFY BEYOND THIS POINT
@@ -123,21 +175,26 @@ class Setup:
         sample = np.vstack((sample, sample))
         np.save("samples.npy", sample)
 
-        # Save gauges to output_dist.npy.
-        output_params = []
-        for gauge in gauges:
-            output_params.append([gauge.arrival_mean, gauge.arrival_std])
-        for gauge in gauges:
-            output_params.append([gauge.height_mean, gauge.height_std])
-        output_params = np.array(output_params)
-        np.save("output_dist.npy", output_params)
+        # Save gauges to gauges.txt
+        self.gauges = gauges
+        with open('gauges.txt', 'w') as outfile:
+            json.dump(gauges, outfile)
 
-        # Save gauge names
-        gauge_names = []
-        for gauge in gauges:
-            gauge_names.append([gauge.name, gauge.longitude,
-                                gauge.latitude, gauge.distance])
-        np.save("gauges.npy", np.array(gauge_names))
+        # DEPRICATED
+        # output_params = []
+        # for gauge in gauges:
+        #     output_params.append([gauge.arrival_mean, gauge.arrival_std])
+        # for gauge in gauges:
+        #     output_params.append([gauge.height_mean, gauge.height_std])
+        # output_params = np.array(output_params)
+        # np.save("output_dist.npy", output_params)
+        #
+        # # Save gauge names
+        # gauge_names = []
+        # for gauge in gauges:
+        #     gauge_names.append([gauge.name, gauge.longitude,
+        #                         gauge.latitude, gauge.distance])
+        # np.save("gauges.npy", np.array(gauge_names))
 
         # Save latitude and longitude bounds and time to run model
         data = dict()
@@ -165,8 +222,12 @@ class Setup:
         os.system('make clobber')
         os.system('make .output')
 
-        gauges = np.load('gauges.npy')
-        p = gauge.calculate_probability(gauges)
+        gauges_ = []
+        for g in self.gauges:
+            G = Gauge(None, None, None, None, None, None, None)
+            G.from_json(g)
+            gauges_.append(G)
+        p = gauge.calculate_probability(gauges_)
 
         # Change entries in samples.npy
         samples = np.load('samples.npy')
