@@ -7,6 +7,7 @@ import gauge
 import numpy as np
 import json
 from gauge import Gauge
+from build_priors import build_priors
 
 class RunModel:
     """
@@ -25,7 +26,7 @@ class RunModel:
     def __init__(self, iterations, method):
         self.iterations = iterations
         self.method = method
-        self.prior = np.load('prior.npy')
+        self.priors = build_priors()
 
         with open('gauges.txt') as json_file:
             gauges_json = json.load(json_file)
@@ -35,7 +36,9 @@ class RunModel:
             G.from_json(g)
             gauges.append(G)
         self.gauges = gauges
-
+        
+        
+    """ DEPRECIATED
     def independant_sampler_draw(self):
         """
         Draw with the independent sampling method, using the prior
@@ -56,7 +59,7 @@ class RunModel:
         draws = np.array(draws)
         print("independent sampler draw:", draws)
         return draws
-
+    """
     def random_walk_draw(self, u):
         """
         Draw with the random walk sampling method, using a multivariate_normal
@@ -128,9 +131,17 @@ class RunModel:
             accept_prob = min(np.exp(p-samples[0][-2]), 1)
 
         elif self.method == 'rw':
-            # Log-Likelihood of prior
+            new_prob = self.priors[0].logpdf(samples[-1,[7,8,0]])
+            new_prob += self.priors[1].logpdf(samples[-1,[6,5,3]])
+            new_prob += self.priors[2].logpdf(samples[-1,[1,2,4]])
+            old_prob = self.priors[0].logpdf(samples[0,[7,8,0]])
+            old_prob += self.priors[1].logpdf(samples[0,[6,5,3]])
+            old_prob += self.priors[2].logpdf(samples[0,[1,2,4]])
+            #DEPRICATED
+            """# Log-Likelihood of prior
             new_prob = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
             old_prob = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
+            """
             prior_prob = new_prob - old_prob # Log-Likelihood
 
             # DEPRICATED (before changed to log-likelihood)
