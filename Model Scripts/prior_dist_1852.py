@@ -1,5 +1,6 @@
 from gauge import Gauge
 
+#This is used to load all the priors from 1852 into the setup.py file
 
 def load_priors():
     gauges = []
