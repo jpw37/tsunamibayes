@@ -51,7 +51,7 @@ class Gauge:
                 k = height_params[0]
                 loc = height_params[1]
                 self.height_dist = stats.chi2(k, loc=loc)
-            elif kind[2] == 'skewnorm':
+            elif kind[1] == 'skewnorm':
                 skew_param = height_params[0]
                 mean = height_params[1]
                 std = height_params[2]
