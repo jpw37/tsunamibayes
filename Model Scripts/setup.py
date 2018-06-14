@@ -150,7 +150,6 @@ class Setup:
         # gauges = load_priors()
 
 
-
         # Set gauge values for gauge 3 following pattern
         # as set out above (if desired)
 

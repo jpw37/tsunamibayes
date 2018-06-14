@@ -19,7 +19,7 @@ class Gauge:
         height_dist (stats object): distribution of wave height at gauge
     """
     def __init__(self, name, longitude, latitude, distance,
-                    kind, arrival_params, height_params,beta,n):
+                    kind, arrival_params, height_params, beta, n):
         self.name = name
         self.longitude = longitude
         self.latitude = latitude
