@@ -6,7 +6,7 @@ def load_priors():
     gauges = []
 
 #GAUGE 1_____________Water Height______________
-
+    city_name = 'Pulu Ai - Wichmann'
     name = 10000 # Pulu Ai - Wichmann
     longitude = -4.517863
     latitude = 129.7745653
@@ -24,12 +24,13 @@ def load_priors():
     n = 0
 
     g = Gauge(name, longitude, latitude, distance,
-                    kind, arrival_params, height_params, beta, n)
+                    kind, arrival_params, height_params, beta, n, city_name)
     gauges.append(g.to_json())
 
 
 #GAUGE 2_____________Water Height______________
-    name = 10000 # Ambonia - Wichmann
+    city_name = 'Ambonia - Wichmann'
+    name = 10000
     longitude = -3.693521
     latitude = 128.175538
     distance = 2.5 # in kilometers (max 5) //TODO Not sure what this is??
@@ -46,11 +47,12 @@ def load_priors():
     n = 0
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params, beta, n)
+              kind, arrival_params, height_params, beta, n, city_name)
     gauges.append(g.to_json())
 
 # GAUGE 3___________Water Height________________
-    name = 10000  # Banda Neira
+    city_name = 'Banda Neira'
+    name = 10000  #
     longitude = -4.529905
     latitude = 129.897376
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -65,11 +67,12 @@ def load_priors():
     height_params = [height_mean, height_std]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params, beta, n)
+              kind, arrival_params, height_params, beta, n, city_name)
     gauges.append(g.to_json())
 
 # GAUGE 4____________Water Height_______________
-    name = 10000  # PULAU BURU
+    city_name = 'PULAU BURU'
+    name = 10000  #
     longitude = -3.848928
     latitude = 126.733678
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -84,11 +87,12 @@ def load_priors():
     height_params = [height_k, height_lower_bound]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params, beta, n)
+              kind, arrival_params, height_params, beta, n, city_name)
     gauges.append(g.to_json())
 
 # GAUGE 5___________Water Height________________
-    name = 10000  # Saparua
+    city_name = 'Saparua'
+    name = 10000  #
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -103,15 +107,16 @@ def load_priors():
     height_params = [height_mean, height_std]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params, beta, n)
+              kind, arrival_params, height_params, beta, n, city_name)
     gauges.append(g.to_json())
 
 # GAUGE 6___________Inundation________________
-    name = 10000  # Suparua - Wichmann
-    longitude = -3.576063
-    latitude = 128.658715
-    distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['norm', 'norm']
+#     city_name = 'Suparua - Wichmann'
+#     name = 10000  # Suparua - Wichmann
+#     longitude = -3.576063
+#     latitude = 128.658715
+#     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
+#     kind = ['norm', 'norm']
 
     # mean = 123.44
     # var = .185806  # meters squared
@@ -120,16 +125,17 @@ def load_priors():
 
 
     # g = Gauge(name, longitude, latitude, distance,
-    #           kind, arrival_params, height_params, beta, n)
+    #           kind, arrival_params, height_params, beta, n, city_name)
     # gauges.append(g.to_json())
 
 
 # GAUGE 7___________Inundation_________________
-    name = 10000  #  Banda Neira - Wichmann
-    longitude = -4.529905
-    latitude = 129.897376
-    distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['norm', 'norm']
+#     city_name = 'Banda Neira - Wichmann'
+#     name = 10000  #
+#     longitude = -4.529905
+#     latitude = 129.897376
+#     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
+#     kind = ['norm', 'norm']
 
     # mean = 231
     # var = 85
@@ -142,11 +148,12 @@ def load_priors():
     # gauges.append(g.to_json())
 
 # GAUGE 8___________Inundation_________________
-    name = 10000  # Lonthor - Wichmann
-    longitude = -3.576063
-    latitude = 128.658715
-    distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['norm', 'norm']
+#     city_name = 'Lonthor - Wichmann'
+#     name = 10000  #
+#     longitude = -3.576063
+#     latitude = 128.658715
+#     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
+#     kind = ['norm', 'norm']
 
     # mean = 20
     # var = 5
@@ -156,12 +163,13 @@ def load_priors():
 
 
     # g = Gauge(name, longitude, latitude, distance,
-    #           kind, arrival_params, height_params, beta, n)
+    #           kind, arrival_params, height_params, beta, n, city_name)
     # gauges.append(g.to_json())
 
 
 # GAUGE 9___________Arrival Time_________________
-    name = 10000  # Banda Neira - Wichmann
+    city_name = 'Banda Neira  - Wichmann'
+    name = 10000
     longitude = -4.529905
     latitude = 129.897376
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -180,12 +188,13 @@ def load_priors():
 
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params, beta, n)
+              kind, arrival_params, height_params, beta, n, city_name)
     gauges.append(g.to_json())
 
 
 # GAUGE 10___________Arrival Time________________
-    name = 10000  # Pulau Saparua - Wichmann
+    city_name = 'Pulau Saparua  - Wichmann'
+    name = 10000
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -202,7 +211,7 @@ def load_priors():
     height_params = [height_skew_param, height_mean, height_std]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params, beta, n)
+              kind, arrival_params, height_params, beta, n, city_name)
     gauges.append(g.to_json())
 
 
@@ -210,7 +219,8 @@ def load_priors():
     # ---------------------------------------------------------------------
     # THIS IS THE AMBONIA OBSERVATION THAT WE ARE OMITTING FROM THIS RUN.
     # ---------------------------------------------------------------------
-    # name = 10000  #  Pulau Ambon (Ambonia) - Whichmann
+    # city_name = 'Pulau Ambon (Ambonia) - Whichmann'
+    # name = 10000  #
     # longitude = -4.517863
     # latitude = 129.7745653
     # distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -225,7 +235,7 @@ def load_priors():
     # height_params = [height_k, height_lower_bound]
     #
     # g = Gauge(name, longitude, latitude, distance,
-    #           kind, arrival_params, height_params, beta, n)
+    #           kind, arrival_params, height_params, beta, n, city_name)
     # gauges.append(g.to_json())
 
 
