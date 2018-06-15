@@ -5,7 +5,7 @@ def load_priors():
     gauges = []
 
 #GAUGE 1_____________Water Height______________
-    
+
     name = 10000 # Pulu Ai - Wichmann
     longitude = -4.517863
     latitude = 129.7745653
