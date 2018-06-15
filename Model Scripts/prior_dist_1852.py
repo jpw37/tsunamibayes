@@ -8,7 +8,7 @@ def load_priors():
 
 #GAUGE 1_____________Water Height______________
     city_name = 'Pulu Ai - Wichmann'
-    name = 10000 # Pulu Ai - Wichmann
+    name = 10001 # Pulu Ai - Wichmann
     longitude = -4.517863
     latitude = 129.7745653
     distance = 2.5 # in kilometers (max 5) //TODO Not sure what this is??
@@ -35,7 +35,7 @@ def load_priors():
 
 #GAUGE 2_____________Water Height______________
     city_name = 'Ambonia - Wichmann'
-    name = 10000
+    name = 10002
     longitude = -3.693521
     latitude = 128.175538
     distance = 2.5 # in kilometers (max 5) //TODO Not sure what this is??
@@ -60,7 +60,7 @@ def load_priors():
 
 # GAUGE 3___________Water Height________________
     city_name = 'Banda Neira - Tsunami Catalog'
-    name = 10000  #
+    name = 10003  #
     longitude = -4.529905
     latitude = 129.897376
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -85,7 +85,7 @@ def load_priors():
 
 # GAUGE 4____________Water Height_______________
     city_name = 'PULAU BURU - Wichmann Catalog'
-    name = 10000  #
+    name = 10004  #
     longitude = -3.848928
     latitude = 126.733678
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -111,7 +111,7 @@ def load_priors():
 
 # GAUGE 5___________Water Height________________
     city_name = 'Saparua - Wichmann Catalog'
-    name = 10000  #
+    name = 10005  #
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -136,7 +136,7 @@ def load_priors():
 
 # GAUGE 6___________Inundation________________
     city_name = 'Suparua - Wichmann'
-    name = 10000  # Suparua - Wichmann
+    name = 10006  # Suparua - Wichmann
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -163,7 +163,7 @@ def load_priors():
 
 # GAUGE 7___________Inundation_________________
     city_name = 'Banda Neira - Wichmann'
-    name = 10000  #
+    name = 10007  #
     longitude = -4.529905
     latitude = 129.897376
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -192,7 +192,7 @@ def load_priors():
 
 # GAUGE 8___________Inundation_________________
     city_name = 'Lonthor - Wichmann'
-    name = 10000  #
+    name = 10008  #
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -223,7 +223,7 @@ def load_priors():
 
 # GAUGE 9___________Arrival Time_________________
     city_name = 'Banda Neira  - Wichmann'
-    name = 10000
+    name = 10009
     longitude = -4.529905
     latitude = 129.897376
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -254,7 +254,7 @@ def load_priors():
 
 # GAUGE 10___________Arrival Time________________
     city_name = 'Pulau Saparua  - Wichmann'
-    name = 10000
+    name = 10010
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -286,7 +286,7 @@ def load_priors():
     # THIS IS THE AMBONIA OBSERVATION THAT WE ARE OMITTING FROM THIS RUN.
     # ---------------------------------------------------------------------
     # city_name = 'Pulau Ambon (Ambonia) - Whichmann'
-    # name = 10000  #
+    # name = 10011  #
     # longitude = -4.517863
     # latitude = 129.7745653
     # distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
@@ -309,6 +309,8 @@ def load_priors():
     #     g = Gauge(name, longitude, latitude, distance,
     #               kind, arrival_params, height_params, inundation_params, beta, n, city_name)
     #     gauges.append(g.to_json())
+
+    return gauges
 
 
 # _______________Examples of What Goes In The Gauge____________________
@@ -350,12 +352,11 @@ def load_priors():
     # inundation_std = None
     # inundation_params = [inundation_skew_param, inundation_mean, inundation_std]
 
-    return gauges
+#TESTING:
 
-gauges = load_priors()
+# gauges = load_priors()
 
 # for gauge in gauges:
 #     print(gauge)
 
-
-print(calculate_probability(gauges))
+# print(calculate_probability(gauges))
