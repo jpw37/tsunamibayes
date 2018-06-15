@@ -5,11 +5,12 @@ def load_priors():
     gauges = []
 
 #GAUGE 1_____________Water Height______________
+    
     name = 10000 # Pulu Ai - Wichmann
     longitude = -4.517863
     latitude = 129.7745653
     distance = 2.5 # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['norm', 'norm']
+    kind = [None, 'norm']
 
     # For kind = 'norm'
     arrival_mean = None # in minutes
@@ -18,9 +19,11 @@ def load_priors():
     height_std =  0.2
     arrival_params = [arrival_mean, arrival_std]
     height_params = [height_mean, height_std]
+    beta = 0
+    n = 0
 
     g = Gauge(name, longitude, latitude, distance,
-                    kind, arrival_params, height_params) #, beta, n)
+                    kind, arrival_params, height_params, beta, n)
     gauges.append(g.to_json())
 
 
@@ -29,7 +32,7 @@ def load_priors():
     longitude = -3.693521
     latitude = 128.175538
     distance = 2.5 # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['norm', 'norm']
+    kind = [None, 'norm']
 
     # For kind = 'norm'
     arrival_mean = None  # in minutes
@@ -38,9 +41,11 @@ def load_priors():
     height_std = 0.1
     arrival_params = [arrival_mean, arrival_std]
     height_params = [height_mean, height_std]
+    beta = 0
+    n = 0
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params)  # , beta, n)
+              kind, arrival_params, height_params, beta, n)
     gauges.append(g.to_json())
 
 # GAUGE 3___________Water Height________________
@@ -48,7 +53,7 @@ def load_priors():
     longitude = -4.529905
     latitude = 129.897376
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['norm', 'norm']
+    kind = [None, 'norm']
 
     # For kind = 'norm'
     arrival_mean = None  # in minutes
@@ -59,7 +64,7 @@ def load_priors():
     height_params = [height_mean, height_std]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params)  # , beta, n)
+              kind, arrival_params, height_params, beta, n)
     gauges.append(g.to_json())
 
 # GAUGE 4____________Water Height_______________
@@ -67,7 +72,7 @@ def load_priors():
     longitude = -3.848928
     latitude = 126.733678
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['chi2', 'chi2']
+    kind = [None, 'chi2']
 
     # For kind = 'chi2'
     arrival_k = None # chi2 parameter
@@ -78,7 +83,7 @@ def load_priors():
     height_params = [height_k, height_lower_bound]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params)  # , beta, n)
+              kind, arrival_params, height_params, beta, n)
     gauges.append(g.to_json())
 
 # GAUGE 5___________Water Height________________
@@ -86,7 +91,7 @@ def load_priors():
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['norm', 'norm']
+    kind = [None, 'norm']
 
     # For kind = 'norm'
     arrival_mean = None  # in minutes
@@ -97,7 +102,7 @@ def load_priors():
     height_params = [height_mean, height_std]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params)  # , beta, n)
+              kind, arrival_params, height_params, beta, n)
     gauges.append(g.to_json())
 
 # GAUGE 6___________Inundation________________
@@ -114,7 +119,7 @@ def load_priors():
 
 
     # g = Gauge(name, longitude, latitude, distance,
-    #           kind, arrival_params, height_params)  # , beta, n)
+    #           kind, arrival_params, height_params, beta, n)
     # gauges.append(g.to_json())
 
 
@@ -132,7 +137,7 @@ def load_priors():
     # TODO Not sure how the inundation is factored in to the guages -no previous examples
 
     # g = Gauge(name, longitude, latitude, distance,
-    #           kind, arrival_params, height_params)  # , beta, n)
+    #           kind, arrival_params, height_params, beta, n)
     # gauges.append(g.to_json())
 
 # GAUGE 8___________Inundation_________________
@@ -150,7 +155,7 @@ def load_priors():
 
 
     # g = Gauge(name, longitude, latitude, distance,
-    #           kind, arrival_params, height_params)  # , beta, n)
+    #           kind, arrival_params, height_params, beta, n)
     # gauges.append(g.to_json())
 
 
@@ -159,7 +164,7 @@ def load_priors():
     longitude = -4.529905
     latitude = 129.897376
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['skewnorm', 'skewnorm']
+    kind = ['skewnorm', None]
 
 
     # For kind = 'skewnorm'
@@ -174,7 +179,7 @@ def load_priors():
 
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params)  # , beta, n)
+              kind, arrival_params, height_params, beta, n)
     gauges.append(g.to_json())
 
 
@@ -183,7 +188,7 @@ def load_priors():
     longitude = -3.576063
     latitude = 128.658715
     distance = 2.5  # in kilometers (max 5) //TODO Not sure what this is??
-    kind = ['skewnorm', 'skewnorm']
+    kind = ['skewnorm', None]
 
     # For kind = 'skewnorm'
     arrival_skew_param = 3.5
@@ -196,7 +201,7 @@ def load_priors():
     height_params = [height_skew_param, height_mean, height_std]
 
     g = Gauge(name, longitude, latitude, distance,
-              kind, arrival_params, height_params)  # , beta, n)
+              kind, arrival_params, height_params, beta, n)
     gauges.append(g.to_json())
 
 
@@ -219,7 +224,7 @@ def load_priors():
     # height_params = [height_k, height_lower_bound]
     #
     # g = Gauge(name, longitude, latitude, distance,
-    #           kind, arrival_params, height_params)  # , beta, n)
+    #           kind, arrival_params, height_params, beta, n)
     # gauges.append(g.to_json())
 
 
@@ -253,5 +258,7 @@ def load_priors():
 
     return gauges
 
+priors = load_priors()
 
-print(load_priors())
+for prior in priors:
+    print(prior)
