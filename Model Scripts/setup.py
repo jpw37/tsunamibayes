@@ -144,8 +144,6 @@ class Setup:
         #                 kind, arrival_params, height_params)
         # gauges.append(g.to_json())
 
-        #TODO Comment lines of code above out, uncomment this line:
-
         #Returns a list of gauges for the 1852 Priors
         gauges = load_priors()
         # print(gauges)
