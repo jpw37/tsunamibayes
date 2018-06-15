@@ -40,13 +40,13 @@ class RunModel:
         
     """ DEPRECIATED
     def independant_sampler_draw(self):
-        """
+        
         Draw with the independent sampling method, using the prior
         to make each of the draws.
 
         Returns:
             draws (array): An array of the 9 parameter draws.
-        """
+        
         # Load distribution parameters.
         params = self.prior
 
