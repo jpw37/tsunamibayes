@@ -7,6 +7,8 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
+from prior_dist_1852 import load_priors
+
 
 class Setup:
     """
@@ -99,7 +101,7 @@ class Setup:
         # height_params = [height_skew_param, height_mean, height_std]
 
         g = Gauge(name, longitude, latitude, distance,
-                        kind, arrival_params, height_params)
+                        kind, arrival_params, height_params) #, beta, n)
         gauges.append(g.to_json())
 
 
@@ -141,6 +143,11 @@ class Setup:
         g = Gauge(name, longitude, latitude, distance,
                         kind, arrival_params, height_params)
         gauges.append(g.to_json())
+
+        #TODO Comment lines of code above out, uncomment this line:
+
+        #Returns a list of gauges for the 1852 Priors
+        # gauges = load_priors()
 
 
         # Set gauge values for gauge 3 following pattern

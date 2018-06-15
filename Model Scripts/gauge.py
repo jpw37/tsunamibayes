@@ -19,7 +19,7 @@ class Gauge:
         height_dist (stats object): distribution of wave height at gauge
     """
     def __init__(self, name, longitude, latitude, distance,
-                    kind, arrival_params, height_params):
+                    kind, arrival_params, height_params, beta, n, city_name):
         self.name = name
         self.longitude = longitude
         self.latitude = latitude
@@ -27,7 +27,9 @@ class Gauge:
         self.kind = kind
         self.arrival_params = arrival_params
         self.height_params = height_params
-
+        self.beta = beta
+        self.n = n
+        self.city_name = city_name
         if name is not None: # Allows for None initialized object
             if kind[0] == 'norm':
                 mean = arrival_params[0]
@@ -51,7 +53,7 @@ class Gauge:
                 k = height_params[0]
                 loc = height_params[1]
                 self.height_dist = stats.chi2(k, loc=loc)
-            elif kind[2] == 'skewnorm':
+            elif kind[1] == 'skewnorm':
                 skew_param = height_params[0]
                 mean = height_params[1]
                 std = height_params[2]
@@ -70,6 +72,9 @@ class Gauge:
         d['kind'] = self.kind
         d['arrival_params'] = self.arrival_params
         d['height_params'] = self.height_params
+        d['beta'] = self.beta
+        d['n'] = self.n
+        d['city_name'] = self.city_name
         return d
 
     def from_json(self, d):
@@ -78,7 +83,7 @@ class Gauge:
         """
         self.__init__(d['name'], d['longitude'], d['latitude'],
                         d['distance'], d['kind'], d['arrival_params'],
-                        d['height_params'])
+                        d['height_params'], d['beta'], d['n'], d['city_name'])
 
 def read_gauges(gauges):
     """Read GeoClaw output and look for necessary conditions.
