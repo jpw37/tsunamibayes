@@ -1,9 +1,19 @@
 from gauge import Gauge, calculate_probability
-
+import ShoreAngle
 
 #This is used to load all the priors from 1852 into the setup.py file
 
 def load_priors():
+    """
+    Loads all the priors as gauges in a list
+    :return: List of all the gauges
+    """
+
+    #Load the beta angles for the shore elevation for inundtion priors
+    ShoreAngles = ShoreAngle.ShoreLineAngles()
+    averageangles = ShoreAngles.getAveragesSlopeAngles()
+
+    #List to return as guages
     gauges = []
 
 #GAUGE 1_____________Water Height______________
@@ -314,9 +324,9 @@ def load_priors():
 
 
 # _______________Examples of What Goes In The Gauge____________________
-    # kind = ['Arrival, Height, Inundation]
+    # kind = ['Arrival', 'Height', 'Inundation']
 
-    # For kind = 'norm' also kind[0]
+    # For kind = 'norm' OR kind[0]
     # arrival_mean = None  # in minutes
     # arrival_std = None
     # arrival_params = [arrival_mean, arrival_std]
@@ -328,7 +338,7 @@ def load_priors():
     # inundation_params = [inundation_mean, inundation_std]
 
     #
-    # For kind = 'chi2' of kind[1]
+    # For kind = 'chi2' OR kind[1]
     # arrival_k = None  # chi2 parameter
     # arrival_lower_bound = None  # in meters
     # arrival_params = [arrival_k, arrival_lower_bound]
