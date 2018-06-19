@@ -7,7 +7,7 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
-from prior_dist_1852 import load_priors
+from prior_dist_1852 import load_gauges
 
 
 class Setup:
@@ -145,7 +145,7 @@ class Setup:
         # gauges.append(g.to_json())
 
         #Returns a list of gauges for the 1852 Priors
-        gauges = load_priors()
+        gauges = load_gauges()
         # print(gauges)
 
 

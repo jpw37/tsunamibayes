@@ -3,7 +3,7 @@ import ShoreAngle
 
 #This is used to load all the priors from 1852 into the setup.py file
 
-def load_priors():
+def load_gauges():
     """
     Loads all the priors as gauges in a list
     :return: List of all the gauges

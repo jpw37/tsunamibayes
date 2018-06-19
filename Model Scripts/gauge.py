@@ -15,6 +15,7 @@ class Gauge:
             arrival time and height respectively. ex: ['norm', 'chi2']
         arrival_params (list): list of params for the arrival time distribution
         height_params (list): list of params for the height distribution
+        inundation_params (list): list of params for the inundation distribution
         arrival_dist (stats object): distribution of arrival time at gauge
         height_dist (stats object): distribution of wave height at gauge
     """
@@ -102,7 +103,7 @@ class Gauge:
         """
         self.__init__(d['name'], d['longitude'], d['latitude'],
                         d['distance'], d['kind'], d['arrival_params'],
-                        d['height_params'], d['beta'], d['n'], d['city_name'])
+                        d['height_params'], d['inundation_params'], d['beta'], d['n'], d['city_name'])
 
 def read_gauges(gauges):
     """Read GeoClaw output and look for necessary conditions.
