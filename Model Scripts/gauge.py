@@ -205,16 +205,16 @@ def calculate_probability(gauges):
     pmfData = PMFData(row_header, col_header, amplification_data[:,1:])
     for i, gauge in enumerate(gauges):
         # arrivals
-        if(self.kind[0]):
+        if(gauge.kind[0]):
             p += np.log(gauge.arrival_dist.pdf(arrivals[i]))
 
-        if(self.kind[1]):
+        if(gauge.kind[1]):
             # heights
             pmf = pmfData.getPMF(gauge.distance, heights[i])
             p_i = pmf.integrate(gauge.height_dist)
             p += np.log(p_i)
 
-        if(self.kind[2]):
+        if(gauge.kind[2]):
             continue
             # TODO: YaJing put in the pmf calculation function for inundation here
 

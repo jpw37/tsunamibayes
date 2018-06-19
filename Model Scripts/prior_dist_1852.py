@@ -9,10 +9,6 @@ def load_priors():
     :return: List of all the gauges
     """
 
-    #Load the beta angles for the shore elevation for inundtion priors
-    ShoreAngles = ShoreAngle.ShoreLineAngles()
-    averageangles = ShoreAngles.getAveragesSlopeAngles()
-
     #List to return as guages
     gauges = []
 
@@ -163,7 +159,13 @@ def load_priors():
     inundation_mean = .185806
     inundation_params = [inundation_mean, inundation_std]
 
-    beta = 0
+    #Load the beta angles for the shore elevation for inundtion priors for
+    # SUPARUA
+    ShoreAngles = ShoreAngle.ShoreLineAngles('suparua_profiles')
+    profiles_to_average = [4,5,8,9,10]
+    SUPARUA_average_angle = ShoreAngles.getAveragesSlopeAngles(profiles_to_average)
+    beta = SUPARUA_average_angle
+
     n = .03
 
     g = Gauge(name, longitude, latitude, distance,
@@ -193,7 +195,13 @@ def load_priors():
     inundation_std = 85
     inundation_params = [inundation_skew_param, inundation_mean, inundation_std]
 
-    beta = 0
+    # Load the beta angles for the shore elevation for inundtion priors for
+    # BANDA_NEIRA
+    ShoreAngles = ShoreAngle.ShoreLineAngles('banda_neira_profiles')
+    profiles_to_average = [1,2,3,4,5]
+    BANDA_NEIRA_average_angle = ShoreAngles.getAveragesSlopeAngles(profiles_to_average)
+    beta = BANDA_NEIRA_average_angle
+
     n = .03
 
     g = Gauge(name, longitude, latitude, distance,
@@ -223,7 +231,13 @@ def load_priors():
     inundation_std = 5
     inundation_params = [inundation_skew_param, inundation_mean, inundation_std]
 
-    beta = 0
+    # Load the beta angles for the shore elevation for inundtion priors for
+    # LONTHOR
+    ShoreAngles = ShoreAngle.ShoreLineAngles('lonthor_profiles')
+    profiles_to_average = [1,2,3,4,5]
+    LONTHOR_average_angle = ShoreAngles.getAveragesSlopeAngles(profiles_to_average)
+    beta = LONTHOR_average_angle
+
     n = .03
 
     g = Gauge(name, longitude, latitude, distance,
@@ -364,7 +378,7 @@ def load_priors():
 
 #TESTING:
 
-# gauges = load_priors()
+gauges = load_priors()
 
 # for gauge in gauges:
 #     print(gauge)

@@ -4,15 +4,15 @@ import math
 
 class ShoreLineAngles:
 
-    def __init__(self):
-        self.wb = load_workbook('./profiles.xlsx') # The workbook from the excel sheet
+    def __init__(self, file_name):
+        self.wb = load_workbook('./' + file_name + '.xlsx') # The workbook from the excel sheet
         self.ws = self.wb.active  # The worksheet from the workbook
         self.regression_angles = list() # list of regression angles for each profile
         self.average_angles = list() # list of average angles for each profile
         return
 
 
-    def getAveragesSlopeAngles(self):
+    def getAveragesSlopeAngles(self, profiles_to_average):
         """
         Uses the coordinates of the first and last points in the shoreline profile
         to calculate the angles of the average slope for each shoreline profile
@@ -48,9 +48,16 @@ class ShoreLineAngles:
             # Average out the slope and take the inverse tan to find the angle
             average_slope = (y2 - y1)/(x2 - x1)
             self.average_angles.append(math.degrees(math.atan(average_slope)))
-        return self.average_angles
 
-    def getRegressionLineAngles(self):
+        average_angle = 0
+        for profile in profiles_to_average:
+            average_angle += self.average_angles[profile - 1]
+
+        average_angle /= len(profiles_to_average)
+
+        return average_angle
+
+    def getRegressionLineAngles(self, profiles_to_average):
         """
         Uses the coordinates of each point in each shoreline profile
         to calculate an angle for the regression line slope of each profile
@@ -76,7 +83,14 @@ class ShoreLineAngles:
             # Get the slope of the regression line and take the inverse tan to find the angle value
             slope, intercept, r_value, p_value, std_err = stats.linregress(xCord, yCord)
             self.regression_angles.append(math.degrees(math.atan(slope)))
-        return self.regression_angles
+
+        average_angle = 0
+        for profile in profiles_to_average:
+            average_angle += self.average_angles[profile - 1]
+
+        average_angle /= len(profiles_to_average)
+
+        return average_angle
 
     def generateExcelSheet(self):
         """
