@@ -40,13 +40,13 @@ class RunModel:
         
     """ DEPRECIATED
     def independant_sampler_draw(self):
-        """
+        
         Draw with the independent sampling method, using the prior
         to make each of the draws.
 
         Returns:
             draws (array): An array of the 9 parameter draws.
-        """
+        
         # Load distribution parameters.
         params = self.prior
 
@@ -131,10 +131,10 @@ class RunModel:
             accept_prob = min(np.exp(p-samples[0][-2]), 1)
 
         elif self.method == 'rw':
-            new_prob = self.priors[0].logpdf(samples[-1,[7,8,0]])
-            new_prob += self.priors[1].logpdf(samples[-1,[6,5,3]])
-            new_prob += self.priors[2].logpdf(samples[-1,[1,2,4]])
-            old_prob = self.priors[0].logpdf(samples[0,[7,8,0]])
+            new_prob = self.priors[0].logpdf(samples[-1,[7,8,0]]) #Prior for longitude, latitude, strike
+            new_prob += self.priors[1].logpdf(samples[-1,[6,5,3]]) #Prior for dip, rake, depth
+            new_prob += self.priors[2].logpdf(samples[-1,[1,2,4]]) #Prior for length, width, slip
+            old_prob = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
             old_prob += self.priors[1].logpdf(samples[0,[6,5,3]])
             old_prob += self.priors[2].logpdf(samples[0,[1,2,4]])
             #DEPRICATED

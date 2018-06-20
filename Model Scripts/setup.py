@@ -7,7 +7,7 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
-from prior_dist_1852 import load_priors
+from prior_dist_1852 import load_gauges
 
 
 class Setup:
@@ -61,90 +61,89 @@ class Setup:
 
         # Gauge information
         # Add as many as you like, repeating this pattern to add new gauges.
-        gauges = []
-        # Set gauge values for gauge 1
-        name = 10000 # BULUKUMBA (Terang-Terang)
-        longitude = 120.205664
-        latitude = -5.571685
-        distance = 2.5 # in kilometers (max 5)
-        # normal distribution for arrival and height, respectively
-        # (also accepts chi2 and skewnorm)
-        kind = ['norm', 'norm']
-
-        # For kind = 'norm'
-        arrival_mean = 30 # in minutes
-        arrival_std = 6.
-        height_mean = 20. # in meters
-        height_std = 1.5
-        arrival_params = [arrival_mean, arrival_std]
-        height_params = [height_mean, height_std]
-
-        # For kind = 'chi2'
-        arrival_k = None # chi2 parameter
-        arrival_lower_bound = None # in meters
-        height_k = None # chi2 param
-        height_lower_bound = None # in meters
-        # arrival_params = [arrival_k, arrival_lower_bound]
-        # height_params = [height_k, height_lower_bound]
-
-        # For kind = 'skewnorm'
-        arrival_skew_param = None
-        arrival_mean = None # in minutes
-        arrival_std = None
-        height_skew_param = None
-        height_mean = None # in meters
-        height_std = None
-        # arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
-        # height_params = [height_skew_param, height_mean, height_std]
-
-        g = Gauge(name, longitude, latitude, distance,
-                        kind, arrival_params, height_params) #, beta, n)
-        gauges.append(g.to_json())
-
-
-        # Set gauge values for gauge 2
-        name = 10010 # Bima
-        longitude = 118.709077
-        latitude = -8.335202
-        distance = 5 # in kilometers (max 5)
-        # normal distribution for arrival and height, respectively
-        # (also accepts chi2 and skewnorm)
-        kind = ['norm', 'chi2']
-
-        # For kind = 'norm'
-        arrival_mean = 30. # in minutes
-        arrival_std = 6.
-        height_mean = None # in meters
-        height_std = None
-        arrival_params = [arrival_mean, arrival_std]
+        # gauges = []
+        # # Set gauge values for gauge 1
+        # name = 10000 # BULUKUMBA (Terang-Terang)
+        # longitude = 120.205664
+        # latitude = -5.571685
+        # distance = 2.5 # in kilometers (max 5)
+        # # normal distribution for arrival and height, respectively
+        # # (also accepts chi2 and skewnorm)
+        # kind = ['norm', 'norm']
+        #
+        # # For kind = 'norm'
+        # arrival_mean = 30 # in minutes
+        # arrival_std = 6.
+        # height_mean = 20. # in meters
+        # height_std = 1.5
+        # arrival_params = [arrival_mean, arrival_std]
         # height_params = [height_mean, height_std]
-
-        # For kind = 'chi2'
-        arrival_k = None # chi2 parameter
-        arrival_lower_bound = None # in meters
-        height_k = 5 # chi2 param
-        height_lower_bound = 4 # in meters
-        # arrival_params = [arrival_k, arrival_lower_bound]
-        height_params = [height_k, height_lower_bound]
-
-        # For kind = 'skewnorm'
-        arrival_skew_param = None
-        arrival_mean = None # in minutes
-        arrival_std = None
-        height_skew_param = None
-        height_mean = None # in meters
-        height_std = None
-        # arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
-        # height_params = [height_skew_param, height_mean, height_std]
-
-        g = Gauge(name, longitude, latitude, distance,
-                        kind, arrival_params, height_params)
-        gauges.append(g.to_json())
-
-        #TODO Comment lines of code above out, uncomment this line:
+        #
+        # # For kind = 'chi2'
+        # arrival_k = None # chi2 parameter
+        # arrival_lower_bound = None # in meters
+        # height_k = None # chi2 param
+        # height_lower_bound = None # in meters
+        # # arrival_params = [arrival_k, arrival_lower_bound]
+        # # height_params = [height_k, height_lower_bound]
+        #
+        # # For kind = 'skewnorm'
+        # arrival_skew_param = None
+        # arrival_mean = None # in minutes
+        # arrival_std = None
+        # height_skew_param = None
+        # height_mean = None # in meters
+        # height_std = None
+        # # arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
+        # # height_params = [height_skew_param, height_mean, height_std]
+        #
+        # g = Gauge(name, longitude, latitude, distance,
+        #                 kind, arrival_params, height_params) #, beta, n)
+        # gauges.append(g.to_json())
+        #
+        #
+        # # Set gauge values for gauge 2
+        # name = 10010 # Bima
+        # longitude = 118.709077
+        # latitude = -8.335202
+        # distance = 5 # in kilometers (max 5)
+        # # normal distribution for arrival and height, respectively
+        # # (also accepts chi2 and skewnorm)
+        # kind = ['norm', 'chi2']
+        #
+        # # For kind = 'norm'
+        # arrival_mean = 30. # in minutes
+        # arrival_std = 6.
+        # height_mean = None # in meters
+        # height_std = None
+        # arrival_params = [arrival_mean, arrival_std]
+        # # height_params = [height_mean, height_std]
+        #
+        # # For kind = 'chi2'
+        # arrival_k = None # chi2 parameter
+        # arrival_lower_bound = None # in meters
+        # height_k = 5 # chi2 param
+        # height_lower_bound = 4 # in meters
+        # # arrival_params = [arrival_k, arrival_lower_bound]
+        # height_params = [height_k, height_lower_bound]
+        #
+        # # For kind = 'skewnorm'
+        # arrival_skew_param = None
+        # arrival_mean = None # in minutes
+        # arrival_std = None
+        # height_skew_param = None
+        # height_mean = None # in meters
+        # height_std = None
+        # # arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
+        # # height_params = [height_skew_param, height_mean, height_std]
+        #
+        # g = Gauge(name, longitude, latitude, distance,
+        #                 kind, arrival_params, height_params)
+        # gauges.append(g.to_json())
 
         #Returns a list of gauges for the 1852 Priors
-        # gauges = load_priors()
+        gauges = load_gauges()
+        # print(gauges)
 
 
         # Set gauge values for gauge 3 following pattern
