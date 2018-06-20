@@ -216,14 +216,11 @@ def calculate_probability(gauges):
             p += np.log(p_i)
 
         if(gauge.kind[2]):
-            continue
-            # TODO: YaJing put in the pmf calculation function for inundation here
-
-        # inudation
-        inudation_coeffi = 0.06*cos(beta)/n^2 
-        pmf_inudation = np.power(pmf.vals,4/3)*[inudation_coeffi]
-        p_inudation = pmf.integrate(pmf_inudation)
-        p += np.log(p_inudation)
+            # inudation
+            inudation_coeffi = 0.06*cos(beta)/n^2 
+            pmf_inudation = np.power(pmf.vals,4/3)*[inudation_coeffi]
+            p_inudation = pmf_inundation.integrate(gauge.inundation_dist)
+            p += np.log(p_inudation)
 def make_input_files(self):
 
 
