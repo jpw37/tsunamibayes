@@ -193,6 +193,14 @@ def calculate_probability(gauges):
         p_i = pmf.integrate(gauge.height_dist)
         p += np.log(p_i)
 
+        # inudation
+        inudation_coeffi = 0.06*cos(beta)/n^2 
+        pmf_inudation = np.power(pmf.vals,4/3)*[inudation_coeffi]
+        p_inudation = pmf.integrate(pmf_inudation)
+        p += np.log(p_inudation)
+def make_input_files(self):
+
+
     return p
 
 
