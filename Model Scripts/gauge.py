@@ -194,7 +194,7 @@ def calculate_probability(gauges):
     """
     names = []
     for gauge in gauges:
-        names.append(gauge['name'])
+        names.append(gauge.name)
     arrivals, heights = read_gauges(names)
 
     # Calculate p for the arrivals and heights
@@ -205,8 +205,8 @@ def calculate_probability(gauges):
     col_header = np.arange(len(amplification_data[0]) - 1)/4
     pmfData = PMFData(row_header, col_header, amplification_data[:,1:])
     for i, gauge in enumerate(gauges):
-        # arrivals
         if(gauge.kind[0]):
+            # arrivals
             p += np.log(gauge.arrival_dist.pdf(arrivals[i]))
 
         if(gauge.kind[1]):
@@ -217,15 +217,18 @@ def calculate_probability(gauges):
 
         if(gauge.kind[2]):
             # inundation
-            inun_values = np.power(pmf.vals,4/3)*0.06*cos(gauge.beta)/n^2
+            inun_values = np.power(pmf.vals,4/3) * 0.06 * np.cos(gauge.beta) / (gauge.n**2)
             inun_probability = pmf.probs
             pmf_inundation = PMF(inun_values, inun_probability)
             p_inundation = pmf_inundation.integrate(gauge.inundation_dist)
             p += np.log(p_inundation)
-def make_input_files(self):
-
 
     return p
+
+def make_input_files(self):
+    pass
+
+
 
 
     # DEPRICATED
