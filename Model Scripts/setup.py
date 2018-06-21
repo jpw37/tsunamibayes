@@ -7,7 +7,7 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
-from prior_dist_1852 import load_gauges
+from gauge_dist_1852 import load_gauges
 
 
 class Setup:
