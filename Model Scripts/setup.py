@@ -20,9 +20,6 @@ class Setup:
     """
 
     def __init__(self):
-        pass
-
-    def make_input_files(self):
         # TODO Add file_guide.txt
         """
         Initialize all necessary variables for a GeoClaw run using MCMC and

@@ -108,7 +108,10 @@ class PMFData:
 
         # return a PMF object
         return PMF(vals[:-1], probabilities)
-
+    #def get Inundation(self, d, y)
+        #find the inundation from on-shore wave heights
+        #inun_values = np.power(self.getPMF(d, y).vals, 4/3)*0.06*cos()
+        #inun_probability = 
 if __name__ == "__main__":
     # testing on a version of 'amplification_data.npy'
     data = np.load('amplification_data.npy')
