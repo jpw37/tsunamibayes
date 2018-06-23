@@ -1,6 +1,7 @@
 from openpyxl import load_workbook, Workbook
 from scipy import stats
 import math
+import xlsxwriter
 
 class ShoreLineAngles:
 
@@ -9,6 +10,7 @@ class ShoreLineAngles:
         self.ws = self.wb.active  # The worksheet from the workbook
         self.regression_angles = list() # list of regression angles for each profile
         self.average_angles = list() # list of average angles for each profile
+        self.ROW_OF_FIRST_POINT = 2
         return
 
 
@@ -19,13 +21,13 @@ class ShoreLineAngles:
         :return:  Array of average angles for each shoreline profile in order.
                     (Not necessary as it is saved as a member variable)
         """
-        ROW_OF_FIRST_POINT = 2
+
 
         for i in range(1, self.ws.max_column + 1, 2): #Loops through each profile as they take up two columns each
 
             # Get the first point values for current profile
-            min_col_1 = self.ws.iter_cols(min_col=i, min_row=ROW_OF_FIRST_POINT, max_col=i, max_row=ROW_OF_FIRST_POINT)
-            min_col_2 = self.ws.iter_cols(min_col=i+1, min_row=ROW_OF_FIRST_POINT, max_col=i+1, max_row=ROW_OF_FIRST_POINT)
+            min_col_1 = self.ws.iter_cols(min_col=i, min_row=self.ROW_OF_FIRST_POINT, max_col=i, max_row=self.ROW_OF_FIRST_POINT)
+            min_col_2 = self.ws.iter_cols(min_col=i+1, min_row=self.ROW_OF_FIRST_POINT, max_col=i+1, max_row=self.ROW_OF_FIRST_POINT)
 
             for col in min_col_1:
                 for cell in col:
@@ -35,20 +37,26 @@ class ShoreLineAngles:
                     y1 = cell.value
 
             # Get the last point values for current profile
-            max_col_1 = self.ws.iter_cols(min_col=i, min_row=self.ws.max_row, max_col=i, max_row=self.ws.max_row)
-            max_col_2 = self.ws.iter_cols(min_col=i+1, min_row=self.ws.max_row, max_col=i+1, max_row=self.ws.max_row)
+            max_rows = len(self.ws[xlsxwriter.utility.xl_col_to_name(i-1)])
+            max_col_1 = self.ws.iter_cols(min_col=i, min_row=self.ROW_OF_FIRST_POINT, max_col=i, max_row=self.ws.max_row)
+            max_col_2 = self.ws.iter_cols(min_col=i+1, min_row=self.ROW_OF_FIRST_POINT, max_col=i+1, max_row=self.ws.max_row)
+
 
             for col in max_col_1:
                 for cell in col:
-                    x2 = cell.value
+                    if (cell.value is not None):
+                        x2 = cell.value
             for col in max_col_2:
                 for cell in col:
-                    y2 = cell.value
+                    if (cell.value is not None):
+                        y2 = cell.value
 
             # Average out the slope and take the inverse tan to find the angle
+            # print(y2, y1, x2, x1)
             average_slope = (y2 - y1)/(x2 - x1)
             self.average_angles.append(math.degrees(math.atan(average_slope)))
 
+        # print(self.average_angles)
         average_angle = 0
         for profile in profiles_to_average:
             average_angle += self.average_angles[profile - 1]
@@ -67,7 +75,7 @@ class ShoreLineAngles:
         for i in range(1, self.ws.max_column + 1, 2): # Loops through each profile as they take up two columns each
             xCord = []
             yCord = []
-            cols = self.ws.iter_cols(min_col=i, min_row=1, max_col=i+1, max_row=self.ws.max_row)
+            cols = self.ws.iter_cols(min_col=i, min_row=0, max_col=i+1, max_row=self.ws.max_row)
             for col in cols:
                 is_x_cord = False
                 for cell in col:
@@ -75,15 +83,19 @@ class ShoreLineAngles:
                         is_x_cord = True
                         continue
                     if(is_x_cord):
-                        xCord.append(cell.value)
+                        if(cell.value is not None):
+                            xCord.append(cell.value)
                     else:
-                        yCord.append(cell.value)
+                        if(cell.value is not None):
+                            yCord.append(cell.value)
 
             yCord = yCord[1:]
+
             # Get the slope of the regression line and take the inverse tan to find the angle value
             slope, intercept, r_value, p_value, std_err = stats.linregress(xCord, yCord)
             self.regression_angles.append(math.degrees(math.atan(slope)))
 
+        # print(self.regression_angles)
         average_angle = 0
         for profile in profiles_to_average:
             average_angle += self.average_angles[profile - 1]

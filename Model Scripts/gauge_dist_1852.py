@@ -197,9 +197,9 @@ def load_gauges():
 
     # Load the beta angles for the shore elevation for inundtion priors for
     # BANDA_NEIRA
-    ShoreAngles = ShoreAngle.ShoreLineAngles('banda_neira_profiles')
-    profiles_to_average = [1,2,3,4,5]
-    BANDA_NEIRA_average_angle = ShoreAngles.getAveragesSlopeAngles(profiles_to_average)
+    # ShoreAngles = ShoreAngle.ShoreLineAngles('banda_neira_profiles')
+    # profiles_to_average = [1,2,3,4,5]
+    BANDA_NEIRA_average_angle = 0 #ShoreAngles.getAveragesSlopeAngles(profiles_to_average)
     beta = BANDA_NEIRA_average_angle
 
     n = .03
@@ -378,7 +378,7 @@ def load_gauges():
 
 #TESTING:
 
-gauges = load_priors()
+# gauges = load_gauges()
 
 # for gauge in gauges:
 #     print(gauge)
