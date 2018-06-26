@@ -10,7 +10,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/Model_Scripts$prior_dist_1852.coverage" NAME="prior_dist_1852 Coverage Results" MODIFIED="1529717628488" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Model_Scripts$prior_dist_1852.coverage" NAME="prior_dist_1852 Coverage Results" MODIFIED="1530046987257" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Model_Scripts$setup.coverage" NAME="setup Coverage Results" MODIFIED="1529077568810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FileEditorManager">
@@ -18,7 +18,7 @@
       <file leaf-file-name="setup.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2085">
+            <state relative-caret-position="1995">
               <caret line="139" column="44" selection-start-line="139" selection-start-column="44" selection-end-line="139" selection-end-column="44" />
               <folding>
                 <element signature="e#140#149#0" expanded="true" />
@@ -39,7 +39,7 @@
       <file leaf-file-name="pmf.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pmf.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
+            <state relative-caret-position="465">
               <caret line="33" column="26" selection-start-line="33" selection-start-column="20" selection-end-line="33" selection-end-column="26" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -51,8 +51,8 @@
       <file leaf-file-name="gauge.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gauge.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="302">
-              <caret line="218" column="24" lean-forward="true" selection-start-line="218" selection-start-column="24" selection-end-line="218" selection-end-column="24" />
+            <state relative-caret-position="159">
+              <caret line="25" column="34" selection-start-line="25" selection-start-column="25" selection-end-line="25" selection-end-column="34" />
               <folding>
                 <element signature="e#64#82#0" expanded="true" />
               </folding>
@@ -60,11 +60,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="gauge_dist_1852.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="gauge_dist_1852.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gauge_dist_1852.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="341">
-              <caret line="381" lean-forward="true" selection-start-line="381" selection-end-line="381" />
+            <state relative-caret-position="376">
+              <caret line="394" column="13" lean-forward="true" selection-start-line="394" selection-start-column="13" selection-end-line="394" selection-end-column="13" />
               <folding>
                 <element signature="e#0#46#0" expanded="true" />
               </folding>
@@ -72,11 +72,16 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ShoreAngle.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="fort.FG1.valuemax" pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/CA81C3C7-6588-4B68-9E4E-C0C14D3D3B0D/fort.FG1.valuemax">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file leaf-file-name="ShoreAngle.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ShoreAngle.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="206">
-              <caret line="59" column="25" lean-forward="true" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="25" />
+            <state relative-caret-position="840">
+              <caret line="59" column="25" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="25" />
               <folding>
                 <element signature="e#0#44#0" expanded="true" />
               </folding>
@@ -141,6 +146,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -152,7 +158,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -244,11 +249,11 @@
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32969698" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32969698" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24606581" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2532189" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="right" id="SciView" order="3" />
@@ -276,33 +281,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/run_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1695">
-          <caret line="121" column="39" selection-start-line="121" selection-start-column="18" selection-end-line="121" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gauge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3300">
-          <caret line="220" column="38" selection-start-line="220" selection-start-column="35" selection-end-line="220" selection-end-column="38" />
-          <folding>
-            <element signature="e#64#82#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1995">
-          <caret line="139" column="44" selection-start-line="139" selection-start-column="44" selection-end-line="139" selection-end-column="44" />
-          <folding>
-            <element signature="e#140#149#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/setrun.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
@@ -647,7 +625,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2085">
+        <state relative-caret-position="1995">
           <caret line="139" column="44" selection-start-line="139" selection-start-column="44" selection-end-line="139" selection-end-column="44" />
           <folding>
             <element signature="e#140#149#0" expanded="true" />
@@ -664,7 +642,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pmf.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
+        <state relative-caret-position="465">
           <caret line="33" column="26" selection-start-line="33" selection-start-column="20" selection-end-line="33" selection-end-column="26" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -679,32 +657,45 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/ShoreAngle.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="840">
+          <caret line="59" column="25" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="25" />
+          <folding>
+            <element signature="e#0#44#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/helloworld.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/gauge.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="302">
-          <caret line="218" column="24" lean-forward="true" selection-start-line="218" selection-start-column="24" selection-end-line="218" selection-end-column="24" />
+        <state relative-caret-position="159">
+          <caret line="25" column="34" selection-start-line="25" selection-start-column="25" selection-end-line="25" selection-end-column="34" />
           <folding>
             <element signature="e#64#82#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gauge_dist_1852.py">
+    <entry file="file://$USER_HOME$/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/CA81C3C7-6588-4B68-9E4E-C0C14D3D3B0D/fort.FG1.valuemax">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fgmax_grid.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="341">
-          <caret line="381" lean-forward="true" selection-start-line="381" selection-end-line="381" />
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="90">
+          <caret line="6" column="34" lean-forward="true" selection-start-line="6" selection-start-column="34" selection-end-line="6" selection-end-column="34" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ShoreAngle.py">
+    <entry file="file://$PROJECT_DIR$/gauge_dist_1852.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="206">
-          <caret line="59" column="25" lean-forward="true" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="25" />
+        <state relative-caret-position="376">
+          <caret line="394" column="13" lean-forward="true" selection-start-line="394" selection-start-column="13" selection-end-line="394" selection-end-column="13" />
           <folding>
-            <element signature="e#0#44#0" expanded="true" />
+            <element signature="e#0#46#0" expanded="true" />
           </folding>
         </state>
       </provider>
