@@ -197,9 +197,9 @@ def load_gauges():
 
     # Load the beta angles for the shore elevation for inundtion priors for
     # BANDA_NEIRA
-    # ShoreAngles = ShoreAngle.ShoreLineAngles('banda_neira_profiles')
-    # profiles_to_average = [1,2,3,4,5]
-    BANDA_NEIRA_average_angle = 0 #ShoreAngles.getAveragesSlopeAngles(profiles_to_average)
+    ShoreAngles = ShoreAngle.ShoreLineAngles('south_banda_neira_profiles')
+    profiles_to_average = [1,2,3]
+    BANDA_NEIRA_average_angle = ShoreAngles.getAveragesSlopeAngles(profiles_to_average)
     beta = BANDA_NEIRA_average_angle
 
     n = .03
@@ -378,22 +378,26 @@ def load_gauges():
 
 #TESTING:
 
-gauges = load_gauges()
+def outputFGMaxFile():
 
-f = open('fgmax_grid.txt','w')
-f.write('1.0000000000e+01            # tstart_max\n')
-f.write('1.0000000000e+10            # tstart_max\n')
-f.write('0.0000000000e+00            # dt_check\n')
-f.write('3                           # min_level_check\n')
-f.write('1.0000000000e-02            # arrival_tol\n')
-f.write('0                           # point_style\n')
-f.write(str(len(gauges)) + '                          # npts\n')
+    gauges = load_gauges()
+
+    f = open('fgmax_grid.txt','w')
+    f.write('1.0000000000e+01            # tstart_max\n')
+    f.write('1.0000000000e+10            # tstart_max\n')
+    f.write('0.0000000000e+00            # dt_check\n')
+    f.write('3                           # min_level_check\n')
+    f.write('1.0000000000e-02            # arrival_tol\n')
+    f.write('0                           # point_style\n')
+    f.write(str(len(gauges)) + '                          # npts\n')
 
 
-for gauge in gauges:
-    # print(gauge)
-    f.write(str(gauge['latitude']) + '       ' + str(gauge['longitude']) + '\n')
+    for gauge in gauges:
+        print(gauge)
+        f.write(str(gauge['latitude']) + '       ' + str(gauge['longitude']) + '\n')
 
-f.close()
+    f.close()
+
+outputFGMaxFile()
 
 # print(calculate_probability(gauges))
