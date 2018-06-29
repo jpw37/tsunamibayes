@@ -124,34 +124,40 @@ def read_gauges(gauges):
             for each gauge. max_heights[i] corresponds to the maximum
             height for gauges[i]
     """
-    n = len(gauges)
-    base_loc = "_output/gauge"
+    data = np.loadtxt("_output/fort.FG1.valuemax")
+    arrivals = data[:,4]
+    max_heights = data[:,3]
+    return arrivals,max_heights
+    
+    ###OLD - Now using fgmax class
+    # n = len(gauges)
+    # base_loc = "_output/gauge"
 
-    arrivals = np.zeros(n)
-    max_heights = np.zeros(n)
+    # arrivals = np.zeros(n)
+    # max_heights = np.zeros(n)
 
-    # if gauge files are separate
-    for i, gauge in enumerate(gauges): # extract from all gauge files
-        gauge_file = base_loc + str(int(gauge)) + ".txt"
-        with open(gauge_file, 'r') as f:
-            lines = f.readlines()
+    # # if gauge files are separate
+    # for i, gauge in enumerate(gauges): # extract from all gauge files
+    #     gauge_file = base_loc + str(int(gauge)) + ".txt"
+    #     with open(gauge_file, 'r') as f:
+    #         lines = f.readlines()
 
-        # get rid of first 2 lines
-        lines.remove(lines[0])
-        lines.remove(lines[0])
+    #     # get rid of first 2 lines
+    #     lines.remove(lines[0])
+    #     lines.remove(lines[0])
 
-        # extract data to array
-        data = np.zeros((len(lines), 6))
-        for j, line in enumerate(lines):
-            data[j] = line.split()
+    #     # extract data to array
+    #     data = np.zeros((len(lines), 6))
+    #     for j, line in enumerate(lines):
+    #         data[j] = line.split()
 
-        h = data[:,5]
-        t = data[:,1]
-        max_idx = np.argmax(h)
-        arrivals[i] = t[max_idx]/60.
-        max_heights[i] = h[max_idx]
+    #     h = data[:,5]
+    #     t = data[:,1]
+    #     max_idx = np.argmax(h)
+    #     arrivals[i] = t[max_idx]/60.
+    #     max_heights[i] = h[max_idx]
 
-    return arrivals, max_heights
+    # return arrivals, max_heights
 
     # NOTE GeoClaw might clump all of the gauge data into
     # _output/fort.gauge instead of into separate gauge<gauge_number>.txt
