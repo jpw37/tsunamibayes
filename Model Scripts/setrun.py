@@ -344,25 +344,23 @@ def setrun(claw_pkg='geoclaw'):
     # ---------------
     # Gauges:
     # ---------------
-    rundata.gaugedata.gauges = []
-    # for gauges append lines of the form  [gaugeno, x, y, t1, t2]
-    with open('gauges.txt') as json_file:
-        gauges_json = json.load(json_file)
-    for my_gauge in gauges_json:
-        rundata.gaugedata.gauges.append([int(my_gauge['name']), my_gauge['longitude'],
-                                            my_gauge['latitude'], 0., 1.e10])
+    # rundata.gaugedata.gauges = []
+    # # for gauges append lines of the form  [gaugeno, x, y, t1, t2]
+    # with open('gauges.txt') as json_file:
+    #     gauges_json = json.load(json_file)
+    # for my_gauge in gauges_json:
+    #     rundata.gaugedata.gauges.append([int(my_gauge['name']), my_gauge['longitude'],
+    #                                         my_gauge['latitude'], 0., 1.e10])
     #rundata.gaugedata.gauges.append([32412, -86.392, -17.975, 0., 1.e10])
 
     # ---------------
     # FGMax:
     # ---------------
-    # f = open('fgmax_grid.txt', 'r')
-    # # == fgmax.data values ==
-    # fgmax_files = rundata.fgmax_data.fgmax_files
-    # # for fixed grids append to this list names of any fgmax input files
-    # fgmax_files.append('fgmax_grid.txt')
+    # == fgmax.data values ==
+    fgmax_files = rundata.fgmax_data.fgmax_files
+    # for fixed grids append to this list names of any fgmax input files
+    fgmax_files.append('fgmax_grid.txt')
     # rundata.fgmax_data.num_fgmax_val = 1  # Save depth only
-
 
     return rundata
     # end of function setrun
