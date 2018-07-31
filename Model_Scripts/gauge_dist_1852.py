@@ -155,8 +155,8 @@ def load_gauges():
     height_mean = None  # in meters
     height_std = None
     height_params = [height_mean, height_std]
-    inundation_std = 123.44
-    inundation_mean = .185806
+    inundation_mean = 123.44
+    inundation_std = 5. #.185806 was the value given by Hunter's reconstruction
     inundation_params = [inundation_mean, inundation_std]
 
     #Load the beta angles for the shore elevation for inundtion priors for
