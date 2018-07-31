@@ -12,10 +12,10 @@ def build_priors():
     data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
     distrb0 = gaussian_kde(data.T)
     
-    #build dip, magnitude, rake and depth prior
-    dataM = pd.read_csv("./generalPrior(momentduration).csv")
-    USGSvariables = ["Dip","Rake","Depth"]
-    vals = np.array(dataM[USGSvariables])
+    #build dip, rake, depth, length, width, and slip prior
+    dataM = pd.read_csv("6_param_prior_data.csv")
+    vars = ["Dip","Rake","depth2","Length","Width2","Slip2"]
+    vals = np.array(dataM[vars])
     #bootstrapping
     n = len(vals)
     r = n*samplingMult
@@ -25,17 +25,4 @@ def build_priors():
     distrb1 = gaussian_kde(vals.T)
     distrb1.set_bandwidth(bw_method=distrb1.factor*bandwidthScalar)
     
-    #build length, width and slip prior
-    dataWells = pd.read_csv("./wellsCoppersmithSlip.csv")
-    variableWells = ["Length","Width","Average Slip"]
-    vals = np.array(dataWells[variableWells])
-    #bootstrapping
-    n = len(vals)
-    r = n*samplingMult
-    index = np.random.choice(np.arange(n),size=r,replace=True)
-    vals = vals[index]
-    #creates the KDE
-    distrb2 = gaussian_kde(vals.T)
-    distrb2.set_bandwidth(bw_method=distrb2.factor*bandwidthScalar)
-    
-    return distrb0,distrb1,distrb2
+    return distrb0,distrb1

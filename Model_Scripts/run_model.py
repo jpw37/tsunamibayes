@@ -132,11 +132,10 @@ class RunModel:
 
         elif self.method == 'rw':
             new_prob = self.priors[0].logpdf(samples[-1,[7,8,0]]) #Prior for longitude, latitude, strike
-            new_prob += self.priors[1].logpdf(samples[-1,[6,5,3]]) #Prior for dip, rake, depth
-            new_prob += self.priors[2].logpdf(samples[-1,[1,2,4]]) #Prior for length, width, slip
+            new_prob += self.priors[1].logpdf(samples[-1,[6,5,3,1,2,4]]) #Prior for dip, rake, depth, length, width, slip
+            
             old_prob = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
-            old_prob += self.priors[1].logpdf(samples[0,[6,5,3]])
-            old_prob += self.priors[2].logpdf(samples[0,[1,2,4]])
+            old_prob += self.priors[1].logpdf(samples[0,[6,5,3,1,2,4]])
             #DEPRICATED
             """# Log-Likelihood of prior
             new_prob = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
