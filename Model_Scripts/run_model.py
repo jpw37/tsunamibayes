@@ -32,7 +32,7 @@ class RunModel:
             gauges_json = json.load(json_file)
         gauges = []
         for g in gauges_json:
-            G = Gauge(None, None, None, None, None, None, None)
+            G = Gauge(None, None, None, None, None, None, None, None, None, None, None)
             G.from_json(g)
             gauges.append(G)
         self.gauges = gauges
