@@ -13,7 +13,7 @@ def build_priors():
     distrb0 = gaussian_kde(data.T)
     
     #build dip, rake, depth, length, width, and slip prior
-    dataM = pd.read_csv("6_param_prior_data.csv")
+    dataM = pd.read_csv("6_param_prior_data1.csv")
     vars = ["Dip","Rake","depth2","Length","Width2","Slip2"]
     vals = np.array(dataM[vars])
     #bootstrapping
