@@ -150,7 +150,7 @@ class Setup:
         # as set out above (if desired)
 
         # latitude and longitude bounds (same as etopo file)
-        xlower = 1257.5
+        xlower = 127.5
         xupper = 134.5
         ylower = -9.5
         yupper = -2.5
