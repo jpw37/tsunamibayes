@@ -32,10 +32,10 @@ class Setup:
         #####
         # initial guesses (mean for prior if using normal distribution)
         strike = 84.6 # 205.0
-        length = 100.e3
-        width = 45.e3
+        length = 310.e3
+        width = 130.e3
         depth = 5.54e3
-        slip = 20. # 9.
+        slip = 3.5 # 9.
         rake = 67.1 # 90.
         dip = 13.3
         longitude = 130.47 # 132.4
@@ -43,9 +43,9 @@ class Setup:
         self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
             longitude, latitude])
         # np.save("guesses.npy", self.guesses)
+        
 
-        # Parameters for priors
-        # Standard deviations
+        # Standard deviations for the random walk MCMC (these are not even used)
         strike_std = 7.5
         length_std = 75.e3
         width_std = 60.e3
@@ -150,10 +150,10 @@ class Setup:
         # as set out above (if desired)
 
         # latitude and longitude bounds (same as etopo file)
-        xlower = 125.
-        xupper = 135.
-        ylower = -8.
-        yupper = -2.
+        xlower = 1257.5
+        xupper = 134.5
+        ylower = -9.5
+        yupper = -2.5
 
         # Length of time to run the model (in minutes)
         time = 75.0
