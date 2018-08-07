@@ -82,6 +82,9 @@ class RunModel:
         mean = np.zeros(9)
         cov = np.diag([strike, length, width, depth, slip, rake,
                         dip, longitude, latitude])
+        
+        #cov *= 16.0;
+
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
         print("Random walk difference:", e)
@@ -118,41 +121,48 @@ class RunModel:
         os.system('rm .output')
         os.system('make .output')
 
+        ## Compute log-likelihood of results
+        #p = gauge.calculate_probability(self.gauges)
         # Compute log-likelihood of results
-        p = gauge.calculate_probability(self.gauges)
+        prop_llh = gauge.calculate_probability(self.gauges)
+        samp_llh = samples[0][-2]
+        if np.isneginf(prop_llh) and np.isneginf(samp_llh):
+            change_llh = 0
+        else:
+            change_llh = prop_llh - samp_llh
 
         # Change entry in samples.npy
         samples = np.load('samples.npy')
-        samples[-1][-2] = p
+        samples[-1][-2] = prop_llh
 
         if self.method == 'is':
             # Find probability to accept new draw over the old draw.
             # Note we use np.exp(new - old) because it's the log-likelihood
-            accept_prob = min(np.exp(p-samples[0][-2]), 1)
+            accept_prob = min(np.exp(change_llh), 1)
 
         elif self.method == 'rw':
-            new_prob = self.priors[0].logpdf(samples[-1,[7,8,0]]) #Prior for longitude, latitude, strike
-            new_prob += self.priors[1].logpdf(samples[-1,[6,5,3,1,2,4]]) #Prior for dip, rake, depth, length, width, slip
+            prop_prior = self.priors[0].logpdf(samples[-1,[7,8,0]]) #Prior for longitude, latitude, strike
+            prop_prior += self.priors[1].logpdf(samples[-1,[6,5,3,1,2,4]]) #Prior for dip, rake, depth, length, width, slip
             
-            old_prob = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
-            old_prob += self.priors[1].logpdf(samples[0,[6,5,3,1,2,4]])
+            samp_prior = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
+            samp_prior += self.priors[1].logpdf(samples[0,[6,5,3,1,2,4]])
             #DEPRICATED
             """# Log-Likelihood of prior
-            new_prob = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
-            old_prob = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
+            prop_prior = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
+            samp_prior = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
             """
-            prior_prob = new_prob - old_prob # Log-Likelihood
+            change_prior = prop_prior - samp_prior # Log-Likelihood
 
             # DEPRICATED (before changed to log-likelihood)
-            # prior_prob = 1.
+            # change_prior = 1.
             # for i, param in enumerate(self.prior):
             #     dist = stats.norm(param[0], param[1])
-            #     new_prob = dist.pdf(samples[-1][i])
-            #     old_prob = dist.pdf(samples[0][i])
-            #     prior_prob *= (new_prob/old_prob)
+            #     prop_prior = dist.pdf(samples[-1][i])
+            #     samp_prior = dist.pdf(samples[0][i])
+            #     change_prior *= (prop_prior/samp_prior)
 
             # Note we use np.exp(new - old) because it's the log-likelihood
-            accept_prob = min(1, np.exp(p-samples[0][-2]+prior_prob))
+            accept_prob = min(1, np.exp(change_llh+change_prior))
 
         # Increment wins. If new, change current 'best'.
         if np.random.random() < accept_prob: # Accept new

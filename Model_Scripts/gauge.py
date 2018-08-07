@@ -221,18 +221,23 @@ def calculate_probability(gauges):
 
         if(gauge.kind[1]):
             # heights
+            pmf = pmfData.getPMF(gauge.distance, heights[i])
             if np.abs(heights[i]) > 999999999:
                 p += -9999
             else:
-                pmf = pmfData.getPMF(gauge.distance, heights[i])
                 p_i = pmf.integrate(gauge.height_dist)
                 p += np.log(p_i)
 
         if(gauge.kind[2]):
             # inundation
+            pmf = pmfData.getPMF(gauge.distance, heights[i])
             inun_values = np.power(pmf.vals,4/3) * 0.06 * np.cos(gauge.beta) / (gauge.n**2)
             inun_probability = pmf.probs
-            pmf_inundation = PMF(inun_values, inun_probability)
+            if len(inun_values) == 0:
+                print("WARNING: inun_values is zero length")
+                pmf_inundation = PMF([0., 1.], [0., 0.])
+            else:
+                pmf_inundation = PMF(inun_values, inun_probability)
             p_inundation = pmf_inundation.integrate(gauge.inundation_dist)
             p += np.log(p_inundation)
 
