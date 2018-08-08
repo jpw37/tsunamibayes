@@ -125,9 +125,18 @@ def read_gauges(gauges):
             height for gauges[i]
     """
     data = np.loadtxt("_output/fort.FG1.valuemax")
+    bath_data = np.loadtxt("_output/fort.FG1.aux1")
+
     arrivals = data[:,4]
     max_heights = data[:,3]
-    return arrivals,max_heights
+    bath_depth = bath_data[:,-1]
+
+    max_heights[max_heights < 1e-15] = -9999  #these are locations where the wave never reached the gauge...
+    max_heights[np.abs(max_heights) > 1e15] = -9999  #again places where the wave never reached the gauge...
+    bath_depth[max_heights == 0] = 0
+    wave_heights = max_heights+bath_depth
+
+    return arrivals,wave_heights
     
     ###OLD - Now using fgmax class
     # n = len(gauges)
