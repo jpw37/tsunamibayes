@@ -1,0 +1,57 @@
+## GAUGE SETUP AND DOCUMENTATION ##
+Current:
+ - gauge_dist_1852.py sets up gauges.txt
+ - Jupyter notebook documents selection of parameters
+
+Goal:
+ Jupyter notebook documents selection of parameters AND sets up input file
+ Benefit: Single place to edit for both documentation and setup of MCMC runs
+
+ Implementation
+ - Copy much of functionality from gauge_dist_1852.py
+ - Simplify: Function to take parameters and append them to gauges array
+   - Optional parameters: Assume inputs are None if not provided.
+     Only want lines in the notebook if a parameter is being used (eliminate 
+     all of the lines in gauge_dist_1852.py that say, e.g. 
+       inundation_mean = None 
+     and
+       inundation_params = [inundation_mean, inundation_std] 
+     so that the notebook is as simple and readable as possible.
+
+
+## DEBUG ##
+ - Occasionally see this error, which kills the chain (example is 213128_dt/003):
+       File "/opt/apps/Anaconda/5.2.0/lib/python3.6/site-packages/numpy/lib/_datasource.py", line 616, in open
+         raise IOError("%s not found." % path)
+     OSError: _output/fort.FG1.valuemax not found.
+
+## OTHER IMPROVEMENTS ##
+ - Switch to pandas dataframes for clarity
+ - Don't save samples.npy at every iteration
+ - Pull all scenario-specific stuff out of core files
+ - Pull all MCMC parameters out of core files
+ - Remove any files that we don't need to track from the git repo
+ - Restructure directories (src, data?, plots, scripts)
+ - Ability to specify initial sample: (1) Manual (2) Randomly generated from prior (Justin drafted this) (3) Pick up where another sample left off
+
+This plus the gauge stuff plus some other implementation things that Jared might have taken pictures of on his phone, e.g. lower priority would be the pre-computation of the wave height (log-)likelihood.
+
+
+## OUTPUT ##
+ - Push forward: Implementation: (1) Gauge setup (2) Saving the information per sample
+ - Sample information: 
+   (1) samples.npy: Only samples (repeated rows when rejections)
+   (2) mcmc.npy: Sample, Proposal, Wins, Prior, likelihood, and posterior probability, Acceptance ratio, accept/reject
+   (3) obs.npy: Mw, Gauge max wave height, Gauge arrival time
+           lower priority: velocity of wave?
+
+
+## VISUALIZATION ##
+ - 9x9 grid of 2d histograms
+ - make_plots needs to be fixed so that it's making a full list of values range(1,nsamp) rather than filtering by samples with wins>0. The current method doesn't work well when the acceptance probability is low (CAN PROBABLY HOLD OFF ON THIS - WILL BE TAKEN CARE OF WITH CODE CHANGES)
+ - Revamp and standardize existing plots (especially important if samples.npy changes)
+
+
+
+
+
