@@ -143,7 +143,7 @@ class Setup:
 
         #Returns a list of gauges for the 1852 Priors
         # gauges = load_gauges()
-        gauges = np.load('gauges')
+        gauges = np.load('gauges.npy')
         # print(gauges)
 
 
