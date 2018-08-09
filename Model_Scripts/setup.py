@@ -9,6 +9,9 @@ import maketopo as mt
 import json
 from gauge_dist_1852 import load_gauges
 
+#need this only when initial sample is drawn from prior
+from build_priors import build_priors
+
 
 class Setup:
     """
@@ -31,18 +34,65 @@ class Setup:
         # Change the following variables
         #####
         # initial guesses (mean for prior if using normal distribution)
-        strike = 84.6 # 205.0
-        length = 310.e3
-        width = 130.e3
-        depth = 5.54e3
-        slip = 3.5 # 9.
-        rake = 67.1 # 90.
-        dip = 13.3
-        longitude = 130.47 # 132.4
-        latitude = -5.63
+        #strike = 84.6 # 205.0
+        #length = 310.e3
+        #width = 130.e3
+        #depth = 5.54e3
+        #slip = 3.5 # 9.
+        #rake = 67.1 # 90.
+        #dip = 13.3
+        #longitude = 130.47 # 132.4
+        #latitude = -5.63
+        #strike = 190. # 205.0       #strike = 84.6 # 205.0     
+        #length = 540.e3             #length = 231430.5
+        #width = 80.e3               #width = 47462.4
+        #depth = 5.54e3              #depth = 5.54e3
+        #slip = 20.                  #slip = 8.6 # 9.
+        #rake = 90.                  #rake = 67.1 # 90.
+        #dip = 15.                   #dip = 13.3
+        #longitude = 132.92          #longitude = 130.47 # 132.4
+        #latitude = -5.64            #latitude = -5.63
+        ##initial guesses taken from 259001_ca (which seemed to produce decent results)
+        #strike = 84.6 # 205.0
+        #length = 100.e3
+        #width = 45.e3
+        #depth = 5.54e3
+        #slip = 20. # 9.
+        #rake = 67.1 # 90.
+        #dip = 13.3
+        #longitude = 130.47 # 132.4
+        #latitude = -5.63
+        #initial guesses taken from final sample of 213127_dt/003
+        #strike = 191.
+        #length = 541.e3
+        #width = 80.e3
+        #depth = 5.55e3
+        #slip = 19.5
+        #rake = 83.0
+        #dip = 20.0
+        #longitude = 133.3
+        #latitude = -1.35
+
+        #draw initial sample at random from prior (kdes)
+        priors = build_priors()
+        p0=priors[0].resample(1)[:,0]
+        p1=priors[1].resample(1)[:,0]
+        #self.guesses = [ p0[2], p1[3], p1[4], p1[2], p1[5], p1[1], p1[0], p0[0], p0[1] ]
+        strike    = p0[2]
+        length    = p1[3]
+        width     = p1[4]
+        depth     = p1[2]
+        slip      = p1[5]
+        rake      = p1[1]
+        dip       = p1[0]
+        longitude = p0[0]
+        latitude  = p0[1]
+
         self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
             longitude, latitude])
         # np.save("guesses.npy", self.guesses)
+        print("initial sample is:")
+        print(self.guesses)
         
 
         # Standard deviations for the random walk MCMC (these are not even used)
@@ -156,7 +206,8 @@ class Setup:
         yupper = -2.5
 
         # Length of time to run the model (in minutes)
-        time = 75.0
+        #time = 75.0
+        time = 150.0
 
         #############################
         # DO NOT MODIFY BEYOND THIS POINT
