@@ -70,15 +70,24 @@ class RunModel:
             draws (array): An array of the 9 parameter draws.
         """
         # Std deviations for each parameter, the mean is the current location
-        strike = .375
-        length = 4.e3
-        width = 3.e3
-        depth = .1875
-        slip = .01
-        rake = .25
-        dip = .0875
+        #strike = .375
+        #length = 4.e3
+        #width = 3.e3
+        #depth = .1875
+        #slip = .01
+        #rake = .25
+        #dip = .0875
+        #longitude = .025
+        #latitude = .01875
+        strike = 1.
+        length = 2.e4
+        width  = 1.e4
+        depth  = 2.e3
+        slip   = 0.5
+        rake   = 0.5
+        dip    = 0.1
         longitude = .025
-        latitude = .01875
+        latitude  = .025
         mean = np.zeros(9)
         cov = np.diag([strike, length, width, depth, slip, rake,
                         dip, longitude, latitude])
@@ -169,10 +178,16 @@ class RunModel:
             samples[0] = samples[-1]
             samples[-1][-1] += 1
             samples[0][-1] = len(samples) - 1
+            result = "accept"
         else: # Reject new
             samples[int(samples[0][-1])][-1] += 1 # increment old draw wins
+            result = "reject"
         np.save('samples.npy', samples)
 
+        #print some results for debugging purposes
+        samp_post = samp_prior + samp_llh
+        prop_post = prop_prior + prop_llh
+        print( "result:", len(samples), samp_prior, samp_llh, samp_post, prop_prior, prop_llh, prop_post, accept_prob, result)
 
 
     def run_model(self):
