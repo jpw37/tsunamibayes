@@ -359,7 +359,7 @@ def setrun(claw_pkg='geoclaw'):
     # == fgmax.data values ==
     fgmax_files = rundata.fgmax_data.fgmax_files
     # for fixed grids append to this list names of any fgmax input files
-    fgmax_files.append('fgmax_grid.txt')
+    fgmax_files.append('PreRun/GeneratedGeoClawInput/fgmax_grid.txt')
     rundata.fgmax_data.num_fgmax_val = 1  # Save depth only
 
     return rundata
