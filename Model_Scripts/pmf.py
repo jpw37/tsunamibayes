@@ -27,7 +27,8 @@ class PMF:
             raise ValueError("Probabilities must be positive")
 
         # normalize probabilities
-        if np.sum(probabilities) != 1:
+        #(don't normalize if sum is zero)
+        if np.sum(probabilities) != 1 and np.sum(probabilities) != 0:
             probabilities /= np.sum(probabilities)
 
         # save data
