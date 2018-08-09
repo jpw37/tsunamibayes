@@ -204,7 +204,7 @@ def calculate_probability(gauges):
     arrivals, heights = read_gauges(names)
 
     # Calculate p for the arrivals and heights
-    p = 0. # init p
+    llh = 0. # init p
     # Calculate p for the heights, using the PMFData and PMF classes
     amplification_data = np.load('amplification_data.npy')
     row_header = amplification_data[:,0]
@@ -216,17 +216,17 @@ def calculate_probability(gauges):
             value = gauge.arrival_dist.pdf(arrivals[i])
             if np.abs(value) < 1e-20:
                 value = 1e-10
-#            p += np.log(gauge.arrival_dist.pdf(arrivals[i]))
-            p += np.log(value)
+#            llh += np.log(gauge.arrival_dist.pdf(arrivals[i]))
+            llh += np.log(value)
 
         if(gauge.kind[1]):
             # heights
             pmf = pmfData.getPMF(gauge.distance, heights[i])
             if np.abs(heights[i]) > 999999999:
-                p += -9999
+                llh += -9999
             else:
-                p_i = pmf.integrate(gauge.height_dist)
-                p += np.log(p_i)
+                llh_i = pmf.integrate(gauge.height_dist)
+                llh += np.log(llh_i)
 
         if(gauge.kind[2]):
             # inundation
@@ -238,10 +238,10 @@ def calculate_probability(gauges):
                 pmf_inundation = PMF([0., 1.], [0., 0.])
             else:
                 pmf_inundation = PMF(inun_values, inun_probability)
-            p_inundation = pmf_inundation.integrate(gauge.inundation_dist)
-            p += np.log(p_inundation)
+            llh_inundation = pmf_inundation.integrate(gauge.inundation_dist)
+            llh += np.log(llh_inundation)
 
-    return p
+    return llh
 
 def make_input_files(self):
     pass
