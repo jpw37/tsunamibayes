@@ -142,7 +142,8 @@ class Setup:
         # gauges.append(g.to_json())
 
         #Returns a list of gauges for the 1852 Priors
-        gauges = load_gauges()
+        # gauges = load_gauges()
+        gauges = np.load('gauges')
         # print(gauges)
 
 

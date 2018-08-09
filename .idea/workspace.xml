@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e2c4c863-11d3-4106-ae4a-01608a8b3046" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Model_Scripts/Complete_1852_Obs_Priors.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Model_Scripts/Complete_1852_Obs_Priors.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Model_Scripts/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/Model_Scripts/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -19,20 +20,8 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="gauge.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2880">
-              <caret line="192" selection-start-line="192" selection-end-line="192" />
-              <folding>
-                <element signature="e#64#82#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Complete_1852_Obs_Priors.ipynb" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/Complete_1852_Obs_Priors.ipynb">
+      <file leaf-file-name="Complete_1852_Obs_Priors.ipynb" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Model_Scripts/Complete_1852_Obs_Priors.ipynb">
           <provider selected="true" editor-type-id="ipnb-editor">
             <state>
               <selected id="0" />
@@ -40,82 +29,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="gauge_dist_1852.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/gauge_dist_1852.py">
+      <file leaf-file-name="setup.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Model_Scripts/setup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
-              <folding>
-                <element signature="e#0#46#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pmf.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="7" column="30" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="30" />
-              <folding>
-                <element signature="e#0#18#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="maketopo.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="16" selection-start-line="16" selection-end-line="16" />
-              <folding>
-                <element signature="e#388#426#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="setup.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2205">
-              <caret line="147" selection-start-line="147" selection-end-line="147" />
-              <folding>
-                <element signature="e#140#149#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="run_model.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2475">
-              <caret line="165" selection-start-line="165" selection-end-line="165" />
-              <folding>
-                <element signature="e#68#78#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="setrun.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" selection-start-line="8" selection-end-line="8" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="read_samples.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <folding>
-                <element signature="e#0#18#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="507">
+              <caret line="145" column="27" selection-start-line="145" selection-start-column="27" selection-end-line="145" selection-end-column="27" />
             </state>
           </provider>
         </entry>
@@ -148,6 +66,7 @@
         <option value="$PROJECT_DIR$/Model Scripts/setup.py" />
         <option value="$PROJECT_DIR$/Model Scripts/gauge_dist_1852.py" />
         <option value="$PROJECT_DIR$/Model Scripts/Complete_1852_Obs_Priors.ipynb" />
+        <option value="$PROJECT_DIR$/Model_Scripts/setup.py" />
       </list>
     </option>
   </component>
@@ -169,7 +88,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -180,12 +98,13 @@
             <path>
               <item name="tsunamibayes" type="b2602c69:ProjectViewProjectNode" />
               <item name="tsunamibayes" type="462c0819:PsiDirectoryNode" />
-              <item name="Model Scripts" type="462c0819:PsiDirectoryNode" />
+              <item name="Model_Scripts" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -321,11 +240,11 @@
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32969698" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32969698" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26037195" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2639485" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="right" id="SciView" order="3" />
@@ -353,286 +272,49 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2880">
-          <caret line="192" selection-start-line="192" selection-end-line="192" />
-          <folding>
-            <element signature="e#64#82#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="30" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" selection-start-line="16" selection-end-line="16" />
-          <folding>
-            <element signature="e#388#426#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2205">
-          <caret line="147" selection-start-line="147" selection-end-line="147" />
-          <folding>
-            <element signature="e#140#149#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2475">
-          <caret line="165" selection-start-line="165" selection-end-line="165" />
-          <folding>
-            <element signature="e#68#78#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2880">
-          <caret line="192" selection-start-line="192" selection-end-line="192" />
-          <folding>
-            <element signature="e#64#82#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="7" column="30" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="16" selection-start-line="16" selection-end-line="16" />
-          <folding>
-            <element signature="e#388#426#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2115">
-          <caret line="147" selection-start-line="147" selection-end-line="147" />
-          <folding>
-            <element signature="e#140#149#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2355">
-          <caret line="165" lean-forward="true" selection-start-line="165" selection-end-line="165" />
-          <folding>
-            <element signature="e#68#78#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2880">
-          <caret line="192" selection-start-line="192" selection-end-line="192" />
-          <folding>
-            <element signature="e#64#82#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="30" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" lean-forward="true" selection-start-line="16" selection-end-line="16" />
-          <folding>
-            <element signature="e#388#426#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2205">
-          <caret line="147" selection-start-line="147" selection-end-line="147" />
-          <folding>
-            <element signature="e#140#149#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2475">
-          <caret line="165" column="11" selection-start-line="165" selection-start-column="3" selection-end-line="165" selection-end-column="11" />
-          <folding>
-            <element signature="e#68#78#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py" />
     <entry file="file://$PROJECT_DIR$/Model Scripts/prior_dist_1852.py" />
-    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" selection-start-line="16" selection-end-line="16" />
-          <folding>
-            <element signature="e#388#426#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2475">
-          <caret line="165" selection-start-line="165" selection-end-line="165" />
-          <folding>
-            <element signature="e#68#78#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2205">
-          <caret line="147" selection-start-line="147" selection-end-line="147" />
-          <folding>
-            <element signature="e#140#149#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Model Scripts/maketopo.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/run_model.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/read_samples.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setrun.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/setup.py" />
     <entry file="file://$PROJECT_DIR$/Model Scripts/prior_dist_1852.py" />
-    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="7" column="30" selection-start-line="7" selection-start-column="26" selection-end-line="7" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge_dist_1852.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2880">
-          <caret line="192" selection-start-line="192" selection-end-line="192" />
-          <folding>
-            <element signature="e#64#82#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Model Scripts/Complete_1852_Obs_Priors.ipynb">
+    <entry file="file://$PROJECT_DIR$/Model Scripts/pmf.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge_dist_1852.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/gauge.py" />
+    <entry file="file://$PROJECT_DIR$/Model Scripts/Complete_1852_Obs_Priors.ipynb" />
+    <entry file="file://$PROJECT_DIR$/Model_Scripts/Complete_1852_Obs_Priors.ipynb">
       <provider selected="true" editor-type-id="ipnb-editor">
         <state>
           <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Model_Scripts/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="507">
+          <caret line="145" column="27" selection-start-line="145" selection-start-column="27" selection-end-line="145" selection-end-column="27" />
         </state>
       </provider>
     </entry>
