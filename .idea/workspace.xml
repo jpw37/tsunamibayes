@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e2c4c863-11d3-4106-ae4a-01608a8b3046" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/Model_Scripts/Complete_1852_Obs_Priors.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Model_Scripts/Complete_1852_Obs_Priors.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Model_Scripts/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/Model_Scripts/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -245,16 +244,15 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.32969698" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.32969698" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.26752505" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26752505" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="right" id="Database" order="3" />
       <window_info anchor="bottom" id="Find" order="1" />
