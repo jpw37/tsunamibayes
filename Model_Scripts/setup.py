@@ -143,7 +143,7 @@ class Setup:
 
         #Returns a list of gauges for the 1852 Priors
         # gauges = load_gauges()
-        gauges = np.load('gauges.npy')
+        gauges = np.load('PreRun/GeneratedGeoClawInput/gauges.npy')
         # print(gauges)
 
 
