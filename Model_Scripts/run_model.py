@@ -79,20 +79,21 @@ class RunModel:
         #dip = .0875
         #longitude = .025
         #latitude = .01875
-        strike = 1.
-        length = 2.e4
-        width  = 1.e4
-        depth  = 2.e3
-        slip   = 0.5
-        rake   = 0.5
-        dip    = 0.1
-        longitude = .025
-        latitude  = .025
+        strike_std    = 5.       #strike_std    = 1.
+        length_std    = 5.e3     #length_std    = 2.e4
+        width_std     = 2.e3     #width_std     = 1.e4
+        depth_std     = 1.e3     #depth_std     = 2.e3
+        slip_std      = 0.5      #slip_std      = 0.5
+        rake_std      = 0.5      #rake_std      = 0.5
+        dip_std       = 0.1      #dip_std       = 0.1
+        longitude_std = 0.15     #longitude_std = .025
+        latitude_std  = 0.15     #latitude_std  = .025
         mean = np.zeros(9)
-        cov = np.diag([strike, length, width, depth, slip, rake,
-                        dip, longitude, latitude])
+        #square for std => cov
+        cov = np.diag(np.square([strike_std, length_std, width_std, depth_std, slip_std, rake_std,
+                        dip_std, longitude_std, latitude_std]))
         
-        #cov *= 16.0;
+        cov *= 0.25;
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
