@@ -138,6 +138,13 @@ class RunModel:
         samp_llh = samples[0][-2]
         if np.isneginf(prop_llh) and np.isneginf(samp_llh):
             change_llh = 0
+        elif np.isnan(prop_llh) and np.isnan(samp_llh):
+            change_llh = 0
+        #fix situation where nan in proposal llh results in acceptance, e.g., 8855 [-52.34308085] -10110.84699320795 [-10163.19007406] [-51.76404079] nan [nan] 1 accept
+        elif np.isnan(prop_llh) and not np.isnan(samp_llh):
+            change_llh = np.NINF
+        elif not np.isnan(prop_llh) and np.isnan(samp_llh):
+            change_llh = np.INF
         else:
             change_llh = prop_llh - samp_llh
 
@@ -156,7 +163,7 @@ class RunModel:
             
             samp_prior = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
             samp_prior += self.priors[1].logpdf(samples[0,[6,5,3,1,2,4]])
-            #DEPRICATED
+            #DEPRECATED
             """# Log-Likelihood of prior
             prop_prior = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
             samp_prior = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
