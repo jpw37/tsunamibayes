@@ -33,20 +33,36 @@ else:
   print("samples[int(samples[0,-1]), :] is:")
   print(samples[int(samples[0,-1]), :])
 
-  #remove header line
-  s = samples[1:,:]
-  #only consider finite values
-  s = s[numpy.isfinite(s[:,-2]),:]
-  ##only consider non-zero values (shouldn't matter except maybe chains that haven't finished yet or some kind of concatenation of chains...not sure)
-  #s = s[s[:,-2]!=0.,:]
-
   #column of log likelihood
   llh_idx=-2
 
-  #find index of mle
-  mle_idx=numpy.argmax(s[:,llh_idx])
-  print("mle index is",mle_idx)
+  i=1 #skip first row (header line)
+  while i <= samples.shape[0] and (numpy.isneginf(samples[i, llh_idx]) or numpy.isnan(samples[i, llh_idx])):
+    i+=1
+  if i <= samples.shape[0]:
+    print("first valid (not -inf or NAN) log-likelihood is in row",i,"with sample:")
+    print(samples[i,:])
+  else:
+    print("all log-likelihoods are -inf or NAN")
 
-  #print mle sample
-  print("mle sample is:")
-  print(s[mle_idx,:])
+  #remove header line
+  s = samples[1:,:]
+  #only consider finite values
+  s = s[numpy.isfinite(s[:,llh_idx]),:]
+  #only consider non-zero values (shouldn't matter except maybe chains that haven't finished yet or some kind of concatenation of chains...not sure)
+  s = s[s[:,llh_idx]!=0.,:]
+
+  if len(s) > 0:
+    #find index of mle
+    mle_idx=numpy.argmax(s[:,llh_idx])
+    print("mle index is",mle_idx)
+
+    #print mle sample
+    print("mle sample is:")
+    print(s[mle_idx,:])
+
+    #print mle sample
+    print("mle llh is:",s[mle_idx,llh_idx])
+  else:
+    print("no valid (finite and not zero) log likelihoods")
+

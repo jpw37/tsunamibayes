@@ -1,0 +1,99 @@
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=24
+#PBS -l walltime=54:00:00
+#PBS -q normal_q
+#PBS -A arctest
+#PBS -W group_list=dragonstooth
+#PBS -M jkrometi@vt.edu
+#PBS -m ea
+
+#module purge; module load gcc atlas python
+module purge; module load Anaconda/5.2.0 parallel
+
+#e.g., "520404_br"
+jobid="$( echo $PBS_JOBID | sed 's/\..*$//' )_$( hostname | grep -o ^.. )"
+
+#change to working directory
+[[ ! -z $PBS_O_WORKDIR ]] && cd $PBS_O_WORKDIR
+
+#Set some directories
+[[ -z $workdir ]]  && workdir=$( pwd )
+#rundir="$workdir/$jobid"
+[[ -z $rundir ]]   && rundir="$TMPFS/run"
+[[ -z $finaldir ]] && finaldir="$workdir/$jobid"
+#if being run with gnu parallel, create a subdirectory of finaldir for each
+[[ ! -z $PARALLEL_SEQ ]] && finaldir="$finaldir/$( printf %03d $PARALLEL_SEQ )"
+
+echo "workdir=$workdir"
+echo "rundir=$rundir"
+echo "finaldir=$finaldir"
+
+##set claw environment variable
+#clawver="5.4.1"
+##export CLAW="$HOME/$SYSNAME/apps/gcc/5.2.0/clawpack/$clawver/clawpack-v$clawver"
+#export CLAW="$HOME/$SYSNAME/apps/clawpack/$clawver/lib/python2.7/site-packages/clawpack"
+
+#### INSTALL CLAWPACK IN TMPFS ####
+clawver=5.4.1
+src=$HOME/build/src/clawpack-$clawver.tar.gz
+export CLAW="$TMPFS/clawpack-$clawver"
+mkdir -p $CLAW
+cd $CLAW
+tar xzf $src -C . --strip=1
+export PYTHONUSERBASE=$CLAW
+python setup.py install --user
+
+
+#### RUN GEOCLAW ####
+cd $workdir
+
+#set up and move into run directory
+mkdir -p $rundir
+#cp etopo.tt3 $rundir/
+#cd tsunamibayes/
+#cp Makefile amplification_data.npy gauge.py maketopo.py pmf.py run_model.py setrun.py setup.py make_plots_offline.py $rundir/
+cp tsunamibayes/Model_Scripts/* $rundir/
+cd $rundir
+
+#initialize log file
+logfile="$rundir/geoclaw.log"
+> $logfile
+
+export FFLAGS='-O2 -fPIC -fopenmp' ; echo "FFLAGS=$FFLAGS"                   | tee -a $logfile
+#export OMP_NUM_THREADS=$PBS_NP     ; echo "OMP_NUM_THREADS=$OMP_NUM_THREADS" | tee -a $logfile
+export OMP_NUM_THREADS=$PBS_NUM_PPN; echo "OMP_NUM_THREADS=$OMP_NUM_THREADS" | tee -a $logfile
+export OMP_STACKSIZE=16M           ; echo "OMP_STACKSIZE=$OMP_STACKSIZE"     | tee -a $logfile
+ulimit -s unlimited                ; echo "stack size unlimited"             | tee -a $logfile
+
+[[ -z $nsamp ]] && export nsamp=10   ; echo "nsamp=$nsamp"     | tee -a $logfile
+[[ -z $smplr ]] && export smplr="rw" ; echo "smplr=$smplr"     | tee -a $logfile
+#[[ -z $smplr ]] && export smplr="is" ; echo "smplr=$smplr"     | tee -a $logfile
+
+echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
+
+python setup.py 2>&1 | tee -a $logfile
+python run_model.py $nsamp $smplr 2>&1 | tee -a $logfile
+
+echo "LOG: $( date ): MCMC run complete" | tee -a $logfile
+
+
+#### PLOT ####
+
+echo "LOG: $( date ): Making some key plots..." | tee -a $logfile
+
+python make_plots_offline.py all change
+python make_plots_offline.py all values
+python make_plots_offline.py correlations
+python make_plots_offline.py long lat
+
+echo "LOG: $( date ): Plotting complete" | tee -a $logfile
+
+
+#### SAVE RESULTS ####
+
+#copy from tmpfs to final directory
+cp -r $rundir $finaldir
+
+#change back to working directory
+[[ ! -z $PBS_O_WORKDIR ]] && cd $PBS_O_WORKDIR
