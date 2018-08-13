@@ -1,6 +1,7 @@
 # File for all earthquake specific information
 # This is the only file that needs to be changed to run GeoClaw on
 # a different earthquake.
+import sys
 import os
 import numpy as np
 from gauge import Gauge
@@ -43,6 +44,14 @@ class Setup:
         #dip = 13.3
         #longitude = 130.47 # 132.4
         #latitude = -5.63
+
+        if len(sys.argv)>1:
+          init = sys.argv[1]
+          print("initializing chain using",init,"method...")
+        else:
+          init = "random"
+          print("defaulting to",init,"method of initializing chain...")
+
         #strike = 190. # 205.0       #strike = 84.6 # 205.0     
         #length = 540.e3             #length = 231430.5
         #width = 80.e3               #width = 47462.4
@@ -88,43 +97,51 @@ class Setup:
         #longitude = p0[0]
         #latitude  = p0[1]
 
-        ##initial guesses taken from final sample of 260911_ca/001
+        if init == "manual":
+          #initial guesses taken from final sample of 260911_ca/001
+          strike     =  2.77152900e+02
+          length     =  3.36409138e+05
+          width      =  3.59633559e+04
+          depth      =  2.50688161e+04
+          slip       =  9.17808160e+00
+          rake       =  5.96643293e+01
+          dip        =  1.18889907e+01
+          longitude  =  1.31448175e+02
+          latitude   = -4.63296475e+00
 
-        #strike     =  2.77152900e+02
-        #length     =  3.36409138e+05
-        #width      =  3.59633559e+04
-        #depth      =  2.50688161e+04
-        #slip       =  9.17808160e+00
-        #rake       =  5.96643293e+01
-        #dip        =  1.18889907e+01
-        #longitude  =  1.31448175e+02
-        #latitude   = -4.63296475e+00
+          self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
+              longitude, latitude])
 
-        #draw initial sample at random from prior (kdes)
-        priors = build_priors()
-        p0=priors[0].resample(1)[:,0]
-        longitude = p0[0]
-        latitude  = p0[1]
-        strike    = p0[2]
+        if init == "random":
+          #draw initial sample at random from prior (kdes)
+          priors = build_priors()
+          p0=priors[0].resample(1)[:,0]
+          longitude = p0[0]
+          latitude  = p0[1]
+          strike    = p0[2]
 
-        #draw from prior but redraw if values are unphysical
-        length    = -1.
-        width     = -1.
-        depth     = -1.
-        slip      = -1.
-        rake      = -1.
-        dip       = -1.
-        while length <= 0. or width <= 0. or depth<=0. or slip <=0.:
-          p1=priors[1].resample(1)[:,0]
-          length    = p1[3]
-          width     = p1[4]
-          depth     = p1[2]
-          slip      = p1[5]
-          rake      = p1[1]
-          dip       = p1[0]
+          #draw from prior but redraw if values are unphysical
+          length    = -1.
+          width     = -1.
+          depth     = -1.
+          slip      = -1.
+          rake      = -1.
+          dip       = -1.
+          while length <= 0. or width <= 0. or depth<=0. or slip <=0.:
+            p1=priors[1].resample(1)[:,0]
+            length    = p1[3]
+            width     = p1[4]
+            depth     = p1[2]
+            slip      = p1[5]
+            rake      = p1[1]
+            dip       = p1[0]
 
-        self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
-            longitude, latitude])
+          self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
+              longitude, latitude])
+        
+        if init == "restart":
+          self.guesses = np.load('samples.npy')[0][:9]
+
         # np.save("guesses.npy", self.guesses)
         print("initial sample is:")
         print(self.guesses)
@@ -258,11 +275,13 @@ class Setup:
         probability_params = probability_params.T
         np.save("prior.npy", probability_params)
 
-        # Save initial guesses to samples.npy.
-        init_p_w = np.array([0,1])
-        sample = np.hstack((self.guesses, init_p_w))
-        sample = np.vstack((sample, sample))
-        np.save("samples.npy", sample)
+        # If we're not restarting from an existing samples.npy,
+        # save initial guesses to samples.npy.
+        if init != "restart":
+          init_p_w = np.array([0,1])
+          sample = np.hstack((self.guesses, init_p_w))
+          sample = np.vstack((sample, sample))
+          np.save("samples.npy", sample)
 
         # Save gauges to gauges.txt
         self.gauges = gauges

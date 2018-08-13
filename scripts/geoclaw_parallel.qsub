@@ -27,7 +27,7 @@ mkdir -p $finaldir
 
 export nchains=$PBS_NUM_NODES
 #export nchains=$(( $PBS_NUM_NODES * 4 ))
-export nsamp=10000
+export nsamp=15000
 export smplr="rw"
 
 #run a series of MCMC chains in parallel, one on each host
@@ -44,6 +44,7 @@ seq 1 $nchains | parallel --no-notice \
   --env finaldir \
   --env nsamp \
   --env smplr \
+  --env MCMC_RESTART_DIR \
   "cd $workdir;
   echo \$(date)\": MCMC start for chain {}\";
   source geoclaw.qsub;
@@ -69,12 +70,13 @@ echo "$( date ): Plotting complete"
 
 
 #print sample stats
-cd $finaldir
-cp $workdir/sample_stats.py .
-for dir in $( ls -d [0-9]* | egrep -o '[0-9]*' ); do 
-  python sample_stats.py $dir > ${dir}/sample_stats.txt
-done
-python sample_stats.py $mergedir > ${mergedir}/sample_stats.txt
+#cd $finaldir
+#cp $workdir/sample_stats.py .
+#for dir in $( ls -d [0-9]* | egrep -o '[0-9]*' ); do 
+#  python sample_stats.py $dir > ${dir}/sample_stats.txt
+#done
+#python sample_stats.py $mergedir > ${mergedir}/sample_stats.txt
+python $workdir/sample_stats.py $finaldir/$mergedir > $finaldir/$mergedir/sample_stats.txt
 
 cd $workdir
 
