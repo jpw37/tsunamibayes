@@ -73,20 +73,55 @@ class Setup:
         #longitude = 133.3
         #latitude = -1.35
 
+        ##draw initial sample at random from prior (kdes)
+        #priors = build_priors()
+        #p0=priors[0].resample(1)[:,0]
+        #p1=priors[1].resample(1)[:,0]
+        ##self.guesses = [ p0[2], p1[3], p1[4], p1[2], p1[5], p1[1], p1[0], p0[0], p0[1] ]
+        #strike    = p0[2]
+        #length    = p1[3]
+        #width     = p1[4]
+        #depth     = p1[2]
+        #slip      = p1[5]
+        #rake      = p1[1]
+        #dip       = p1[0]
+        #longitude = p0[0]
+        #latitude  = p0[1]
+
+        ##initial guesses taken from final sample of 260911_ca/001
+
+        #strike     =  2.77152900e+02
+        #length     =  3.36409138e+05
+        #width      =  3.59633559e+04
+        #depth      =  2.50688161e+04
+        #slip       =  9.17808160e+00
+        #rake       =  5.96643293e+01
+        #dip        =  1.18889907e+01
+        #longitude  =  1.31448175e+02
+        #latitude   = -4.63296475e+00
+
         #draw initial sample at random from prior (kdes)
         priors = build_priors()
         p0=priors[0].resample(1)[:,0]
-        p1=priors[1].resample(1)[:,0]
-        #self.guesses = [ p0[2], p1[3], p1[4], p1[2], p1[5], p1[1], p1[0], p0[0], p0[1] ]
-        strike    = p0[2]
-        length    = p1[3]
-        width     = p1[4]
-        depth     = p1[2]
-        slip      = p1[5]
-        rake      = p1[1]
-        dip       = p1[0]
         longitude = p0[0]
         latitude  = p0[1]
+        strike    = p0[2]
+
+        #draw from prior but redraw if values are unphysical
+        length    = -1.
+        width     = -1.
+        depth     = -1.
+        slip      = -1.
+        rake      = -1.
+        dip       = -1.
+        while length <= 0. or width <= 0. or depth<=0. or slip <=0.:
+          p1=priors[1].resample(1)[:,0]
+          length    = p1[3]
+          width     = p1[4]
+          depth     = p1[2]
+          slip      = p1[5]
+          rake      = p1[1]
+          dip       = p1[0]
 
         self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
             longitude, latitude])
