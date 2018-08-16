@@ -93,7 +93,9 @@ echo "LOG: $( date ): MCMC run complete" | tee -a $logfile
 echo "LOG: $( date ): Making some key plots..." | tee -a $logfile
 
 python make_plots_offline.py all change
+python make_plots_offline.py magnitude change
 python make_plots_offline.py all values
+python make_plots_offline.py magnitude values
 python make_plots_offline.py correlations
 python make_plots_offline.py long lat
 

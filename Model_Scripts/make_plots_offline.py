@@ -21,6 +21,11 @@ d['dip'] = 6
 d['longitude'] = 7
 d['latitude'] = 8
 
+def compute_mw(L,W,slip,mu=30.e9):
+    unitConv=1e7  #convert from Nm to 1e-7 Nm
+    Mw = (2/3)*np.log10(L*W*slip*mu*unitConv) - 10.7
+    return Mw
+
 def add_axis_label(param, axis):
     # label = param + ' '
     label = ''
@@ -37,12 +42,20 @@ def add_axis_label(param, axis):
         plt.ylabel(label)
 
 def make_hist(param, bins=30):
-    if param not in d.keys():
+    if param not in d.keys() and param !='magnitude':
         print("{} is not a valid parameter.".format(param))
         return
-    column = d[param]
-    freq = A[1:, -1]
-    values = A[1:, column]
+
+    if param == 'magnitude':
+        length = A[1:, d['length']]
+        width = A[1:, d['width']]
+        slip = A[1:, d['slip']]
+        freq = A[1:, -1]
+        values = compute_mw(length,width,slip)
+    else:
+        column = d[param]
+        freq = A[1:, -1]
+        values = A[1:, column]
 
     L = []
     for i in range(len(freq)):
@@ -89,12 +102,20 @@ def make_2dhist(param1,param2,bins):
         plt.colorbar()
 
 def make_change_plot(param):
-    if param not in d.keys():
+    if param not in d.keys() and param != 'magnitude':
         print("{} is not a valid parameter.".format(param))
         return
-    column = d[param]
+    if param == 'magnitude':
+        length = A[1:, d['length']]
+        width = A[1:, d['width']]
+        slip = A[1:, d['slip']]
+        values = compute_mw(length,width,slip)
+    else:
+        #column = d[param]
+        values = A[1:,d[param]]
     x = [0] + [i-1 for i in range(2,len(A)) if A[i,-1] > 1]
-    y = [A[1,column]] + [A[i+1,column] for i in range(1, len(A)-1) if A[i+1,-1] >1]
+    #y = [A[1,column]] + [A[i+1,column] for i in range(1, len(A)-1) if A[i+1,-1] >1]
+    y = [values[0]] + [values[i] for i in range(1, len(A)-1) if A[i+1,-1] >1]
     plt.plot(x,y)
     plt.xlabel("Iteration")
     # plt.ylabel("Value")

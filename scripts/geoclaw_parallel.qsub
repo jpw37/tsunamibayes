@@ -63,7 +63,9 @@ cp 001/make_plots_offline.py $mergedir
 cd $mergedir
 echo "$( date ): Making some key plots..."
 python make_plots_offline.py all change
+python make_plots_offline.py magnitude change
 python make_plots_offline.py all values
+python make_plots_offline.py magnitude values
 python make_plots_offline.py correlations
 python make_plots_offline.py long lat
 echo "$( date ): Plotting complete"
