@@ -128,7 +128,8 @@ def read_gauges(gauges):
     bath_data = np.loadtxt("_output/fort.FG1.aux1")
 
 #    arrivals = data[:,4]
-    arrivals = data[:,2]  #this is the arrival time of the first wave, not the maximum wave
+    arrivals = data[:,-1]/60.  #this is the arrival time of the first wave, not the maximum wave
+    # note that fgmax outputs in seconds, but our likelihood is in minutes
     max_heights = data[:,3]
     bath_depth = bath_data[:,-1]
 

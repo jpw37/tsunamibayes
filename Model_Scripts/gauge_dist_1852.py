@@ -289,8 +289,8 @@ def load_gauges():
 
     # For kind = 'skewnorm'
     #arival_skew_param = 3.5  #This skewed things to much in my opinion
-    arrival_skew_param = 1
-    arrival_mean = 60  # in minutes
+    arrival_skew_param = 0
+    arrival_mean = 50  # in minutes
     arrival_std = 10
     arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
     height_skew_param = None
@@ -391,7 +391,7 @@ def outputFGMaxFile():
     f.write('1.0000000000e+10            # tstart_max\n')
     f.write('0.0000000000e+00            # dt_check\n')
     f.write('3                           # min_level_check\n')
-    f.write('1.0000000000e-01            # arrival_tol\n')#adjust the arrival tolerance to 0.1m
+    f.write('2.0000000000e-01            # arrival_tol\n')#adjust the arrival tolerance to 0.1m
     f.write('0                           # point_style\n')
     f.write(str(len(gauges)) + '                          # npts\n')
 
