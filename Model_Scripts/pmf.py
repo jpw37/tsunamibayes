@@ -104,7 +104,7 @@ class PMFData:
         # Ex. make a list of the run-up heights that are associated with wave heights within tol of the given wave height y
         # for now we are doing this by saying the tolerance tol is the default value (2m) onshore (d=0), but increases with distance d
         # from shore, as we are dealing with water depth which has an order of magnitude change for d>0
-        tol = .25*y #this is completely arbitrary and should be checked in future studies...!!!
+        tol = .1*y #this is completely arbitrary and should be checked in future studies...!!!
         values = [self.row_header[i] for i in range(self.m) if abs(column[i] - y) < tol]
         values.sort()
         print("y is:",y)

@@ -6,7 +6,7 @@ from scipy.stats import gaussian_kde
 
 def build_priors():
     samplingMult = 50
-    bandwidthScalar = 2
+    bandwidthScalar = 0.5
     #build longitude, latitude and strike prior 
     data = pd.read_excel('Fixed92kmFaultOffset50kmgapPts.xls')
     data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
