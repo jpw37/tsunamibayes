@@ -125,9 +125,20 @@ def read_gauges(gauges):
             height for gauges[i]
     """
     data = np.loadtxt("_output/fort.FG1.valuemax")
-    arrivals = data[:,4]
+    bath_data = np.loadtxt("_output/fort.FG1.aux1")
+
+#    arrivals = data[:,4]
+    arrivals = data[:,-1]/60.  #this is the arrival time of the first wave, not the maximum wave
+    # note that fgmax outputs in seconds, but our likelihood is in minutes
     max_heights = data[:,3]
-    return arrivals,max_heights
+    bath_depth = bath_data[:,-1]
+
+    max_heights[max_heights < 1e-15] = -9999  #these are locations where the wave never reached the gauge...
+    max_heights[np.abs(max_heights) > 1e15] = -9999  #again places where the wave never reached the gauge...
+    bath_depth[max_heights == 0] = 0
+    wave_heights = max_heights+bath_depth
+
+    return arrivals,wave_heights
     
     ###OLD - Now using fgmax class
     # n = len(gauges)
@@ -221,18 +232,23 @@ def calculate_probability(gauges):
 
         if(gauge.kind[1]):
             # heights
+            pmf = pmfData.getPMF(gauge.distance, heights[i])
             if np.abs(heights[i]) > 999999999:
                 p += -9999
             else:
-                pmf = pmfData.getPMF(gauge.distance, heights[i])
                 p_i = pmf.integrate(gauge.height_dist)
                 p += np.log(p_i)
 
         if(gauge.kind[2]):
             # inundation
+            pmf = pmfData.getPMF(gauge.distance, heights[i])
             inun_values = np.power(pmf.vals,4/3) * 0.06 * np.cos(gauge.beta) / (gauge.n**2)
             inun_probability = pmf.probs
-            pmf_inundation = PMF(inun_values, inun_probability)
+            if len(inun_values) == 0:
+                print("WARNING: inun_values is zero length")
+                pmf_inundation = PMF([0., 1.], [0., 0.])
+            else:
+                pmf_inundation = PMF(inun_values, inun_probability)
             p_inundation = pmf_inundation.integrate(gauge.inundation_dist)
             p += np.log(p_inundation)
 

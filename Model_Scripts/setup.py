@@ -1,6 +1,7 @@
 # File for all earthquake specific information
 # This is the only file that needs to be changed to run GeoClaw on
 # a different earthquake.
+import sys
 import os
 import numpy as np
 from gauge import Gauge
@@ -8,6 +9,9 @@ import gauge
 import maketopo as mt
 import json
 from gauge_dist_1852 import load_gauges
+
+#need this only when initial sample is drawn from prior
+from build_priors import build_priors
 
 
 class Setup:
@@ -31,18 +35,116 @@ class Setup:
         # Change the following variables
         #####
         # initial guesses (mean for prior if using normal distribution)
-        strike = 84.6 # 205.0
-        length = 310.e3
-        width = 130.e3
-        depth = 5.54e3
-        slip = 3.5 # 9.
-        rake = 67.1 # 90.
-        dip = 13.3
-        longitude = 130.47 # 132.4
-        latitude = -5.63
-        self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
-            longitude, latitude])
+        #strike = 84.6 # 205.0
+        #length = 310.e3
+        #width = 130.e3
+        #depth = 5.54e3
+        #slip = 3.5 # 9.
+        #rake = 67.1 # 90.
+        #dip = 13.3
+        #longitude = 130.47 # 132.4
+        #latitude = -5.63
+
+        if len(sys.argv)>1:
+          init = sys.argv[1]
+          print("initializing chain using",init,"method...")
+        else:
+          init = "random"
+          print("defaulting to",init,"method of initializing chain...")
+
+        #strike = 190. # 205.0       #strike = 84.6 # 205.0     
+        #length = 540.e3             #length = 231430.5
+        #width = 80.e3               #width = 47462.4
+        #depth = 5.54e3              #depth = 5.54e3
+        #slip = 20.                  #slip = 8.6 # 9.
+        #rake = 90.                  #rake = 67.1 # 90.
+        #dip = 15.                   #dip = 13.3
+        #longitude = 132.92          #longitude = 130.47 # 132.4
+        #latitude = -5.64            #latitude = -5.63
+        ##initial guesses taken from 259001_ca (which seemed to produce decent results)
+        #strike = 84.6 # 205.0
+        #length = 100.e3
+        #width = 45.e3
+        #depth = 5.54e3
+        #slip = 20. # 9.
+        #rake = 67.1 # 90.
+        #dip = 13.3
+        #longitude = 130.47 # 132.4
+        #latitude = -5.63
+        #initial guesses taken from final sample of 213127_dt/003
+        #strike = 191.
+        #length = 541.e3
+        #width = 80.e3
+        #depth = 5.55e3
+        #slip = 19.5
+        #rake = 83.0
+        #dip = 20.0
+        #longitude = 133.3
+        #latitude = -1.35
+
+        ##draw initial sample at random from prior (kdes)
+        #priors = build_priors()
+        #p0=priors[0].resample(1)[:,0]
+        #p1=priors[1].resample(1)[:,0]
+        ##self.guesses = [ p0[2], p1[3], p1[4], p1[2], p1[5], p1[1], p1[0], p0[0], p0[1] ]
+        #strike    = p0[2]
+        #length    = p1[3]
+        #width     = p1[4]
+        #depth     = p1[2]
+        #slip      = p1[5]
+        #rake      = p1[1]
+        #dip       = p1[0]
+        #longitude = p0[0]
+        #latitude  = p0[1]
+
+        if init == "manual":
+          #initial guesses taken from final sample of 260911_ca/001
+          strike     =  2.77152900e+02
+          length     =  3.36409138e+05
+          width      =  3.59633559e+04
+          depth      =  2.50688161e+04
+          slip       =  9.17808160e+00
+          rake       =  5.96643293e+01
+          dip        =  1.18889907e+01
+          longitude  =  1.31448175e+02
+          latitude   = -4.63296475e+00
+
+          self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
+              longitude, latitude])
+
+        if init == "random":
+          #draw initial sample at random from prior (kdes)
+          priors = build_priors()
+          p0=priors[0].resample(1)[:,0]
+          longitude = p0[0]
+          latitude  = p0[1]
+          strike    = p0[2]
+
+          #draw from prior but redraw if values are unphysical
+          length    = -1.
+          width     = -1.
+          depth     = -1.
+          slip      = -1.
+          rake      = -1.
+          dip       = -1.
+          while length <= 0. or width <= 0. or depth<=0. or slip <=0.:
+            p1=priors[1].resample(1)[:,0]
+            length    = p1[3]
+            width     = p1[4]
+            depth     = p1[2]
+            slip      = p1[5]
+            rake      = p1[1]
+            dip       = p1[0]
+
+          self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
+              longitude, latitude])
+        
+        if init == "restart":
+          self.guesses = np.load('samples.npy')[0][:9]
+
         # np.save("guesses.npy", self.guesses)
+        print("initial sample is:")
+        print(self.guesses)
         
 
         # Standard deviations for the random walk MCMC (these are not even used)
@@ -151,13 +253,14 @@ class Setup:
         # as set out above (if desired)
 
         # latitude and longitude bounds (same as etopo file)
-        xlower = 1257.5
+        xlower = 127.5
         xupper = 134.5
         ylower = -9.5
         yupper = -2.5
 
         # Length of time to run the model (in minutes)
-        time = 75.0
+        #time = 75.0
+        time = 150.0
 
         #############################
         # DO NOT MODIFY BEYOND THIS POINT
@@ -173,11 +276,13 @@ class Setup:
         probability_params = probability_params.T
         np.save("prior.npy", probability_params)
 
-        # Save initial guesses to samples.npy.
-        init_p_w = np.array([0,1])
-        sample = np.hstack((self.guesses, init_p_w))
-        sample = np.vstack((sample, sample))
-        np.save("samples.npy", sample)
+        # If we're not restarting from an existing samples.npy,
+        # save initial guesses to samples.npy.
+        if init != "restart":
+          init_p_w = np.array([0,1])
+          sample = np.hstack((self.guesses, init_p_w))
+          sample = np.vstack((sample, sample))
+          np.save("samples.npy", sample)
 
         # Save gauges to gauges.txt
         self.gauges = gauges

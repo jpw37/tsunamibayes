@@ -27,7 +27,8 @@ class PMF:
             raise ValueError("Probabilities must be positive")
 
         # normalize probabilities
-        if np.sum(probabilities) != 1:
+        #(don't normalize if sum is zero)
+        if np.sum(probabilities) != 1 and np.sum(probabilities) != 0:
             probabilities /= np.sum(probabilities)
 
         # save data
@@ -105,6 +106,15 @@ class PMFData:
         # from shore, as we are dealing with water depth which has an order of magnitude change for d>0
         tol = .25*y #this is completely arbitrary and should be checked in future studies...!!!
         values = [self.row_header[i] for i in range(self.m) if abs(column[i] - y) < tol]
+        values.sort()
+        print("y is:",y)
+        print("values is:")
+        print(values)
+
+        #catch: if there are no matches for y then return a PMF of zeros
+        if len(values) == 0:
+            print("WARNING: No match for offshore wave height in Tohoku dataset")
+            return PMF([0., 1.], [0., 0.])
 
         # bin the values to obtain data for a PMF
         probabilities, vals = np.histogram(values, density=True)

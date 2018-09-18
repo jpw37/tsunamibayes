@@ -1,0 +1,86 @@
+#!/bin/bash
+
+##PBS -l nodes=4:ppn=16
+##PBS -l walltime=00:30:00
+##PBS -W group_list=blueridge
+#PBS -l nodes=4:ppn=32
+#PBS -l walltime=00:30:00
+#PBS -W group_list=cascades
+#PBS -q normal_q
+#PBS -A SIAllocation
+#PBS -M jkrometi@vt.edu
+#PBS -m ea
+
+
+#change to working directory
+[[ ! -z $PBS_O_WORKDIR ]] && cd $PBS_O_WORKDIR
+
+module load parallel Anaconda/5.2.0
+
+#e.g., "520404_br"
+jobid="$( echo $PBS_JOBID | sed 's/\..*$//' )_$( hostname | grep -o ^.. )"
+
+#Set some directories
+export workdir=$( pwd )
+export finaldir="$workdir/$jobid"
+mkdir -p $finaldir
+
+export nchains=$PBS_NUM_NODES
+#export nchains=$(( $PBS_NUM_NODES * 4 ))
+export nsamp=15000
+export smplr="rw"
+
+#run a series of MCMC chains in parallel, one on each host
+module load parallel
+uniq -c $PBS_NODEFILE | sed "s/$( hostname )/:/" | awk '{print "1/"$2}' > $finaldir/parallel.hosts
+
+echo $(date)": Starting MCMC chains."
+seq 1 $nchains | parallel --no-notice \
+  --sshloginfile $finaldir/parallel.hosts \
+  --joblog $finaldir/parallel.log \
+  --env PBS_NUM_PPN \
+  --env TMPFS \
+  --env workdir \
+  --env finaldir \
+  --env nsamp \
+  --env smplr \
+  --env MCMC_RESTART_DIR \
+  "cd $workdir;
+  echo \$(date)\": MCMC start for chain {}\";
+  source geoclaw.qsub;
+  echo \$(date)\": MCMC complete for chain {}\";"
+
+echo $(date)": MCMC finished for all chains."
+
+#concatenate the chains into one
+cp concatenate.py $finaldir/
+cd $finaldir
+python concatenate.py $( ls -d [0-9]* | egrep -o '[0-9]*' )
+
+#plots for merged chain
+mergedir=$( ls -d [0-9]*_[0-9]* | egrep -o '[0-9_]*' )
+cp 001/make_plots_offline.py $mergedir
+cd $mergedir
+echo "$( date ): Making some key plots..."
+python make_plots_offline.py all change
+python make_plots_offline.py magnitude change
+python make_plots_offline.py all values
+python make_plots_offline.py magnitude values
+python make_plots_offline.py correlations
+python make_plots_offline.py long lat
+echo "$( date ): Plotting complete"
+
+
+#print sample stats
+#cd $finaldir
+#cp $workdir/sample_stats.py .
+#for dir in $( ls -d [0-9]* | egrep -o '[0-9]*' ); do 
+#  python sample_stats.py $dir > ${dir}/sample_stats.txt
+#done
+#python sample_stats.py $mergedir > ${mergedir}/sample_stats.txt
+python $workdir/sample_stats.py $finaldir/$mergedir > $finaldir/$mergedir/sample_stats.txt
+
+cd $workdir
+
+#exit;
+

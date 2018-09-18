@@ -42,9 +42,9 @@ def load_gauges():
 #GAUGE 2_____________Water Height______________
     city_name = 'Ambonia - Wichmann'
     name = 10002
-    longitude = -3.693521
-    latitude = 128.175538
-    distance = 2.5 # in kilometers (max 5) //TODO Not sure what this is??
+    longitude = -3.76
+    latitude = 128.18
+    distance = 7.41 # in kilometers (max 5) //TODO Not sure what this is??
     kind = [None, 'norm', None]
 
     # For kind = 'norm'
@@ -195,6 +195,41 @@ def load_gauges():
 
 
 # GAUGE 7___________Arrival Time________________
+# GAUGE 9___________Arrival Time_________________
+    city_name = 'Banda Neira  - Wichmann'
+    name = 10009
+    longitude = -4.5
+    latitude = 129.85
+    distance = 6.216  # in kilometers (max 5) //TODO Not sure what this is??
+    kind = ['skewnorm', None, None]
+
+
+    # For kind = 'skewnorm'
+    arrival_skew_param = 1
+    #arrival_skew_param = 5
+    arrival_mean = 18
+    #arrival_mean = 15  # in minutes
+    #arrival_std = 10
+    arrival_std = 5
+    arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
+    height_skew_param = None
+    height_mean = None  # in meters
+    height_std = None
+    height_params = [height_skew_param, height_mean, height_std]
+    inundation_skew_param = None
+    inundation_mean = None  # in meters
+    inundation_std = None
+    inundation_params = [inundation_skew_param, inundation_mean, inundation_std]
+
+    beta = 0
+    n = .03
+
+    g = Gauge(name, longitude, latitude, distance,
+              kind, arrival_params, height_params, inundation_params, beta, n, city_name)
+    gauges.append(g.to_json())
+
+
+# GAUGE 10___________Arrival Time________________
     city_name = 'Pulau Saparua  - Wichmann'
     name = 10007
     longitude = -3.576063
@@ -203,8 +238,9 @@ def load_gauges():
     kind = ['skewnorm', None, None]
 
     # For kind = 'skewnorm'
-    arrival_skew_param = 3.5
-    arrival_mean = 60  # in minutes
+    #arival_skew_param = 3.5  #This skewed things to much in my opinion
+    arrival_skew_param = 0
+    arrival_mean = 50  # in minutes
     arrival_std = 10
     arrival_params = [arrival_skew_param, arrival_mean, arrival_std]
     height_skew_param = None
@@ -305,7 +341,7 @@ def outputFGMaxFile():
     f.write('1.0000000000e+10            # tstart_max\n')
     f.write('0.0000000000e+00            # dt_check\n')
     f.write('3                           # min_level_check\n')
-    f.write('1.0000000000e-02            # arrival_tol\n')
+    f.write('2.0000000000e-01            # arrival_tol\n')#adjust the arrival tolerance to 0.1m
     f.write('0                           # point_style\n')
     f.write(str(len(gauges)) + '                          # npts\n')
 
