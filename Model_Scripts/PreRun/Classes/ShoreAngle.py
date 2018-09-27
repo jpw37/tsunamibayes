@@ -4,9 +4,14 @@ import math
 import xlsxwriter
 
 class ShoreLineAngles:
+    """
+    This Class takes angles of the shore profile from a piece of shore.
+    Export the shore angles from ArcMap as a table and as an excel file.
+    It is programmed to work with EXCEL FILES ONLY
+    """
 
     def __init__(self, file_name):
-        self.wb = load_workbook('./' + file_name + '.xlsx') # The workbook from the excel sheet
+        self.wb = load_workbook('./PreRunFiles/ShoreProfiles' + file_name + '.xlsx') # The workbook from the excel sheet
         self.ws = self.wb.active  # The worksheet from the workbook
         self.regression_angles = list() # list of regression angles for each profile
         self.average_angles = list() # list of average angles for each profile
