@@ -8,6 +8,7 @@ import numpy as np
 import json
 from gauge import Gauge
 from build_priors import build_priors
+import pandas as pd
 
 class RunModel:
     """
@@ -99,18 +100,37 @@ class RunModel:
         os.system('rm dtopo.tt3')
         os.system('rm dtopo.data')
 
+        # ---------------------------------------------------------------
+        # e_params = ['Strike', 'Length', 'Width', "Depth", "Slip", "Rake", "Longitude", "Latitude"]
+        # samples_loc = './Model_Output/samples.csv'
+        # samples_df = pd.read_csv(samples_loc)
+        # ---------------------------------------------------------------
+
+
         # Draw new proposal
         if self.method == 'is':
             draws = self.independant_sampler_draw()
         elif self.method == 'rw':
-            u = np.load('samples.npy')[0][:9]
-            draws = self.random_walk_draw(u)
+            cur_params = np.load('samples.npy')[0][:9]
+
+            # ---------------------------------------------------------------
+            # cur_params = samples_df.get(e_params).tail(1)
+            # ---------------------------------------------------------------
+
+            draws = self.random_walk_draw(cur_params)
+
+        # ---------------------------------------------------------------
+        #TODO: WE ONLY WANT THE SAMPLE WHEN IT WINS CORRECT??
+        # samples_df.loc[len(samples_df)] = draws
+        # samples_df.to_csv(samples_loc)
+        # ---------------------------------------------------------------
 
         # Append draws and initialized p and w to samples.npy
         init_p_w = np.array([0,1])
         sample = np.hstack((draws, init_p_w))
         samples = np.vstack((np.load('samples.npy'), sample))
         np.save('samples.npy', samples)
+
 
         # Run GeoClaw using draws
         mt.get_topo()
@@ -125,13 +145,18 @@ class RunModel:
         #p = gauge.calculate_probability(self.gauges)
         # Compute log-likelihood of results
         prop_llh = gauge.calculate_probability(self.gauges)
-        samp_llh = samples[0][-2]
-        if np.isneginf(prop_llh) and np.isneginf(samp_llh):
+        cur_samp_llh = samples[0][-2]
+
+        # ---------------------------------------------------------------
+        # cur_samp_llh = samples_df['Log Probability'].tail(0)
+        # ---------------------------------------------------------------
+
+        if np.isneginf(prop_llh) and np.isneginf(cur_samp_llh):
             change_llh = 0
         else:
-            change_llh = prop_llh - samp_llh
+            change_llh = prop_llh - cur_samp_llh
 
-        # Change entry in samples.npy
+        # Change entry in samples.npy TODO: TAKE OUT
         samples = np.load('samples.npy')
         samples[-1][-2] = prop_llh
 
@@ -141,17 +166,24 @@ class RunModel:
             accept_prob = min(np.exp(change_llh), 1)
 
         elif self.method == 'rw':
+
             prop_prior = self.priors[0].logpdf(samples[-1,[7,8,0]]) #Prior for longitude, latitude, strike
             prop_prior += self.priors[1].logpdf(samples[-1,[6,5,3,1,2,4]]) #Prior for dip, rake, depth, length, width, slip
-            
-            samp_prior = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
-            samp_prior += self.priors[1].logpdf(samples[0,[6,5,3,1,2,4]])
+
+            # ---------------------------------------------------------------------
+            # cur_samp_prior = self.priors[0].logpdf(samples_df['Longitude','Latitude','Strike'].tail(0))
+            # cur_samp_prior += self.priors[1].logpdf(samples_df['Dip','Rake','Depth','Length', 'Width', 'Slip'].tail(0))
+            # ---------------------------------------------------------------------
+
+            cur_samp_prior = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
+            cur_samp_prior += self.priors[1].logpdf(samples[0,[6,5,3,1,2,4]])
+
             #DEPRICATED
             """# Log-Likelihood of prior
             prop_prior = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
             samp_prior = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
             """
-            change_prior = prop_prior - samp_prior # Log-Likelihood
+            change_prior = prop_prior - cur_samp_prior # Log-Likelihood
 
             # DEPRICATED (before changed to log-likelihood)
             # change_prior = 1.
