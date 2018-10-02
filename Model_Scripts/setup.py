@@ -7,7 +7,6 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
-from gauge_dist_1852 import load_gauges
 
 
 class Setup:
@@ -143,7 +142,7 @@ class Setup:
 
         #Returns a list of gauges for the 1852 Priors
         # gauges = load_gauges()
-        gauges = np.load('PreRun/GeneratedGeoClawInput/gauges.npy')
+        gauges = [np.load('PreRun/GeneratedGeoClawInput/gauges.npy')]
         # print(gauges)
 
 
