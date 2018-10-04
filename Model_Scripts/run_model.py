@@ -36,7 +36,58 @@ class RunModel:
             G.from_json(g)
             gauges.append(G)
         self.gauges = gauges
-        
+    
+
+	def haversine_distance(p1,p2):
+		"""
+		This function  is set up separately because the haversine distance
+		likely will still be useful after we're done with this adhoc approach.
+		
+		Note, this does not account for the oblateness of the Earth. Not sure if
+		this will cause a problem.
+		"""
+		r = 6371000
+		
+		#Setting up haversine terms of distance expansion
+		hav_1 = np.power(np.sin((p2[1] - p1[1])/2*np.pi/180),2.0)
+		hav_2 = np.cos(p2[1]*np.pi/180)*np.cos(p1[1]*np.pi/180)*np.power(np.sin((p2[0] - p1[0])/2*np.pi/180),2.0)
+
+		#taking the arcsine of the root of the sum of the haversine terms
+		root = np.sqrt(hav_1 + hav_2)
+		arc = np.arcsin(root)
+
+		#return final distance between the two points
+		return 2*r*arc
+
+	def doctored_depth_1852_adhoc(longitude,latitude,dip):
+		"""
+		This is a function written specifically for our 1852 depth fix.
+		We make use of the fault points used in generating our prior as
+		jumping off point for fixing the depth of an event. We use a
+	    simple trig correction based on a 20degree dip angle and the haversine distance
+		to get the depth of the earthquake in question.
+
+		Note, this will do the dip correction regardless of which side
+		of the trench our sample is on. Recognizing when the sample is
+		on the wrong side seems nontrivial, so we have not implemented 
+		a check for this here.
+		"""
+		#set up sample point and fault array
+		p1 = np.array([longitude,latitude])
+		fault_file = 'fault_array.npy'
+		fault_array = np.load(fault_file)
+		#will store haversine distances for comparison
+		dist_array = np.zeros(0.5*len(fault_array))
+		for i in range(len(dist_array)):
+			x = fault_array[2*i]
+			y = fault_array[2*i + 1]
+			p2 = np.array([x,y])
+			dist_array[i] = haversine_distance(p1, p2)
+
+		dist = np.amin(dist_array)
+
+		#need to add trig correction
+		return (20000 + dist*np.tan(20*np.pi/180))
         
     """ DEPRECIATED
     def independant_sampler_draw(self):
@@ -97,9 +148,26 @@ class RunModel:
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
+
+		#does sample update normally
         print("Random walk difference:", e)
         print("New draw:", u+e)
-        return u + e
+		new_draw = u + e
+
+		"""
+		Here we make some fixed changes to the dip and depth according 
+		to a simple rule documented elsewhere. This fix will likely
+		depreciate upon finishing proof of concept paper and work on 1852
+		event.
+		"""
+		#doctor dip to 20 degrees as discussed
+		new_dip[6] = 20
+		#doctor depth according to adhoc fix
+		new_draw[3] = doctored_depth_1852_adhoc(new_draw[7],new_draw[8],new_dip[6])
+		
+		
+		#return appropriately doctored draw
+        return new_draw
 
     def one_run(self):
         """
