@@ -7,10 +7,7 @@ from gauge import Gauge
 import gauge
 import maketopo as mt
 import json
-<<<<<<< HEAD
 
-=======
->>>>>>> 680ecb5a1093a7d49dfd4f52de428fe1ea65e071
 
 class Setup:
     """
