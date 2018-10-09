@@ -161,9 +161,9 @@ class RunModel:
 		event.
 		"""
 		#doctor dip to 20 degrees as discussed
-		new_dip[6] = 20
+		new_draw[6] = 20
 		#doctor depth according to adhoc fix
-		new_draw[3] = doctored_depth_1852_adhoc(new_draw[7],new_draw[8],new_dip[6])
+		new_draw[3] = doctored_depth_1852_adhoc(new_draw[7],new_draw[8],new_draw[6])
 		
 		
 		#return appropriately doctored draw
