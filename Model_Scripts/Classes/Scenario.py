@@ -16,6 +16,7 @@ import RandomWalk
 import IndependentSampler
 import Samples
 import FeedForward
+import Utils
 
 import sys
 
@@ -26,7 +27,7 @@ class Scenario:
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary files
     """
 
-    def __init__(self, title, method="random_walk", iterations=1):
+    def __init__(self, title, use_utils, init, rw_covariance, method="random_walk", iterations=1):
         """
         Initialize all the correct variables for Running this Scenario
         """
@@ -36,20 +37,24 @@ class Scenario:
 
         self.title = title
         self.iterations = iterations
+        self.utils = Utils()
+        self.use_utils = use_utils
 
 
         if(method == "random_walk"):
-            self.mcmc = RandomWalk()
+            self.mcmc = RandomWalk(rw_covariance)
         elif(method == "independent_sampler"):
-            self.mcmc = IndependentSampler()
+            self.mcmc = IndependentSampler(self.priors)
 
-        self.priors = self.mcmc.build_priors()
-        self.draws = self.mcmc.draw()
+        if(use_utils):
+            self.priors = self.utils.build_priors()
+        else:
+            self.priors = self.mcmc.default_build_priors()
 
         self.samples = Samples()
         self.samples.save_priors(self.priors)
 
-        self.feedForward = FeedForward()
+        self.feedForward = FeedForward(self.mcmc)
 
         files_exist = True
         if(files_exist): #Make sure these Files Exist
@@ -58,17 +63,39 @@ class Scenario:
         else:
             raise ValueError("The Gauges and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
+        self.guesses = self.feedForward.init_guesses(init)
+
+        # Do initial run of GeoClaw using the initial guesses.
+        # TODO: Make MAPPING funciton vaiable and the BUILD PRIORS variable, Definiton of Gauges
+
 
     def setGeoClaw(self):
+        """
+        :return:
+        """
         sgc = SetGeoClaw()
         sgc.setrun().write()
 
-    def run(self, init="manual"):
+        mt.get_topo()
+        mt.make_dtopo(self.guesses)
 
-        for _ in self.iterations:
-            init = "manual"
+        os.system('make clean')
+        os.system('make clobber')
+        os.system('make .output')
 
-            self.feedForward.run_geo_claw(init, self.draws, self.mcmc)
+    def run(self):
+        """
+
+        :return:
+        """
+        for _ in range(self.iterations):
+
+            self.draws = self.mcmc.draw(self.samples.get_previous_sample())
+
+            if(self.use_utils):
+                self.draws = self.utils.map_to_okada(self.draws)
+
+            self.feedForward.run_geo_claw(self.draws)
 
             prop_llh = self.feedForward.calculate_probability(self.guages)
             cur_samp_llh = self.samples.get_cur_llh()

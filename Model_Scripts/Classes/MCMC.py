@@ -13,7 +13,7 @@ class MCMC:
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self, type):
+    def __init__(self):
         pass
 
     def accept_reject(self, accept_prob):
@@ -26,20 +26,9 @@ class MCMC:
             samples[int(samples[0][-1])][-1] += 1  # increment old draw wins
         np.save('samples.npy', samples)
 
-    def build_priors(self):
-        samplingMult = 50
-        bandwidthScalar = 2
-        # build longitude, latitude and strike prior
-        data = pd.read_excel('./Data/Fixed92kmFaultOffset50kmgapPts.xls')
-        data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
-        distrb0 = gaussian_kde(data.T)
 
-        # build dip, rake, depth, length, width, and slip prior
-        vals = np.load('6_param_bootstrapped_data.npy')
-        distrb1 = gaussian_kde(vals.T)
-        distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
-
-        return distrb0, distrb1
+    def default_build_priors(self):
+        pass
 
     def draw(self):
         pass

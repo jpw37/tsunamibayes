@@ -13,13 +13,13 @@ class FeedForward:
     Then Calculates the log likelihood probability based on the output.
     """
 
-    def __init__(self):
+    def __init__(self, mcmc):
+        self.mcmc = mcmc
         os.system('rm .output')
         os.system('make .output')
         pass
 
-
-    def generate_okada(self, init, draws, mcmc):
+    def init_guesses(self, init):
         """
         Change 6 params to 9 params for GeoClaw
         :param draws: 7 params to convert to 9 params
@@ -42,7 +42,7 @@ class FeedForward:
 
         elif init == "random":
             # draw initial sample at random from prior (kdes)
-            priors = mcmc.build_priors()
+            priors = self.mcmc.build_priors()
             p0 = priors[0].resample(1)[:, 0]
             longitude = p0[0]
             latitude = p0[1]
@@ -68,33 +68,31 @@ class FeedForward:
                                      longitude, latitude])
 
         elif init == "restart":
-            self.guesses = np.load('samples.npy')[0][:9]
+            self.guesses = np.load('../samples.npy')[0][:9]
 
             # np.save("guesses.npy", self.guesses)
             print("initial sample is:")
             print(self.guesses)
 
-        self.draws = draws
+        return self.guesses
 
-    def run_geo_claw(self, init, draws, mcmc):
+    def run_geo_claw(self, draws):
         """
         Runs Geoclaw
         :param draws: parameters
         :return:
         """
-        self.generate_okada(init, draws, mcmc)
         # Run GeoClaw using draws
         mt.get_topo()
         mt.make_dtopo(self.draws)
 
-        os.system('make clean')
-        os.system('make clobber')
+        os.system('rm .output')
         os.system('make .output')
 
         return
 
 
-    def read_gauges(self, gauges):
+    def read_gauges(self):
         """Read GeoClaw output and look for necessary conditions.
         This will find the max wave height
 
@@ -133,7 +131,7 @@ class FeedForward:
         names = []
         for gauge in gauges:
             names.append(gauge.name)
-        arrivals, heights = self.read_gauges(names)
+        arrivals, heights = self.read_gauges()
 
         # Calculate p for the arrivals and heights
         llh = 0.  # init p

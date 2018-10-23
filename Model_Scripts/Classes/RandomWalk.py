@@ -12,12 +12,13 @@ class RandomWalk(MCMC):
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self):
+    def __init__(self, covariance):
+        self.covariance = covariance
         pass
 
     def acceptance_prob(self, Samples, change_llh):
-        prop_prior = Samples.get_prop_prior() # Prior for longitude, latitude, strike AND  # Prior for dip, rake, depth, length, width, slip
-        cur_samp_prior = Samples.get_cur_prior() #See above
+        prop_prior = self.priors[0].logpdf(Samples.get_prop_prior()) # Prior for longitude, latitude, strike AND  # Prior for dip, rake, depth, length, width, slip
+        cur_samp_prior = self.priors[0].logpdf((Samples.get_cur_prior())) # See above
         change_prior = prop_prior - cur_samp_prior  # Log-Likelihood
 
         # Note we use np.exp(new - old) because it's the log-likelihood
@@ -43,13 +44,13 @@ class RandomWalk(MCMC):
         longitude = .025
         latitude = .01875
         mean = np.zeros(9)
-        cov = np.diag([strike, length, width, depth, slip, rake,
+        self.covariance = np.diag([strike, length, width, depth, slip, rake,
                        dip, longitude, latitude])
 
         # cov *= 16.0;
 
         # random draw from normal distribution
-        e = stats.multivariate_normal(mean, cov).rvs()
+        e = stats.multivariate_normal(mean, self.covariance).rvs()
         print("Random walk difference:", e)
         print("New draw:", u + e)
         return u + e
