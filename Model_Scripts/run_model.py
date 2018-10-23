@@ -37,8 +37,8 @@ class RunModel:
             G.from_json(g)
             gauges.append(G)
         self.gauges = gauges
-        
-        
+
+
     """ DEPRECIATED
     def independant_sampler_draw(self):
         
@@ -61,36 +61,7 @@ class RunModel:
         print("independent sampler draw:", draws)
         return draws
     """
-    def random_walk_draw(self, u):
-        """
-        Draw with the random walk sampling method, using a multivariate_normal
-        distribution with the following specified std deviations to
-        get the distribution of the step size.
 
-        Returns:
-            draws (array): An array of the 9 parameter draws.
-        """
-        # Std deviations for each parameter, the mean is the current location
-        strike = .375
-        length = 4.e3
-        width = 3.e3
-        depth = .1875
-        slip = .01
-        rake = .25
-        dip = .0875
-        longitude = .025
-        latitude = .01875
-        mean = np.zeros(9)
-        cov = np.diag([strike, length, width, depth, slip, rake,
-                        dip, longitude, latitude])
-        
-        #cov *= 16.0;
-
-        # random draw from normal distribution
-        e = stats.multivariate_normal(mean, cov).rvs()
-        print("Random walk difference:", e)
-        print("New draw:", u+e)
-        return u + e
 
     def one_run(self):
         """
@@ -102,12 +73,11 @@ class RunModel:
 
         # ---------------------------------------------------------------
         # e_params = ['Strike', 'Length', 'Width', "Depth", "Slip", "Rake", "Longitude", "Latitude"]
-        # samples_loc = './Model_Output/samples.csv'
+        # samples_loc = './ModelOutput/samples.csv'
         # samples_df = pd.read_csv(samples_loc)
         # ---------------------------------------------------------------
 
-
-        # Draw new proposal
+        # Draw new proposal Scenario
         if self.method == 'is':
             draws = self.independant_sampler_draw()
         elif self.method == 'rw':
@@ -147,10 +117,6 @@ class RunModel:
         prop_llh = gauge.calculate_probability(self.gauges)
         cur_samp_llh = samples[0][-2]
 
-        # ---------------------------------------------------------------
-        # cur_samp_llh = samples_df['Log Probability'].tail(0)
-        # ---------------------------------------------------------------
-
         if np.isneginf(prop_llh) and np.isneginf(cur_samp_llh):
             change_llh = 0
         else:
@@ -169,29 +135,10 @@ class RunModel:
 
             prop_prior = self.priors[0].logpdf(samples[-1,[7,8,0]]) #Prior for longitude, latitude, strike
             prop_prior += self.priors[1].logpdf(samples[-1,[6,5,3,1,2,4]]) #Prior for dip, rake, depth, length, width, slip
-
-            # ---------------------------------------------------------------------
-            # cur_samp_prior = self.priors[0].logpdf(samples_df['Longitude','Latitude','Strike'].tail(0))
-            # cur_samp_prior += self.priors[1].logpdf(samples_df['Dip','Rake','Depth','Length', 'Width', 'Slip'].tail(0))
-            # ---------------------------------------------------------------------
-
             cur_samp_prior = self.priors[0].logpdf(samples[0,[7,8,0]]) #As above
             cur_samp_prior += self.priors[1].logpdf(samples[0,[6,5,3,1,2,4]])
 
-            #DEPRICATED
-            """# Log-Likelihood of prior
-            prop_prior = -sum(((samples[-1][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
-            samp_prior = -sum(((samples[0][:9] - self.prior[:,0])/self.prior[:,1])**2)/2
-            """
             change_prior = prop_prior - cur_samp_prior # Log-Likelihood
-
-            # DEPRICATED (before changed to log-likelihood)
-            # change_prior = 1.
-            # for i, param in enumerate(self.prior):
-            #     dist = stats.norm(param[0], param[1])
-            #     prop_prior = dist.pdf(samples[-1][i])
-            #     samp_prior = dist.pdf(samples[0][i])
-            #     change_prior *= (prop_prior/samp_prior)
 
             # Note we use np.exp(new - old) because it's the log-likelihood
             accept_prob = min(1, np.exp(change_llh+change_prior))
