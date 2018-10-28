@@ -1,7 +1,5 @@
 # A file containing the Gauge class and gauge related functions
-import numpy as np
 from scipy import stats
-from PMF import PMFData, PMF
 
 class Gauge:
     """A gauge object class. Mainly for data storage.

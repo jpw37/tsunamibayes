@@ -21,8 +21,8 @@ class FeedForward:
 
     def init_guesses(self, init):
         """
-        Change 6 params to 9 params for GeoClaw
-        :param draws: 7 params to convert to 9 params
+
+        :param init:
         :return:
         """
         if init == "manual":
@@ -37,7 +37,7 @@ class FeedForward:
           longitude  =  1.31448175e+02
           latitude   = -4.63296475e+00
 
-          self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
+          guesses = np.array([strike, length, width, depth, slip, rake, dip,
               longitude, latitude])
 
         elif init == "random":
@@ -64,17 +64,17 @@ class FeedForward:
                 rake = p1[1]
                 dip = p1[0]
 
-            self.guesses = np.array([strike, length, width, depth, slip, rake, dip,
+            guesses = np.array([strike, length, width, depth, slip, rake, dip,
                                      longitude, latitude])
 
         elif init == "restart":
-            self.guesses = np.load('../samples.npy')[0][:9]
+            guesses = np.load('../samples.npy')[0][:9]
 
             # np.save("guesses.npy", self.guesses)
             print("initial sample is:")
-            print(self.guesses)
+            print(guesses)
 
-        return self.guesses
+        return guesses
 
     def run_geo_claw(self, draws):
         """
@@ -84,7 +84,7 @@ class FeedForward:
         """
         # Run GeoClaw using draws
         mt.get_topo()
-        mt.make_dtopo(self.draws)
+        mt.make_dtopo(draws)
 
         os.system('rm .output')
         os.system('make .output')

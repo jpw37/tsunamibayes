@@ -9,12 +9,13 @@ from scipy.stats import gaussian_kde
 
 class MCMC:
     """
-    This Interface takes care of generating prior and calculating the probability given the prior and the observation
+    This Parent Class takes care of generating prior and calculating the probability given the prior and the observation
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, Samples, priors):
+        self.samples = Samples
+        self.priors = priors
 
     def accept_reject(self, accept_prob):
         # Increment wins. If new, change current 'best'.
@@ -26,8 +27,7 @@ class MCMC:
             samples[int(samples[0][-1])][-1] += 1  # increment old draw wins
         np.save('samples.npy', samples)
 
-
-    def default_build_priors(self):
+    def build_priors(self):
         pass
 
     def draw(self):

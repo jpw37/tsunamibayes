@@ -24,6 +24,7 @@ class Samples:
         self.samples = None
         self.mcmc = None
         self.priors = None
+        self.observations = None
         #TODO: Make each of the above Panda Dataframes open for reading and writing durning the duration of
         self.save_path = '../ModelOutput'
         self.A = np.load('samples.npy')
@@ -42,15 +43,16 @@ class Samples:
 
 
 
-    def save_samples(self):
+    def save_sample(self, saves):
         pass
 
-
-    def save_priors(self):
+    def save_prior(self, saves):
         pass
 
+    def save_mcmc(self, saves):
+        pass
 
-    def save_observations(self):
+    def save_observation(self, saves):
         pass
 
     def get_cur_llh(self):
@@ -59,18 +61,18 @@ class Samples:
     def close_files(self):
         self.samples.close()
         self.mcmc.close()
-        self.priors.close()
+        self.observations.close()
         return
 
     def get_prob_prior(self):
-        prop_prior = self.priors[0].logpdf(self.samples[-1, [7, 8, 0]])  # Prior for longitude, latitude, strike
-        prop_prior += self.priors[1].logpdf(self.samples[-1, [6, 5, 3, 1, 2, 4]])  # Prior for dip, rake, depth, length, width, slip
-        return prop_prior
+        prop_prior1 = self.samples[-1, [7, 8, 0]] # Prior for longitude, latitude, strike
+        prop_prior2 = self.samples[-1, [6, 5, 3, 1, 2, 4]]  # Prior for dip, rake, depth, length, width, slip
+        return prop_prior1, prop_prior2
 
     def get_cur_prior(self):
-        cur_samp_prior = self.priors[0].logpdf(self.samples[0, [7, 8, 0]])  # As above
-        cur_samp_prior += self.priors[1].logpdf(self.samples[0, [6, 5, 3, 1, 2, 4]])
-        return cur_samp_prior
+        cur_samp_prior1 = self.samples[0, [7, 8, 0]]  # As above
+        cur_samp_prior2 = self.samples[0, [6, 5, 3, 1, 2, 4]]
+        return cur_samp_prior1, cur_samp_prior2
 
     def read(self, todo):
         if todo == "read":

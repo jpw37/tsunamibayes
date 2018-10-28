@@ -12,13 +12,20 @@ class RandomWalk(MCMC):
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self, covariance):
+    def __init__(self, Samples, priors, covariance):
+        super(RandomWalk, self).__init__(Samples, priors)
         self.covariance = covariance
         pass
 
-    def acceptance_prob(self, Samples, change_llh):
-        prop_prior = self.priors[0].logpdf(Samples.get_prop_prior()) # Prior for longitude, latitude, strike AND  # Prior for dip, rake, depth, length, width, slip
-        cur_samp_prior = self.priors[0].logpdf((Samples.get_cur_prior())) # See above
+    def acceptance_prob(self, change_llh):
+        prop_prior1, prop_prior2 = self.Samples.get_prop_prior()
+        prop_prior = self.priors[0].logpdf(prop_prior1) # Prior for longitude, latitude, strike AND  # Prior for dip, rake, depth, length, width, slip
+        prop_prior += self.priors[1].logpdf(prop_prior2)
+
+        cur_samp_prior1, cur_samp_prior2 = self.Samples.get_cur_prior() # See above
+        cur_samp_prior = self.priors[0].logpdf(cur_samp_prior1)  # Prior for longitude, latitude, strike AND  # Prior for dip, rake, depth, length, width, slip
+        cur_samp_prior += self.priors[1].logpdf(cur_samp_prior2)
+
         change_prior = prop_prior - cur_samp_prior  # Log-Likelihood
 
         # Note we use np.exp(new - old) because it's the log-likelihood
@@ -53,4 +60,6 @@ class RandomWalk(MCMC):
         e = stats.multivariate_normal(mean, self.covariance).rvs()
         print("Random walk difference:", e)
         print("New draw:", u + e)
-        return u + e
+        new_draw = u + e
+        self.samples.save_sample(new_draw)
+        return new_draw
