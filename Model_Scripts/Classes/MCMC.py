@@ -27,6 +27,9 @@ class MCMC:
             samples[int(samples[0][-1])][-1] += 1  # increment old draw wins
         np.save('samples.npy', samples)
 
+    def map_to_okada(self):
+        pass
+
     def build_priors(self):
         pass
 

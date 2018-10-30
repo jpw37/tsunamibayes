@@ -6,12 +6,20 @@ import sys
 import Scenario
 
 if __name__ == "__main__":
-    iterations = int(sys.argv[1])
-    method = sys.argv[2]
-    title = "1852 Event"
-    use_custom = True
-    rw_covariance = 0
-    init = "manual"
+    title = sys.argv[1]
+
+    if sys.argv[2] == 1:
+        use_custom = True
+    else:
+        use_custom = False
+
+    init = sys.argv[3]
+
+    rw_covariance = sys.argv[4]
+
+    method = sys.argv[5]
+
+    iterations = int(sys.argv[6])
 
     scenario = Scenario(title, use_custom, init, rw_covariance, method, iterations)
     scenario.run_model()
