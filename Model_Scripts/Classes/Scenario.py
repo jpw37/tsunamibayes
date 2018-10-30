@@ -6,11 +6,11 @@ import sys
 import os
 import MakeTopo as mt
 from scipy import stats
-import gauge
 import numpy as np
 import json
 from gauge import Gauge
 from build_priors import build_priors
+import Gauge
 import SetGeoClaw
 import RandomWalk
 import IndependentSampler
