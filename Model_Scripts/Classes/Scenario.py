@@ -40,7 +40,8 @@ class Scenario:
         self.iterations = iterations
         self.use_custom = use_custom
         self.init = init
-        self.samples = Samples()
+        self.samples = Samples(title)
+
         if(use_custom):
             self.mcmc = Custom(self.samples)
         elif(method == "independent_sampler"):

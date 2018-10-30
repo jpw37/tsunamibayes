@@ -20,7 +20,8 @@ class Samples:
     This class handles the saving and loading for generated, samples, priors, and observations
     """
 
-    def __init__(self):
+    def __init__(self, scenario_title):
+        self.scenario_title = scenario_title
         self.samples = None
         self.mcmc = None
         self.priors = None
