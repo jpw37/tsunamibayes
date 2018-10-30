@@ -3,6 +3,8 @@ Class to handle running the scenario
 """
 import sys
 
+sys.path.append('./Classes')
+
 import Scenario
 
 if __name__ == "__main__":
