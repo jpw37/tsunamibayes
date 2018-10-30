@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     init = sys.argv[3]
 
-    rw_covariance = sys.argv[4]
+    rw_covariance = int(sys.argv[4])
 
     method = sys.argv[5]
 
