@@ -13,9 +13,12 @@ class MCMC:
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self, Samples, priors):
+    def __init__(self, Samples):
         self.samples = Samples
-        self.priors = priors
+        self.priors = None
+
+    def build_priors(self):
+        pass
 
     def accept_reject(self, accept_prob):
         # Increment wins. If new, change current 'best'.

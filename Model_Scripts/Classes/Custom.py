@@ -15,8 +15,7 @@ class Custom(MCMC):
     """
     def __init__(self, Samples):
         super(Custom, self).__init__(Samples)
-        self.distrb1 = None
-        self.distrb0 = None
+        self.priors = None
         return
 
     def draw(self):
@@ -43,5 +42,4 @@ class Custom(MCMC):
         distrb1 = gaussian_kde(vals.T)
         distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
 
-        self.distrb0 = distrb0
-        self.distrb1 = distrb1
+        self.priors = (distrb0, distrb1)

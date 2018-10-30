@@ -12,9 +12,12 @@ class RandomWalk(MCMC):
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self, Samples, priors, covariance):
-        super(RandomWalk, self).__init__(Samples, priors)
+    def __init__(self, Samples, covariance):
+        super(RandomWalk, self).__init__(Samples)
         self.covariance = covariance
+        pass
+
+    def build_priors(self):
         pass
 
     def acceptance_prob(self, change_llh):

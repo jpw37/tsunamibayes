@@ -13,6 +13,9 @@ class IndependentSampler(MCMC):
         super(IndependentSampler, self).__init__(Samples, priors)
         pass
 
+    def build_priors(self):
+        pass
+
     def acceptance_prob(self, change_llh):
         return min(np.exp(change_llh), 1)
 
