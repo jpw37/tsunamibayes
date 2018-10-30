@@ -8,6 +8,7 @@ import MakeTopo as mt
 from scipy import stats
 import numpy as np
 import json
+import MCMC
 import SetGeoClaw
 import RandomWalk
 import IndependentSampler
