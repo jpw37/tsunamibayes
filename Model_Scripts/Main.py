@@ -8,7 +8,7 @@ import Scenario
 if __name__ == "__main__":
     title = sys.argv[1]
 
-    if sys.argv[2] == 1:
+    if int(sys.argv[2]) == 1:
         use_custom = True
     else:
         use_custom = False
