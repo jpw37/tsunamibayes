@@ -52,10 +52,13 @@ class Samples:
     def save_mcmc(self, saves):
         pass
 
-    def save_observation(self, saves):
+    def save_mapped(self, saves):
         pass
 
     def get_cur_llh(self):
+        pass
+
+    def save_prop_llh(self):
         pass
 
     def close_files(self):

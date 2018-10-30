@@ -14,4 +14,4 @@ if __name__ == "__main__":
     init = "manual"
 
     scenario = Scenario(title, use_custom, init, rw_covariance, method, iterations)
-    scenario.run_model(iterations)
+    scenario.run_model()

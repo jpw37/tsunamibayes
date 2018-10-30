@@ -22,8 +22,6 @@ class Custom(MCMC):
     def draw(self):
         draws = None
 
-        self.samples.save_samples(draws)
-
         return self.map_to_okada(draws)
 
     def map_to_okada(self, draws):

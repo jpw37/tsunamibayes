@@ -38,10 +38,9 @@ class Scenario:
 
         self.title = title
         self.iterations = iterations
-        self.use_utils = use_custom
+        self.use_custom = use_custom
         self.init = init
         self.samples = Samples()
-
         if(use_custom):
             self.mcmc = Custom(self.samples)
         elif(method == "independent_sampler"):
@@ -87,6 +86,11 @@ class Scenario:
         for _ in range(self.iterations):
 
             draws = self.mcmc.draw(self.samples.get_previous_sample())
+            self.samples.save_samples(draws)
+
+            if(self.use_custom):
+                draws = self.mcmc.map_to_okada()
+                self.samples.save_mapped(draws)
 
             self.feedForward.run_geo_claw(draws)
 
@@ -97,6 +101,8 @@ class Scenario:
                 change_llh = 0
             else:
                 change_llh = prop_llh - cur_samp_llh
+
+            self.samples.save_prop_llh(prop_llh)
 
             accept_prob = self.mcmc.acceptance_prob(change_llh)
 
