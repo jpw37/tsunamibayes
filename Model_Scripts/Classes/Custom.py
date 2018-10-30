@@ -42,4 +42,4 @@ class Custom(MCMC.MCMC):
         distrb1 = gaussian_kde(vals.T)
         distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
 
-        self.priors = (distrb0, distrb1)
+        return distrb0, distrb1

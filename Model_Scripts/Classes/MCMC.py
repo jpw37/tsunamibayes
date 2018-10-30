@@ -15,7 +15,6 @@ class MCMC:
 
     def __init__(self, Samples):
         self.samples = Samples
-        self.priors = None
 
     def build_priors(self):
         pass
