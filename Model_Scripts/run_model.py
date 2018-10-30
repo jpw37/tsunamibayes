@@ -26,7 +26,7 @@ class RunModel:
     def __init__(self, iterations, method):
         self.iterations = iterations
         self.method = method
-        self.priors = build_priors()
+        self.priors = self.build_priors()
 
         with open('gauges.txt') as json_file:
             gauges_json = json.load(json_file)

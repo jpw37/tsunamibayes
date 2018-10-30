@@ -3,13 +3,15 @@ Created 10/19/2018
 """
 import MCMC
 import numpy as np
-class IndependentSampler(MCMC):
+
+
+class IndependentSampler(MCMC.MCMC):
     """
     This Interface takes care of generating prior and calculating the probability given the prior and the observation
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self, Samples, priors):
+    def __init__(self, Samples):
         MCMC.__init__(Samples)
         pass
 

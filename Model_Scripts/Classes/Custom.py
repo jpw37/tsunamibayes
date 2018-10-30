@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.stats import gaussian_kde
 import MCMC
 
-class Custom(MCMC):
+class Custom(MCMC.MCMC):
     """
     Use this class to create custom build_prior, and drawing methods for the MCMC method
     When the Variable for use_custom is set to true, this class will be used as the main MCMC class for the Scenario

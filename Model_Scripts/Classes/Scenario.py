@@ -77,6 +77,20 @@ class Scenario:
         os.system('make clobber')
         os.system('make .output')
 
+    def clean_llh(self, prop_llh, samp_llh):
+        if np.isneginf(prop_llh) and np.isneginf(samp_llh):
+            change_llh = 0
+        elif np.isnan(prop_llh) and np.isnan(samp_llh):
+            change_llh = 0
+            # fix situation where nan in proposal llh results in acceptance, e.g., 8855 [-52.34308085] -10110.84699320795 [-10163.19007406] [-51.76404079] nan [nan] 1 accept
+        elif np.isnan(prop_llh) and not np.isnan(samp_llh):
+            change_llh = np.NINF
+        elif not np.isnan(prop_llh) and np.isnan(samp_llh):
+            change_llh = np.INF
+        else:
+            change_llh = prop_llh - samp_llh
+        return change_llh
+
     def run(self):
         """
         Runs the Scenario For the given amount of iterations
@@ -88,7 +102,7 @@ class Scenario:
             self.samples.save_samples(draws)
 
             if(self.use_custom):
-                draws = self.mcmc.map_to_okada()
+                draws = self.mcmc.map_to_okada(draws)
                 self.samples.save_mapped(draws)
 
             self.feedForward.run_geo_claw(draws)
@@ -96,10 +110,7 @@ class Scenario:
             prop_llh = self.feedForward.calculate_probability(self.guages)
             cur_samp_llh = self.samples.get_cur_llh()
 
-            if np.isneginf(prop_llh) and np.isneginf(cur_samp_llh):
-                change_llh = 0
-            else:
-                change_llh = prop_llh - cur_samp_llh
+            change_llh = self.clean_llh(prop_llh, cur_samp_llh)
 
             self.samples.save_prop_llh(prop_llh)
 
