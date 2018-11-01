@@ -79,7 +79,7 @@ class SetGeoClaw:
         clawdata.num_dim = self.num_dim
 
         # Lower and upper edge of computational domain:
-        with open('model_bounds.txt') as json_file:
+        with open('./Data/model_bounds.txt') as json_file:
             model_bounds = json.load(json_file)
 
         clawdata.lower[0] = model_bounds['xlower']      # west longitude
