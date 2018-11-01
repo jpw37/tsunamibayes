@@ -52,7 +52,7 @@ class RandomWalk(MCMC):
         # Note we use np.exp(new - old) because it's the log-likelihood
         return min(1, np.exp(change_llh + change_prior))
 
-    def draw(self, u):
+    def draw(self, prev_draw):
         """
         Draw with the random walk sampling method, using a multivariate_normal
         distribution with the following specified std deviations to
@@ -80,7 +80,6 @@ class RandomWalk(MCMC):
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, self.covariance).rvs()
         print("Random walk difference:", e)
-        print("New draw:", u + e)
-        new_draw = u + e
-        self.samples.save_sample(new_draw)
+        print("New draw:", prev_draw + e)
+        new_draw = prev_draw + e
         return new_draw

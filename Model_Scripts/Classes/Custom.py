@@ -18,8 +18,8 @@ class Custom(MCMC):
         self.priors = None
         return
 
-    def draw(self):
-        draws = None
+    def draw(self, prev_draw):
+        draws = prev_draw
 
         return self.map_to_okada(draws)
 

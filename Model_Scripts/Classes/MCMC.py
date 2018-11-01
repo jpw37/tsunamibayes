@@ -48,7 +48,7 @@ class MCMC:
     def build_priors(self):
         pass
 
-    def draw(self):
+    def draw(self, prev_draw):
         pass
 
     def acceptance_prob(self):

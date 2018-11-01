@@ -24,7 +24,7 @@ class IndependentSampler(MCMC):
 
 
     """ DEPRECIATED """
-    def draw(self):
+    def draw(self, prev_draw):
         """
         Draw with the independent sampling method, using the prior
         to make each of the draws.

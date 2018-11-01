@@ -81,6 +81,7 @@ class Scenario:
         for _ in range(self.iterations):
 
             draws = self.mcmc.draw(self.samples.get_previous_sample())
+
             self.samples.save_samples(draws)
 
             if(self.use_custom):
