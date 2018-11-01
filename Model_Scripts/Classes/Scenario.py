@@ -82,7 +82,7 @@ class Scenario:
 
             draws = self.mcmc.draw(self.samples.get_previous_sample())
 
-            self.samples.save_samples(draws)
+            self.samples.save_sample(draws)
 
             if(self.use_custom):
                 draws = self.mcmc.map_to_okada(draws)
