@@ -15,15 +15,15 @@ import json
 
 import clawpack.clawutil.data
 
-
 class MakeTopo:
     # Scratch directory for storing topo and dtopo files:
     def __init__(self):
-        scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
         try:
             CLAW = os.environ['CLAW']
         except:
             raise Exception("*** Must first set CLAW enviornment variable")
+
+        scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 
     def get_topo(self, makeplots=False):
         """
