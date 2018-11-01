@@ -6,7 +6,7 @@ import os
 import MakeTopo as mt
 import numpy as np
 
-import SetGeoClaw
+from SetGeoClaw import SetGeoClaw
 from RandomWalk import RandomWalk
 from IndependentSampler import IndependentSampler
 from Samples import Samples
