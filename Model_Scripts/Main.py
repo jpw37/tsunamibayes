@@ -25,4 +25,4 @@ if __name__ == "__main__":
     iterations = int(sys.argv[6])
 
     scenario = Scenario(title, use_custom, init, rw_covariance, method, iterations)
-    scenario.run_model()
+    scenario.run()
