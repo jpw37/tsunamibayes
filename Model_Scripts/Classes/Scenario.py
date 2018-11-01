@@ -5,7 +5,7 @@ BYU Mathematics Dept.
 import os
 import numpy as np
 
-from MakeTopo import MakeTopo as mt
+from MakeTopo import MakeTopo
 from SetGeoClaw import SetGeoClaw
 from RandomWalk import RandomWalk
 from IndependentSampler import IndependentSampler
@@ -61,6 +61,7 @@ class Scenario:
         Runs an initial set up of GeoClaw
         :return:
         """
+        mt = MakeTopo()
         sgc = SetGeoClaw()
         sgc.rundata.write()
 

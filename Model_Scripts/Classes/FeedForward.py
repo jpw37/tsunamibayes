@@ -2,7 +2,7 @@
 created 10/19/2018
 """
 import numpy as np
-from MakeTopo import MakeTopo as mt
+from MakeTopo import MakeTopo
 from scipy import stats
 from PMF import PMFData, PMF
 import os
@@ -82,6 +82,7 @@ class FeedForward:
         :param draws: parameters
         :return:
         """
+        mt = MakeTopo()
         # Run GeoClaw using draws
         mt.get_topo()
         mt.make_dtopo(draws)
