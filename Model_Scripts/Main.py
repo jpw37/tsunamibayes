@@ -5,7 +5,7 @@ import sys
 
 sys.path.append('./Classes')
 
-import Scenario
+from Scenario import Scenario
 
 if __name__ == "__main__":
     title = sys.argv[1]
@@ -15,6 +15,7 @@ if __name__ == "__main__":
     else:
         use_custom = False
 
+    # manual
     init = sys.argv[3]
 
     rw_covariance = int(sys.argv[4])
