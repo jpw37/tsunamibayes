@@ -26,6 +26,10 @@ class Samples:
         self.mcmc = None
         self.priors = None
         self.observations = None
+
+        self.proposed_sample = None
+        self.prev_sample = None
+
         #TODO: Make each of the above Panda Dataframes open for reading and writing durning the duration of
         self.save_path = '../ModelOutput'
         self.A = np.load('samples.npy')
@@ -41,7 +45,6 @@ class Samples:
         d['latitude'] = 8
 
         self.d = d
-
 
 
     def save_sample(self, saves):
@@ -60,6 +63,9 @@ class Samples:
         pass
 
     def save_prop_llh(self):
+        pass
+
+    def get_previous_sample(self):
         pass
 
     def close_files(self):
