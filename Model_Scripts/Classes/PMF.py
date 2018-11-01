@@ -126,7 +126,7 @@ class PMFData:
         #inun_probability = 
 if __name__ == "__main__":
     # testing on a version of 'amplification_data.npy'
-    data = np.load('amplification_data.npy')
+    data = np.load('./Data/amplification_data.npy')
     row_header = data[:,0]
     col_header = np.arange(len(data[0]) - 1)/4
 

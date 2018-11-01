@@ -4,6 +4,7 @@ Created 10/19/2018
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
+from scipy import stats
 from MCMC import MCMC
 
 
@@ -27,7 +28,7 @@ class RandomWalk(MCMC):
         distrb0 = gaussian_kde(data.T)
 
         # build dip, rake, depth, length, width, and slip prior
-        vals = np.load('6_param_bootstrapped_data.npy')
+        vals = np.load('./Data/6_param_bootstrapped_data.npy')
         distrb1 = gaussian_kde(vals.T)
         distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
 

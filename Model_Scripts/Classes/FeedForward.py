@@ -15,8 +15,8 @@ class FeedForward:
 
     def __init__(self, mcmc):
         self.mcmc = mcmc
-        os.system('rm .output')
-        os.system('make .output')
+        os.system('rm ./.output')
+        os.system('make ./.output')
         pass
 
     def init_guesses(self, init):
@@ -111,7 +111,7 @@ class FeedForward:
                 for each gauge. max_heights[i] corresponds to the maximum
                 height for gauges[i]
         """
-        data = np.loadtxt("_output/fort.FG1.valuemax")
+        data = np.loadtxt("./_output/fort.FG1.valuemax")
         arrivals = data[:, 4]
         max_heights = data[:, 3]
         return arrivals, max_heights

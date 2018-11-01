@@ -27,7 +27,7 @@ class Scenario:
         # Clear previous files
         os.system('rm ./Data/dtopo.tt3')
         os.system('rm ./Data/dtopo.data')
-        guages_file_path = '../PreRun/GeneratedGeoClawInput/gauges.npy'
+        guages_file_path = './PreRun/GeneratedGeoClawInput/gauges.npy'
 
         self.title = title
         self.iterations = iterations
