@@ -58,7 +58,7 @@ class SetGeoClaw:
         #------------------------------------------------------------------
         # GeoClaw specific parameters:
         #------------------------------------------------------------------
-        rundata = self.setgeo(self.rundata)
+        self.setgeo()
 
         #------------------------------------------------------------------
         # Standard Clawpack parameters to be written to claw.data:
@@ -361,9 +361,9 @@ class SetGeoClaw:
         # FGMax:
         # ---------------
         # == fgmax.data values ==
-        fgmax_files = rundata.fgmax_data.fgmax_files
+        fgmax_files = self.rundata.fgmax_data.fgmax_files
         # for fixed grids append to this list names of any fgmax input files
-        fgmax_files.append('PreRun/GeneratedGeoClawInput/fgmax_grid.txt')
+        fgmax_files.append('./PreRun/GeneratedGeoClawInput/fgmax_grid.txt')
         self.rundata.fgmax_data.num_fgmax_val = 1  # Save depth only
         # end of function setrun
         # ----------------------
@@ -371,7 +371,7 @@ class SetGeoClaw:
 
 
     #-------------------
-    def setgeo(self, rundata):
+    def setgeo(self):
     #-------------------
         """
         Set GeoClaw specific runtime parameters.
@@ -379,7 +379,7 @@ class SetGeoClaw:
         """
 
         try:
-            geo_data = rundata.geo_data
+            geo_data = self.rundata.geo_data
         except:
             print("*** Error, this rundata has no geo_data attribute")
             raise AttributeError("Missing geo_data attribute")
@@ -400,21 +400,21 @@ class SetGeoClaw:
         geo_data.friction_depth = 1e6
 
         # Refinement settings
-        refinement_data = rundata.refinement_data
+        refinement_data = self.rundata.refinement_data
         refinement_data.variable_dt_refinement_ratios = True
         refinement_data.wave_tolerance = 1.e-1
         refinement_data.deep_depth = 1e2
         refinement_data.max_level_deep = 3
 
         # == settopo.data values ==
-        topo_data = rundata.topo_data
+        topo_data = self.rundata.topo_data
         # for topography, append lines of the form
         #    [topotype, minlevel, maxlevel, t1, t2, fname]
         topo_path = os.path.join('./', 'etopo.tt3')
         topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
         # == setdtopo.data values ==
-        dtopo_data = rundata.dtopo_data
+        dtopo_data = self.rundata.dtopo_data
         # for moving topography, append lines of the form :   (<= 1 allowed for now!)
         #   [topotype, minlevel,maxlevel,fname]
         dtopo_path = os.path.join('./', 'dtopo.tt3')
@@ -423,26 +423,17 @@ class SetGeoClaw:
 
 
         # == setqinit.data values ==
-        rundata.qinit_data.qinit_type = 0
-        rundata.qinit_data.qinitfiles = []
+        self.rundata.qinit_data.qinit_type = 0
+        self.rundata.qinit_data.qinitfiles = []
         # for qinit perturbations, append lines of the form: (<= 1 allowed for now!)
         #   [minlev, maxlev, fname]
 
         # == setfixedgrids.data values ==
-        fixed_grids = rundata.fixed_grid_data
+        fixed_grids = self.rundata.fixed_grid_data
         # for fixed grids append lines of the form
         # [t1,t2,noutput,x1,x2,y1,y2,xpoints,ypoints,\
         #  ioutarrivaltimes,ioutsurfacemax]
 
-        self.rundata = rundata
         # end of function setgeo
         # ----------------------
         return
-
-
-
-if __name__ == '__main__':
-    # Set up run-time parameters and write all data files.
-    import sys
-    rundata = setrun(*sys.argv[1:])
-    rundata.write()
