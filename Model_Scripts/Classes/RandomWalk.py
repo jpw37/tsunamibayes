@@ -33,9 +33,11 @@ class RandomWalk(MCMC.MCMC):
 
         return distrb0, distrb1
 
-    def acceptance_prob(self, change_llh):
-        prop_prior1, prop_prior2 = self.Samples.get_prop_prior()
 
+    def acceptance_prob(self):
+        change_llh = self.change_llh_calc()
+
+        prop_prior1, prop_prior2 = self.Samples.get_prop_prior()
         prop_prior = self.priors[0].logpdf(prop_prior1) # Prior for longitude, latitude, strike
         prop_prior += self.priors[1].logpdf(prop_prior2) # Prior for dip, rake, depth, length, width, slip
 

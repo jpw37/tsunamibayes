@@ -19,6 +19,23 @@ class MCMC:
     def build_priors(self):
         pass
 
+    def change_llh_calc(self):
+        samp_llh = self.samples.get_cur_llh()
+        prop_llh = self.samples.get_prop_llh()
+
+        if np.isneginf(prop_llh) and np.isneginf(samp_llh):
+            change_llh = 0
+        elif np.isnan(prop_llh) and np.isnan(samp_llh):
+            change_llh = 0
+            # fix situation where nan in proposal llh results in acceptance, e.g., 8855 [-52.34308085] -10110.84699320795 [-10163.19007406] [-51.76404079] nan [nan] 1 accept
+        elif np.isnan(prop_llh) and not np.isnan(samp_llh):
+            change_llh = np.NINF
+        elif not np.isnan(prop_llh) and np.isnan(samp_llh):
+            change_llh = np.INF
+        else:
+            change_llh = prop_llh - samp_llh
+        return change_llh
+
     def accept_reject(self, accept_prob):
         # Increment wins. If new, change current 'best'.
         if np.random.random() < accept_prob:  # Accept new

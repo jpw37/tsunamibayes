@@ -18,7 +18,8 @@ class IndependentSampler(MCMC.MCMC):
     def build_priors(self):
         pass
 
-    def acceptance_prob(self, change_llh):
+    def acceptance_prob(self):
+        change_llh = self.change_llh_calc()
         return min(np.exp(change_llh), 1)
 
 

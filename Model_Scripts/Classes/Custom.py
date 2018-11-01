@@ -23,6 +23,7 @@ class Custom(MCMC.MCMC):
 
         return self.map_to_okada(draws)
 
+
     def map_to_okada(self, draws):
         #TODO: JARED AND JUSTIN
 
