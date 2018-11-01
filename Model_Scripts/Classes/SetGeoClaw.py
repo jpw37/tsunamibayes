@@ -15,7 +15,6 @@ import json
 class SetGeoClaw:
 
     def __init__(self, claw_pkg='geoclaw'):
-        self.claw_pkg = claw_pkg
         try:
             CLAW = os.environ['CLAW']
         except:
@@ -26,10 +25,12 @@ class SetGeoClaw:
 
         from clawpack.clawutil import data
 
+
         assert claw_pkg.lower() == 'geoclaw', "Expected claw_pkg = 'geoclaw'"
 
-        num_dim = 2
-        self.rundata = data.ClawRunData(claw_pkg, num_dim)
+        self.claw_pkg = claw_pkg
+        self.num_dim = 2
+        self.rundata = data.ClawRunData(claw_pkg, self.num_dim)
 
 
     #------------------------------
@@ -75,7 +76,7 @@ class SetGeoClaw:
         # ---------------
 
         # Number of space dimensions:
-        clawdata.num_dim = num_dim
+        clawdata.num_dim = self.num_dim
 
         # Lower and upper edge of computational domain:
         with open('model_bounds.txt') as json_file:
