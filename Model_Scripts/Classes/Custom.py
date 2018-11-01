@@ -34,7 +34,7 @@ class Custom(MCMC):
         samplingMult = 50
         bandwidthScalar = 2
         # build longitude, latitude and strike prior
-        data = pd.read_excel('./Data/Fixed92kmFaultOffset50kmgapPts.xls')
+        data = pd.read_excel('../Data/Fixed92kmFaultOffset50kmgapPts.xls')
         data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
         distrb0 = gaussian_kde(data.T)
 
