@@ -3,9 +3,9 @@ Created 10/19/2018
 BYU Mathematics Dept.
 """
 import os
-import MakeTopo as mt
 import numpy as np
 
+from MakeTopo import MakeTopo as mt
 from SetGeoClaw import SetGeoClaw
 from RandomWalk import RandomWalk
 from IndependentSampler import IndependentSampler
