@@ -7,13 +7,16 @@ but now they are explicit below.
 
 Call functions with makeplots==True to create plots of topo, slip, and dtopo.
 """
-
 from __future__ import absolute_import
 from __future__ import print_function
-import os
-import json
 
 import clawpack.clawutil.data
+from clawpack.geoclaw import dtopotools
+from clawpack.geoclaw import topotools
+
+import numpy
+import os
+import json
 
 class MakeTopo:
     # Scratch directory for storing topo and dtopo files:
@@ -29,7 +32,6 @@ class MakeTopo:
         """
         Retrieve the topo file from the GeoClaw repository.
         """
-        from clawpack.geoclaw import topotools
         topo_fname = 'etopo10min120W60W60S0S.asc'
         #url = 'http://www.geoclaw.org/topo/etopo/' + topo_fname
         #clawpack.clawutil.data.get_remote_file(url, output_dir=scratch_dir,
@@ -50,8 +52,6 @@ class MakeTopo:
         Create dtopo data file for deformation of sea floor due to earthquake.
         Uses the Okada model with fault parameters and mesh specified below.
         """
-        from clawpack.geoclaw import dtopotools
-        import numpy
 
         dtopo_fname = os.path.join('./Data/Topo', "dtopo.tt3")
 
@@ -87,7 +87,7 @@ class MakeTopo:
             #y = numpy.linspace(-40, -30, 100)
             times = [1.]
 
-            with open('model_bounds.txt') as json_file:
+            with open('./Data/model_bounds.txt') as json_file:
                 model_bounds = json.load(json_file)
 
             xlower = model_bounds['xlower']
