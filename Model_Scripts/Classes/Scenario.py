@@ -2,21 +2,16 @@
 Created 10/19/2018
 BYU Mathematics Dept.
 """
-import sys
 import os
 import MakeTopo as mt
-from scipy import stats
 import numpy as np
-import json
-import MCMC
-import SetGeoClaw
-import RandomWalk
-import IndependentSampler
-import Samples
-import FeedForward
-import Custom
 
-import sys
+import SetGeoClaw
+from RandomWalk import RandomWalk
+from IndependentSampler import IndependentSampler
+from Samples import Samples
+from FeedForward import FeedForward
+from Custom import Custom
 
 class Scenario:
     """

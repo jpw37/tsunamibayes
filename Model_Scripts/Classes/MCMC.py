@@ -2,10 +2,6 @@
 Created 10/19/2018
 """
 import numpy as np
-import pandas as pd
-import timeit
-import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
 
 class MCMC:
     """

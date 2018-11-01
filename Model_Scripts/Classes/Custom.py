@@ -6,7 +6,7 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
-import MCMC
+from MCMC import MCMC
 
 class Custom(MCMC.MCMC):
     """

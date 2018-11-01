@@ -2,9 +2,9 @@
 created 10/19/2018
 """
 import numpy as np
-import MakeTopo as mt
+from MakeTopo import MakeTopo as mt
 from scipy import stats
-from pmf import PMFData, PMF
+from PMF import PMFData, PMF
 import os
 
 class FeedForward:

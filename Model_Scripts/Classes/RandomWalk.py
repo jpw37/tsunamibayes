@@ -4,10 +4,10 @@ Created 10/19/2018
 import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
-import MCMC
+from MCMC import MCMC
 
 
-class RandomWalk(MCMC.MCMC):
+class RandomWalk(MCMC):
     """
     This Interface takes care of generating prior and calculating the probability given the prior and the observation
     Random Walk and Independent Sampler Inherit from this interface
