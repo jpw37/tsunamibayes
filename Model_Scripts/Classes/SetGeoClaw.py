@@ -14,7 +14,8 @@ import json
 
 class SetGeoClaw:
 
-    def __init__(self):
+    def __init__(self, claw_pkg='geoclaw'):
+        self.claw_pkg = claw_pkg
         try:
             CLAW = os.environ['CLAW']
         except:
@@ -32,7 +33,7 @@ class SetGeoClaw:
 
 
     #------------------------------
-    def setrun(self, claw_pkg='geoclaw'):
+    def setrun(self):
     #------------------------------
 
         """
