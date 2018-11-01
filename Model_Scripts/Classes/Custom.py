@@ -14,7 +14,7 @@ class Custom(MCMC):
     When the Variable for use_custom is set to true, this class will be used as the main MCMC class for the Scenario
     """
     def __init__(self, Samples):
-        MCMC.__init__(Samples)
+        super.__init__(Samples)
         self.priors = None
         return
 
