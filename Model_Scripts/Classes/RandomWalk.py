@@ -14,7 +14,7 @@ class RandomWalk(MCMC):
     """
 
     def __init__(self, Samples, covariance):
-        super.__init__(Samples)
+        MCMC.__init__(self, Samples)
         self.covariance = covariance
         pass
 

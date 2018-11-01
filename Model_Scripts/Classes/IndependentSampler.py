@@ -12,7 +12,7 @@ class IndependentSampler(MCMC):
     """
 
     def __init__(self, Samples):
-        super.__init__(Samples)
+        MCMC.__init__(self, Samples)
         pass
 
     def build_priors(self):
