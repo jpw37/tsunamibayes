@@ -62,7 +62,7 @@ class Scenario:
         :return:
         """
         sgc = SetGeoClaw()
-        sgc.setrun().write()
+        sgc.rundata.write()
 
         init_guesses = self.feedForward.init_guesses(self.init)
         mt.get_topo()
