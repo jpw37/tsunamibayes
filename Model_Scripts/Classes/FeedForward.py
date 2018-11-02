@@ -73,7 +73,7 @@ class FeedForward:
         """
         names = []
         for gauge in gauges:
-            names.append(gauge['name'])
+            names.append(gauge.name)
         arrivals, heights = self.read_gauges()
 
         # Calculate p for the arrivals and heights
