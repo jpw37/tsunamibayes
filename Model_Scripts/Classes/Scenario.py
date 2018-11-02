@@ -15,7 +15,7 @@ from IndependentSampler import IndependentSampler
 from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
-from Guage import from_json
+from Gauge import from_json
 
 class Scenario:
     """
