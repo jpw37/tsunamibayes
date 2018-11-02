@@ -363,7 +363,7 @@ class SetGeoClaw:
         # == fgmax.data values ==
         fgmax_files = self.rundata.fgmax_data.fgmax_files
         # for fixed grids append to this list names of any fgmax input files
-        fgmax_files.append('./PreRun/GeneratedGeoClawInput/fgmax_grid.txt')
+        fgmax_files.append('./PreRun/Data/fgmax_grid.txt')
         self.rundata.fgmax_data.num_fgmax_val = 1  # Save depth only
         # end of function setrun
         # ----------------------

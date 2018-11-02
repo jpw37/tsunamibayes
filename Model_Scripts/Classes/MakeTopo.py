@@ -26,22 +26,24 @@ class MakeTopo:
         except:
             raise Exception("*** Must first set CLAW enviornment variable")
 
-        scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
+        self.scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
+        self.topo_fname = 'etopo10min120W60W60S0S.asc'
+        self.dtopo_fname = os.path.join('./Data/Topo', "dtopo.tt3")
 
     def get_topo(self, makeplots=False):
         """
         Retrieve the topo file from the GeoClaw repository.
         """
-        topo_fname = 'etopo10min120W60W60S0S.asc'
+
         #url = 'http://www.geoclaw.org/topo/etopo/' + topo_fname
         #clawpack.clawutil.data.get_remote_file(url, output_dir=scratch_dir,
         #            file_name=topo_fname, verbose=True)
 
         if makeplots:
             from matplotlib import pyplot as plt
-            topo = topotools.Topography(os.path.join(scratch_dir,topo_fname), topo_type=3)
+            topo = topotools.Topography(os.path.join(self.scratch_dir, self.topo_fname), topo_type=3)
             topo.plot()
-            fname = os.path.splitext(topo_fname)[0] + '.png'
+            fname = os.path.splitext(self.topo_fname)[0] + '.png'
             plt.savefig(fname)
             print("Created ",fname)
 
@@ -52,8 +54,6 @@ class MakeTopo:
         Create dtopo data file for deformation of sea floor due to earthquake.
         Uses the Okada model with fault parameters and mesh specified below.
         """
-
-        dtopo_fname = os.path.join('./Data/Topo', "dtopo.tt3")
 
         # Specify subfault parameters for this simple fault model consisting
         # of a single subfault:
@@ -77,9 +77,9 @@ class MakeTopo:
 
         print("Mw = ",fault.Mw())
 
-        if os.path.exists(dtopo_fname):
+        if os.path.exists(self.dtopo_fname):
             print("*** Not regenerating dtopo file (already exists): %s" \
-                        % dtopo_fname)
+                        % self.dtopo_fname)
         else:
             print("Using Okada model to create dtopo file")
 
@@ -87,7 +87,7 @@ class MakeTopo:
             #y = numpy.linspace(-40, -30, 100)
             times = [1.]
 
-            with open('./Data/model_bounds.txt') as json_file:
+            with open('./PreRun/Data/model_bounds.txt') as json_file:
                 model_bounds = json.load(json_file)
 
             xlower = model_bounds['xlower']
@@ -108,7 +108,7 @@ class MakeTopo:
 
             fault.create_dtopography(x,y,times)
             dtopo = fault.dtopo
-            dtopo.write(dtopo_fname, dtopo_type=3)
+            dtopo.write(self.dtopo_fname, dtopo_type=3)
 
 
         if makeplots:
@@ -117,7 +117,7 @@ class MakeTopo:
                 # read in the pre-existing file:
                 print("Reading in dtopo file...")
                 dtopo = dtopotools.DTopography()
-                dtopo.read(dtopo_fname, dtopo_type=3)
+                dtopo.read(self.dtopo_fname, dtopo_type=3)
                 x = dtopo.x
                 y = dtopo.y
             plt.figure(figsize=(12,7))
@@ -127,11 +127,7 @@ class MakeTopo:
             ax1.set_xlim(x.min(),x.max())
             ax1.set_ylim(y.min(),y.max())
             dtopo.plot_dZ_colors(1.,axes=ax2)
-            fname = os.path.splitext(os.path.split(dtopo_fname)[-1])[0] + '.png'
+            fname = os.path.splitext(os.path.split(self.dtopo_fname)[-1])[0] + '.png'
             plt.savefig(fname)
-            print("Created ",fname)
+            print("Created ", fname)
 
-
-# if __name__=='__main__':
-#     get_topo(False)
-#     make_dtopo(params, False)

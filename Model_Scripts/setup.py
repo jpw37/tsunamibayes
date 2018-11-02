@@ -58,7 +58,7 @@ class Setup:
             slip_std, rake_std, dip_std, longitude_std, latitude_std])
 
         # Gauge information
-        gauges = np.load('PreRun/GeneratedGeoClawInput/gauges.npy')
+        gauges = np.load('PreRun/Data/gauges.npy')
 
         # Set gauge values for gauge 3 following pattern
         # as set out above (if desired)

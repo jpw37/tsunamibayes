@@ -11,9 +11,8 @@ class IndependentSampler(MCMC):
     Random Walk and Independent Sampler Inherit from this interface
     """
 
-    def __init__(self, Samples):
-        MCMC.__init__(self, Samples)
-        pass
+    def __init__(self):
+        MCMC.__init__(self)
 
     def build_priors(self):
         pass

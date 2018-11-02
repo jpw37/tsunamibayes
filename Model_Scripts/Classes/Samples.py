@@ -4,7 +4,6 @@ Created 10;/19/2018
 
 import numpy as np
 import sys
-
 import matplotlib
 
 matplotlib.use('agg', warn=False, force=True)
@@ -20,59 +19,129 @@ class Samples:
     This class handles the saving and loading for generated, samples, priors, and observations
     """
 
-    def __init__(self, scenario_title):
+    def __init__(self, scenario_title, sample_cols=None, proposal_cols=None):
+        """
+
+        :param scenario_title:
+        :param sample_cols:
+        :param proposal_cols:
+        """
         self.scenario_title = scenario_title
-        self.samples = None
-        self.mcmc = None
+        self.save_path = '../ModelOutput/' + self.scenario_title + "_"
+
+        if (not sample_cols and not proposal_cols):
+            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Logitude', 'Latitude']
+            proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude',
+                             'P-Latitude']
+
+        okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Split', 'O-Rake', 'O-Dip', 'O-Logitude',
+                      'O-Latitude']
+        proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Split', 'OP-Rake', 'OP-Dip',
+                               'OP-Logitude', 'OP-Latitude']
+        mcmc_cols = sample_cols + proposal_cols + okada_cols + proposal_okada_cols + \
+                    ["Wins"] + \
+                    ["Sample Prior", "Sample LH", "Sample Posterior"] + \
+                    ["Proposal Prior", "Proposal LH", "Proposal Posterior"] + \
+                    ["Acceptance ratio", "Proposal Accept/Reject"]
+        observation_cols = ["Mw", "Gauge Max Wave Height", "Gauge Arrival Time"]
+
+        self.samples = pd.DataFrame(columns=sample_cols)
+        self.okada = pd.DataFrame(columns=okada_cols)
+        self.mcmc = pd.DataFrame(columns=mcmc_cols)
+        self.observations = pd.DataFrame(columns=observation_cols)
         self.priors = None
-        self.observations = None
-
-        self.proposed_sample = None
-        self.prev_sample = None
-
-        #TODO: Make each of the above Panda Dataframes open for reading and writing durning the duration of
-        self.save_path = '../ModelOutput'
-        self.A = np.load('samples.npy')
-        d = dict()
-        d['strike'] = 0
-        d['length'] = 1
-        d['width'] = 2
-        d['depth'] = 3
-        d['slip'] = 4
-        d['rake'] = 5
-        d['dip'] = 6
-        d['longitude'] = 7
-        d['latitude'] = 8
-
-        self.d = d
-
-
-    def save_sample(self, saves):
-        pass
 
     def save_prior(self, saves):
+        """
+
+        :param saves:
+        :return:
+        """
+        self.priors = saves
+
+    def save_sample(self, saves):
+        """
+
+        :param saves:
+        :return:
+        """
+        self.samples.loc[len(self.samples)] = saves
+        self.samples.to_csv(self.save_path + "samples.csv")
+        return
+
+    def save_proposal(self, saves):
+        """
+
+        :param saves:
+        :return:
+        """
         pass
+
+    def get_sample(self):
+        """
+
+        :return:
+        """
+        return self.samples.loc[len(self.samples)-1]
+
+    def save_okada(self, saves):
+        """
+
+        :param saves:
+        :return:
+        """
+        self.okada.loc[len(self.okada)] = saves
+        self.okada.to_csv(self.save_path + "okada.csv")
+        return
+
+    def get_okada(self):
+        """
+
+        :return:
+        """
+        return self.okada.loc[len(self.okada)-1]
+
+    def save_debug(self):
+        """
+
+        :return:
+        """
+        saves = None
+        self.save_mcmc(saves)
 
     def save_mcmc(self, saves):
-        pass
+        """
 
-    def save_mapped(self, saves):
-        pass
+        :param saves:
+        :return:
+        """
+        self.mcmc.loc[len(self.mcmc)] = saves
+        self.mcmc.to_csv(self.save_path + "mcmc.csv")
+        return
+
+    def save_obvs(self, saves):
+        """
+
+        :param saves:
+        :return:
+        """
+        self.observations.loc[len(self.observations)] = saves
+        self.observations.to_csv(self.save_path + "observations.csv")
+        return
+
 
     def get_cur_llh(self):
+        pass
+
+    def save_cur_llh(self):
+        pass
+
+    def get_prop_llh(self):
         pass
 
     def save_prop_llh(self):
         pass
 
-    def get_previous_sample(self):
-        pass
-
-    def close_files(self):
-        self.samples.close()
-        self.mcmc.close()
-        self.observations.close()
-        return
 
     def get_prob_prior(self):
         prop_prior1 = self.samples[-1, [7, 8, 0]] # Prior for longitude, latitude, strike
@@ -266,4 +335,18 @@ class Samples:
             param2 = kind
 
         self.plot_stuff(param1, param2, kind, bins)
+
+from Custom import Custom
+from RandomWalk import RandomWalk
+import pandas as pd
+
+if __name__ == "__main__":
+    mcmc = RandomWalk(1)
+    samples = Samples("1852", mcmc.sample_cols, mcmc.proposal_cols)
+    mcmc.set_samples(samples)
+    guesses = mcmc.init_guesses("manual")
+    samples.save_sample(guesses)
+
+    print(samples.get_sample())
+
 

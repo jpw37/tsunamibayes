@@ -13,10 +13,10 @@ class Custom(MCMC):
     Use this class to create custom build_prior, and drawing methods for the MCMC method
     When the Variable for use_custom is set to true, this class will be used as the main MCMC class for the Scenario
     """
-    def __init__(self, Samples):
-        MCMC.__init__(self, Samples)
-        self.priors = None
-        return
+    def __init__(self):
+        MCMC.__init__(self)
+        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Logitude', 'Latitude']
+        self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
 
     def draw(self, prev_draw):
         draws = prev_draw

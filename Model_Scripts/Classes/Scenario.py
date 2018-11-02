@@ -17,7 +17,7 @@ class Scenario:
     """
     Main Class for Running the "Paper Title"
 
-    READ: Make sure you run the python notebook in the PreRun folder to generate necessary files
+    READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
 
     def __init__(self, title="Default Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=1):
@@ -25,28 +25,31 @@ class Scenario:
         Initialize all the correct variables for Running this Scenario
         """
         # Clear previous files
-        os.system('rm ./Data/dtopo.tt3')
-        os.system('rm ./Data/dtopo.data')
-        guages_file_path = './PreRun/GeneratedGeoClawInput/gauges.npy'
+        os.system('rm ./Data/Topo/dtopo.tt3')
+        os.system('rm ./Data/Topo/dtopo.data')
+        guages_file_path = './PreRun/Data/gauges.npy'
 
         self.title = title
         self.iterations = iterations
         self.use_custom = use_custom
         self.init = init
-        self.samples = Samples(title)
 
         if(use_custom):
-            self.mcmc = Custom(self.samples)
+            self.mcmc = Custom()
         elif(method == "independent_sampler"):
-            self.mcmc = IndependentSampler(self.samples)
+            self.mcmc = IndependentSampler()
         else:
-            self.mcmc = RandomWalk(self.samples, rw_covariance)
+            self.mcmc = RandomWalk(rw_covariance)
 
-        self.feedForward = FeedForward(self.mcmc)
+        self.samples = Samples(title, self.mcmc.sample_cols, self.mcmc.proposal_cols)
+
+        self.mcmc.set_samples(self.samples)
+        self.init_guesses = self.mcmc.init_guesses(self.init)
 
         self.priors = self.mcmc.build_priors()
-
         self.samples.save_prior(self.priors)
+
+        self.feedForward = FeedForward()
 
         if(os.path.isfile(guages_file_path)):
             # Make sure these Files Exist
@@ -65,9 +68,8 @@ class Scenario:
         sgc = SetGeoClaw()
         sgc.rundata.write()
 
-        init_guesses = self.feedForward.init_guesses(self.init)
         mt.get_topo()
-        mt.make_dtopo(init_guesses)
+        mt.make_dtopo(self.init_guesses)
 
         os.system('make clean')
         os.system('make clobber')
@@ -80,21 +82,33 @@ class Scenario:
         """
         for _ in range(self.iterations):
 
-            draws = self.mcmc.draw(self.samples.get_previous_sample())
+            # Get current Sample and draw a proposal sample from it
+            draws = self.mcmc.draw(self.samples.get_sample())
 
-            self.samples.save_sample(draws)
+            # Save the proposal draw for debugging purposes
+            self.samples.save_proposal(draws)
 
+            # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
                 draws = self.mcmc.map_to_okada(draws)
-                self.samples.save_mapped(draws)
+                self.samples.save_okada(draws)
 
+            # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(draws)
 
+            # Calculate the Log Likelyhood probability for the new draw
             prop_llh = self.feedForward.calculate_probability(self.guages)
+
+            # Save the Log Likelyhood for the proposed draw
             self.samples.save_prop_llh(prop_llh)
 
+            # Calculate the acceptance probability
             accept_prob = self.mcmc.acceptance_prob()
 
+            # Decide to accept or reject the proposal and save
             self.mcmc.accept_reject(accept_prob)
+
+            # Saves the stored data for debugging purposes
+            self.samples.save_debug()
 
         return
