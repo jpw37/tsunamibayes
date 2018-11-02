@@ -95,10 +95,10 @@ class Gauge:
         d['city_name'] = self.city_name
         return d
 
-    def from_json(self, d):
-        """
-        Converts from json file format into gauge object
-        """
-        self.__init__(d['name'], d['longitude'], d['latitude'],
-                        d['distance'], d['kind'], d['arrival_params'],
-                        d['height_params'], d['inundation_params'], d['beta'], d['n'], d['city_name'])
+def from_json(d):
+    """
+    Converts from json file format into gauge object
+    """
+    return Gauge(d['name'], d['longitude'], d['latitude'],d['distance'], d['kind'], d['arrival_params'],
+                    d['height_params'], d['inundation_params'], d['beta'], d['n'], d['city_name'])
+
