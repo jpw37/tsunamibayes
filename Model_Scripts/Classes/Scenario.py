@@ -4,6 +4,9 @@ BYU Mathematics Dept.
 """
 import os
 import numpy as np
+import sys
+
+sys.path.append('./PreRun/Classes/')
 
 from MakeTopo import MakeTopo
 from SetGeoClaw import SetGeoClaw
@@ -12,6 +15,7 @@ from IndependentSampler import IndependentSampler
 from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
+from Guage import from_json
 
 class Scenario:
     """
@@ -54,11 +58,11 @@ class Scenario:
         if(os.path.isfile(guages_file_path)):
             # Make sure these Files Exist
             gauges = np.load(guages_file_path)
-            self.guages = [gauge.from_json() for gauge in gauges]
+            self.guages = [from_json(gauge) for gauge in gauges]
             # Do initial run of GeoClaw using the initial guesses.
             self.setGeoClaw()
         else:
-            raise ValueError("The Gauges and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
+            raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
     def setGeoClaw(self):
         """
