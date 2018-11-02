@@ -37,6 +37,7 @@ class Scenario:
         self.iterations = iterations
         self.use_custom = use_custom
         self.init = init
+        self.feedForward = FeedForward()
 
         if(use_custom):
             self.mcmc = Custom()
@@ -49,11 +50,11 @@ class Scenario:
 
         self.mcmc.set_samples(self.samples)
         self.init_guesses = self.mcmc.init_guesses(self.init)
+        self.samples.save_cur_llh(self.feedForward.calculate_probability(self.init_guesses))
 
         self.priors = self.mcmc.build_priors()
         self.samples.save_prior(self.priors)
 
-        self.feedForward = FeedForward()
 
         if(os.path.isfile(guages_file_path)):
             # Make sure these Files Exist

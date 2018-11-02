@@ -131,16 +131,16 @@ class Samples:
 
 
     def get_cur_llh(self):
-        pass
+        return self.cur_llh
 
     def save_cur_llh(self, llh):
-        pass
+        self.cur_llh = llh
 
     def get_prop_llh(self):
-        pass
+        return self.prop_llh
 
     def save_prop_llh(self, llh):
-        pass
+        self.prop_llh = llh
 
 
     def get_prob_prior(self):
