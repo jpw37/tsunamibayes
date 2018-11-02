@@ -133,13 +133,13 @@ class Samples:
     def get_cur_llh(self):
         pass
 
-    def save_cur_llh(self):
+    def save_cur_llh(self, llh):
         pass
 
     def get_prop_llh(self):
         pass
 
-    def save_prop_llh(self):
+    def save_prop_llh(self, llh):
         pass
 
 
