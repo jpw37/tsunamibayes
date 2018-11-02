@@ -53,7 +53,8 @@ class Scenario:
 
         if(os.path.isfile(guages_file_path)):
             # Make sure these Files Exist
-            self.guages = np.load(guages_file_path)
+            gauges = np.load(guages_file_path)
+            self.guages = [gauge.from_json() for gauge in gauges]
             # Do initial run of GeoClaw using the initial guesses.
             self.setGeoClaw()
         else:
