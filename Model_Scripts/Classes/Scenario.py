@@ -50,7 +50,7 @@ class Scenario:
 
         self.mcmc.set_samples(self.samples)
         self.init_guesses = self.mcmc.init_guesses(self.init)
-        self.samples.save_cur_llh(self.feedForward.calculate_probability(self.init_guesses))
+        self.samples.save_cur_llh(self.feedForward.calculate_probability(from_json(self.init_guesses)))
 
         self.priors = self.mcmc.build_priors()
         self.samples.save_prior(self.priors)
