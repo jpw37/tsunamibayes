@@ -73,13 +73,13 @@ class FeedForward:
         """
         names = []
         for gauge in gauges:
-            names.append(gauge.name)
+            names.append(gauge['name'])
         arrivals, heights = self.read_gauges()
 
         # Calculate p for the arrivals and heights
         llh = 0.  # init p
         # Calculate p for the heights, using the PMFData and PMF classes
-        amplification_data = np.load('../amplification_data.npy')
+        amplification_data = np.load('./Data/amplification_data.npy')
         row_header = amplification_data[:, 0]
         col_header = np.arange(len(amplification_data[0]) - 1) / 4
         pmfData = PMFData(row_header, col_header, amplification_data[:, 1:])
@@ -115,55 +115,3 @@ class FeedForward:
                 llh += np.log(llh_inundation)
 
         return llh
-
-    def haversine_distance(self, p1, p2):
-        """
-        This function  is set up separately because the haversine distance
-        likely will still be useful after we're done with this adhoc approach.
-
-        Note, this does not account for the oblateness of the Earth. Not sure if
-        this will cause a problem.
-        """
-        r = 6371000
-
-        # Setting up haversine terms of distance expansion
-        hav_1 = np.power(np.sin((p2[1] - p1[1]) / 2 * np.pi / 180), 2.0)
-        hav_2 = np.cos(p2[1] * np.pi / 180) * np.cos(p1[1] * np.pi / 180) * np.power(
-            np.sin((p2[0] - p1[0]) / 2 * np.pi / 180), 2.0)
-
-        # taking the arcsine of the root of the sum of the haversine terms
-        root = np.sqrt(hav_1 + hav_2)
-        arc = np.arcsin(root)
-
-        # return final distance between the two points
-        return 2 * r * arc
-
-    def doctored_depth_1852_adhoc(self, longitude, latitude, dip):
-        """
-        This is a function written specifically for our 1852 depth fix.
-        We make use of the fault points used in generating our prior as
-        jumping off point for fixing the depth of an event. We use a
-        simple trig correction based on a 20degree dip angle and the haversine distance
-        to get the depth of the earthquake in question.
-
-        Note, this will do the dip correction regardless of which side
-        of the trench our sample is on. Recognizing when the sample is
-        on the wrong side seems nontrivial, so we have not implemented
-        a check for this here.
-        """
-        # set up sample point and fault array
-        p1 = np.array([longitude, latitude])
-        fault_file = 'fault_array.npy'
-        fault_array = np.load(fault_file)
-        # will store haversine distances for comparison
-        dist_array = np.zeros(0.5 * len(fault_array))
-        for i in range(len(dist_array)):
-            x = fault_array[2 * i]
-            y = fault_array[2 * i + 1]
-            p2 = np.array([x, y])
-            dist_array[i] = self.haversine_distance(p1, p2)
-
-        dist = np.amin(dist_array)
-
-        # need to add trig correction
-        return (20000 + dist * np.tan(20 * np.pi / 180))
