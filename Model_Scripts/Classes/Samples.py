@@ -142,6 +142,9 @@ class Samples:
     def save_prop_llh(self, llh):
         self.prop_llh = llh
 
+    def set_cur_llh(self):
+        self.cur_llh = self.prop_llh
+
 
     def get_prob_prior(self):
         prop_prior1 = self.samples[-1, [7, 8, 0]] # Prior for longitude, latitude, strike
