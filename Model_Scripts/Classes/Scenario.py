@@ -50,7 +50,6 @@ class Scenario:
 
         self.mcmc.set_samples(self.samples)
         self.init_guesses = self.mcmc.init_guesses(self.init)
-        self.samples.save_cur_llh(self.feedForward.calculate_probability(from_json(self.init_guesses)))
 
         self.priors = self.mcmc.build_priors()
         self.samples.save_prior(self.priors)
@@ -61,7 +60,8 @@ class Scenario:
             gauges = np.load(guages_file_path)
             self.guages = [from_json(gauge) for gauge in gauges]
             # Do initial run of GeoClaw using the initial guesses.
-            self.setGeoClaw()
+            cur_llh = self.setGeoClaw()
+            self.samples.save_cur_llh(cur_llh)
         else:
             raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
@@ -80,6 +80,8 @@ class Scenario:
         os.system('make clean')
         os.system('make clobber')
         os.system('make .output')
+
+        return self.feedForward.calculate_probability(self.guages)
 
     def run(self):
         """

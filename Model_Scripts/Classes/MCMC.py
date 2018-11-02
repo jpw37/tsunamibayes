@@ -43,6 +43,7 @@ class MCMC:
             samples[0] = samples[-1]
             samples[-1][-1] += 1
             samples[0][-1] = len(samples) - 1
+            self.samples.set_cur_llh()
         else:  # Reject new
             samples[int(samples[0][-1])][-1] += 1  # increment old draw wins
         np.save('samples.npy', samples)
