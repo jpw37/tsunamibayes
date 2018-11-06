@@ -16,6 +16,7 @@ from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
 from Gauge import from_json
+from BuildPriors import build_priors
 
 class Scenario:
     """
@@ -31,7 +32,7 @@ class Scenario:
         # Clear previous files
         os.system('rm ./Data/Topo/dtopo.tt3')
         os.system('rm ./Data/Topo/dtopo.data')
-        guages_file_path = './PreRun/Data/gauges.npy'
+        gauges_file_path = './PreRun/Data/gauges.npy'
 
         self.title = title
         self.iterations = iterations
@@ -51,17 +52,15 @@ class Scenario:
         self.mcmc.set_samples(self.samples)
         self.init_guesses = self.mcmc.init_guesses(self.init)
 
-        self.priors = self.mcmc.build_priors()
+        self.priors = build_priors()
         self.samples.save_prior(self.priors)
 
-
-        if(os.path.isfile(guages_file_path)):
+        if(os.path.isfile(gauges_file_path)):
             # Make sure these Files Exist
-            gauges = np.load(guages_file_path)
-            self.guages = [from_json(gauge) for gauge in gauges]
+            gauges = np.load(gauges_file_path)
+            self.gauges = [from_json(gauge) for gauge in gauges]
             # Do initial run of GeoClaw using the initial guesses.
-            cur_llh = self.setGeoClaw()
-            self.samples.save_cur_llh(cur_llh)
+            self.setGeoClaw()
         else:
             raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
@@ -81,7 +80,10 @@ class Scenario:
         os.system('make clobber')
         os.system('make .output')
 
-        return self.feedForward.calculate_probability(self.guages)
+        cur_llh = self.feedForward.calculate_probability(self.gauges)
+        self.samples.save_cur_llh(cur_llh)
+
+        return
 
     def run(self):
         """
@@ -108,7 +110,7 @@ class Scenario:
             self.feedForward.run_geo_claw(draws)
 
             # Calculate the Log Likelihood probability for the new draw
-            prop_llh = self.feedForward.calculate_probability(self.guages)
+            prop_llh = self.feedForward.calculate_probability(self.gauges)
 
             # Save the Log Likelihood for the proposed draw
             self.samples.save_prop_llh(prop_llh)

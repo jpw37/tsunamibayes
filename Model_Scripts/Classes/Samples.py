@@ -27,7 +27,7 @@ class Samples:
         :param proposal_cols:
         """
         self.scenario_title = scenario_title
-        self.save_path = '../ModelOutput/' + self.scenario_title + "_"
+        self.save_path = './ModelOutput/' + self.scenario_title + "_"
 
         if (not sample_cols and not proposal_cols):
             sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude', 'Wins']

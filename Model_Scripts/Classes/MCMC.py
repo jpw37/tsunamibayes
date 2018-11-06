@@ -17,9 +17,6 @@ class MCMC:
     def set_samples(self, Samples):
         self.samples = Samples
 
-    def build_priors(self):
-        pass
-
     def change_llh_calc(self):
         samp_llh = self.samples.get_cur_llh()
         prop_llh = self.samples.get_prop_llh()
