@@ -22,6 +22,7 @@ class Custom(MCMC):
         :param prev_draw:
         :return:
         """
+
         draws = prev_draw
 
         return self.map_to_okada(draws)

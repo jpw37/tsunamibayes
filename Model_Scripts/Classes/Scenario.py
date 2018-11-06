@@ -52,6 +52,8 @@ class Scenario:
         self.mcmc.set_samples(self.samples)
         self.init_guesses = self.mcmc.init_guesses(self.init)
 
+        self.samples.save_sample(self.init_guesses)
+
         self.priors = build_priors()
         self.samples.save_prior(self.priors)
 
@@ -80,7 +82,7 @@ class Scenario:
         os.system('make clobber')
         os.system('make .output')
 
-        cur_llh = self.feedForward.calculate_probability(self.gauges)
+        cur_llh = self.feedForward.calculate_llh(self.gauges)
         self.samples.save_cur_llh(cur_llh)
 
         return
@@ -90,7 +92,7 @@ class Scenario:
         Runs the Scenario For the given amount of iterations
         :return:
         """
-        for _ in range(self.iterations):
+        for i in range(self.iterations):
 
             # Get current Sample and draw a proposal sample from it
             draws = self.mcmc.draw(self.samples.get_sample())
@@ -101,10 +103,8 @@ class Scenario:
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
                 draws = self.mcmc.map_to_okada(draws)
-                self.samples.save_okada(draws)
-            # Otherwise we already have 9 Dimensions and can save them
-            else:
-                self.samples.save_okada(draws)
+
+            self.samples.save_proposal_okada(draws)
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(draws)
@@ -123,7 +123,11 @@ class Scenario:
             # Decide to accept or reject the proposal and save
             self.mcmc.accept_reject(accept_prob)
 
-            # Saves the stored data for debugging purposes
             self.samples.save_debug()
+
+            if i % 500 == 0:
+                # Saves the stored data for debugging purposes
+                self.samples.save_to_csv()
+                # Save to csv
 
         return

@@ -59,7 +59,7 @@ class FeedForward:
         max_heights = data[:, 3]
         return arrivals, max_heights
 
-    def calculate_probability(self, gauges):
+    def calculate_llh(self, gauges):
         """
         Calculate the log-likelihood of the data at each of the gauges
         based on our chosen distributions for maximum wave heights and

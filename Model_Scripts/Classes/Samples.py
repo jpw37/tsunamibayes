@@ -27,10 +27,10 @@ class Samples:
         :param proposal_cols:
         """
         self.scenario_title = scenario_title
-        self.save_path = './ModelOutput/' + self.scenario_title + "_"
+        self.save_path = '../ModelOutput/' + self.scenario_title + "_"
 
         if (not sample_cols and not proposal_cols):
-            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude', 'Wins']
+            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude']
             proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude',
                              'P-Latitude']
 
@@ -40,8 +40,8 @@ class Samples:
                                'OP-Logitude', 'OP-Latitude']
         mcmc_cols = sample_cols + proposal_cols + okada_cols + proposal_okada_cols + \
                     ["Wins"] + \
-                    ["Sample Prior", "Sample LH", "Sample Posterior"] + \
-                    ["Proposal Prior", "Proposal LH", "Proposal Posterior"] + \
+                    ["Sample Prior", "Sample LLH", "Sample Posterior"] + \
+                    ["Proposal Prior", "Proposal LLH", "Proposal Posterior"] + \
                     ["Acceptance ratio", "Proposal Accept/Reject"]
 
         observation_cols = ["Mw", "Gauge Max Wave Height", "Gauge Arrival Time"]
@@ -64,15 +64,35 @@ class Samples:
     def get_prior(self):
         return self.priors
 
+    def save_cur_llh(self, llh):
+        self.cur_llh = llh
+
+    def get_cur_llh(self):
+        return self.cur_llh
+
+    # STEP 1
     def save_proposal(self, saves):
         self.proposal = saves
 
     def get_proposal(self):
         return self.proposal
 
+    # STEP 2
+    def save_proposal_okada(self, saves):
+        self.proposal_okada = saves
+
+    def get_proposal_okada(self):
+        return self.proposal_okada
+
+    # STEP 3
+    def save_prop_llh(self, llh):
+        self.prop_llh = llh
+
+    def get_prop_llh(self):
+        return self.prop_llh
+
     def save_sample(self, saves):
         """
-
         :param saves:
         :return:
         """
@@ -82,12 +102,11 @@ class Samples:
 
     def get_sample(self):
         """
-
         :return:
         """
-        return self.samples.loc[len(self.samples)-1]
+        return self.samples.loc[len(self.samples) - 1]
 
-    def save_okada(self, saves):
+    def save_sample_okada(self, saves):
         """
 
         :param saves:
@@ -97,16 +116,14 @@ class Samples:
         self.okada.to_csv(self.save_path + "okada.csv")
         return
 
-    def get_okada(self):
+    def get_sample_okada(self):
         """
-
         :return:
         """
         return self.okada.loc[len(self.okada)-1]
 
     def save_debug(self):
         """
-
         :return:
         """
         saves = None
@@ -131,22 +148,6 @@ class Samples:
         self.observations.loc[len(self.observations)] = saves
         self.observations.to_csv(self.save_path + "observations.csv")
         return
-
-
-    def get_cur_llh(self):
-        return self.cur_llh
-
-    def save_cur_llh(self, llh):
-        self.cur_llh = llh
-
-    def get_prop_llh(self):
-        return self.prop_llh
-
-    def save_prop_llh(self, llh):
-        self.prop_llh = llh
-
-    def set_cur_llh(self):
-        self.cur_llh = self.prop_llh
 
 
     def get_proposed_parameters(self):
@@ -354,5 +355,7 @@ if __name__ == "__main__":
     samples.save_sample(guesses)
     sample = samples.get_sample()
     print(sample[['Longitude', 'Latitude', 'Strike']])
+    sample['Longitude'] = 0
+    print(sample)
 
 

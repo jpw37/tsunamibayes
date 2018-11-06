@@ -19,38 +19,21 @@ class RandomWalk(MCMC):
         self.covariance = covariance
         pass
 
-    def build_priors(self):
-        samplingMult = 50
-        bandwidthScalar = 2
-        # build longitude, latitude and strike prior
-        data = pd.read_excel('./Data/Fixed92kmFaultOffset50kmgapPts.xls')
-        data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
-        distrb0 = gaussian_kde(data.T)
 
-        # build dip, rake, depth, length, width, and slip prior
-        vals = np.load('./Data/6_param_bootstrapped_data.npy')
-        distrb1 = gaussian_kde(vals.T)
-        distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
-
-        return distrb0, distrb1
-
-
-    def acceptance_prob(self, priors, proposed_params, cur_params):
+    def acceptance_prob(self, proposed_params, cur_params):
         change_llh = self.change_llh_calc()
 
         # Calculate probability for the proposed sample
-        prop_prior = priors[0].logpdf(proposed_params[['Longitude', 'Latitude', 'Strike']])
-        prop_prior += priors[1].logpdf(proposed_params[['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']])
+        prop_prior_llh = self.prior.logpdf(proposed_params)
 
         # Calculate probability for the current sample
-        cur_samp_prior = priors[0].logpdf(cur_params[['Longitude', 'Latitude', 'Strike']])
-        cur_samp_prior += priors[1].logpdf(cur_params[['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']])
+        cur_prior_llh = self.prior.logpdf(cur_params)
 
         # Log-Likelihood
-        change_prior = prop_prior - cur_samp_prior
+        change_prior_llh = prop_prior_llh - cur_prior_llh
 
         # Note we use np.exp(new - old) because it's the log-likelihood
-        return min(1, np.exp(change_llh + change_prior))
+        return min(1, np.exp(change_llh+change_prior_llh))
 
     def draw(self, prev_draw):
         """
