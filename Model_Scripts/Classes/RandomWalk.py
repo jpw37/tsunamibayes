@@ -35,19 +35,19 @@ class RandomWalk(MCMC):
         return distrb0, distrb1
 
 
-    def acceptance_prob(self):
+    def acceptance_prob(self, priors, proposed_params, cur_params):
         change_llh = self.change_llh_calc()
 
-        prop_prior1, prop_prior2 = self.Samples.get_prop_prior()
-        prop_prior = self.priors[0].logpdf(prop_prior1) # Prior for longitude, latitude, strike
-        prop_prior += self.priors[1].logpdf(prop_prior2) # Prior for dip, rake, depth, length, width, slip
+        # Calculate probability for the proposed sample
+        prop_prior = priors[0].logpdf(proposed_params[['Longitude', 'Latitude', 'Strike']])
+        prop_prior += priors[1].logpdf(proposed_params[['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']])
 
-        cur_samp_prior1, cur_samp_prior2 = self.Samples.get_cur_prior() # See above
+        # Calculate probability for the current sample
+        cur_samp_prior = priors[0].logpdf(cur_params[['Longitude', 'Latitude', 'Strike']])
+        cur_samp_prior += priors[1].logpdf(cur_params[['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']])
 
-        cur_samp_prior = self.priors[0].logpdf(cur_samp_prior1)  # Prior for longitude, latitude, strike
-        cur_samp_prior += self.priors[1].logpdf(cur_samp_prior2)  # Prior for dip, rake, depth, length, width, slip
-
-        change_prior = prop_prior - cur_samp_prior  # Log-Likelihood
+        # Log-Likelihood
+        change_prior = prop_prior - cur_samp_prior
 
         # Note we use np.exp(new - old) because it's the log-likelihood
         return min(1, np.exp(change_llh + change_prior))

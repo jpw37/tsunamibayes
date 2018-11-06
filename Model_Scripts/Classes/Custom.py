@@ -15,7 +15,7 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Logitude', 'Latitude']
+        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude']
         self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
 
     def draw(self, prev_draw):
@@ -35,7 +35,6 @@ class Custom(MCMC):
         :param draws:
         :return:
         """
-        self.samples.save_mcmc(draws)
         return
 
     def build_priors(self):

@@ -27,10 +27,10 @@ class Samples:
         :param proposal_cols:
         """
         self.scenario_title = scenario_title
-        self.save_path = './ModelOutput/' + self.scenario_title + "_"
+        self.save_path = '../ModelOutput/' + self.scenario_title + "_"
 
         if (not sample_cols and not proposal_cols):
-            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Logitude', 'Latitude']
+            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude', 'Wins']
             proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude',
                              'P-Latitude']
 
@@ -43,6 +43,7 @@ class Samples:
                     ["Sample Prior", "Sample LH", "Sample Posterior"] + \
                     ["Proposal Prior", "Proposal LH", "Proposal Posterior"] + \
                     ["Acceptance ratio", "Proposal Accept/Reject"]
+
         observation_cols = ["Mw", "Gauge Max Wave Height", "Gauge Arrival Time"]
 
         self.samples = pd.DataFrame(columns=sample_cols)
@@ -50,6 +51,7 @@ class Samples:
         self.mcmc = pd.DataFrame(columns=mcmc_cols)
         self.observations = pd.DataFrame(columns=observation_cols)
         self.priors = None
+        self.proposal = None
 
     def save_prior(self, saves):
         """
@@ -58,6 +60,15 @@ class Samples:
         :return:
         """
         self.priors = saves
+
+    def get_prior(self):
+        return self.priors
+
+    def save_proposal(self, saves):
+        self.proposal = saves
+
+    def get_proposal(self):
+        return self.proposal
 
     def save_sample(self, saves):
         """
@@ -68,14 +79,6 @@ class Samples:
         self.samples.loc[len(self.samples)] = saves
         self.samples.to_csv(self.save_path + "samples.csv")
         return
-
-    def save_proposal(self, saves):
-        """
-
-        :param saves:
-        :return:
-        """
-        pass
 
     def get_sample(self):
         """
@@ -146,12 +149,12 @@ class Samples:
         self.cur_llh = self.prop_llh
 
 
-    def get_prob_prior(self):
+    def get_proposed_parameters(self):
         prop_prior1 = self.samples[-1, [7, 8, 0]] # Prior for longitude, latitude, strike
         prop_prior2 = self.samples[-1, [6, 5, 3, 1, 2, 4]]  # Prior for dip, rake, depth, length, width, slip
         return prop_prior1, prop_prior2
 
-    def get_cur_prior(self):
+    def get_current_parameters(self):
         cur_samp_prior1 = self.samples[0, [7, 8, 0]]  # As above
         cur_samp_prior2 = self.samples[0, [6, 5, 3, 1, 2, 4]]
         return cur_samp_prior1, cur_samp_prior2
@@ -349,7 +352,7 @@ if __name__ == "__main__":
     mcmc.set_samples(samples)
     guesses = mcmc.init_guesses("manual")
     samples.save_sample(guesses)
-
-    print(samples.get_sample())
+    sample = samples.get_sample()
+    print(sample[['Longitude', 'Latitude', 'Strike']])
 
 

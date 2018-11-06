@@ -3,6 +3,7 @@ Created 10/19/2018
 """
 from MCMC import MCMC
 import numpy as np
+from scipy import stats
 
 
 class IndependentSampler(MCMC):

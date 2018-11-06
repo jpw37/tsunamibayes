@@ -100,18 +100,23 @@ class Scenario:
             if(self.use_custom):
                 draws = self.mcmc.map_to_okada(draws)
                 self.samples.save_okada(draws)
+            # Otherwise we already have 9 Dimensions and can save them
+            else:
+                self.samples.save_okada(draws)
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(draws)
 
-            # Calculate the Log Likelyhood probability for the new draw
+            # Calculate the Log Likelihood probability for the new draw
             prop_llh = self.feedForward.calculate_probability(self.guages)
 
-            # Save the Log Likelyhood for the proposed draw
+            # Save the Log Likelihood for the proposed draw
             self.samples.save_prop_llh(prop_llh)
 
             # Calculate the acceptance probability
-            accept_prob = self.mcmc.acceptance_prob()
+            cur_params = self.samples.get_current_parameters()
+            proposed_params = self.samples.get_proposed_parameters()
+            accept_prob = self.mcmc.acceptance_prob(self.priors, cur_params, proposed_params)
 
             # Decide to accept or reject the proposal and save
             self.mcmc.accept_reject(accept_prob)
