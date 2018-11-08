@@ -1,7 +1,11 @@
 """
 Created 10/19/2018
 """
+import pandas as pd
+from scipy.stats import gaussian_kde
 import numpy as np
+
+from Prior import Prior
 
 class MCMC:
     """
@@ -13,42 +17,54 @@ class MCMC:
         self.samples = None
         self.sample_cols = None
         self.proposal_cols = None
+        self.prior = None
 
     def set_samples(self, Samples):
+        """
+        Sets the samples loading class
+        :param Samples: Sample: Sample class
+        :return:
+        """
         self.samples = Samples
 
     def change_llh_calc(self):
-        samp_llh = self.samples.get_cur_llh()
+        """
+        Calculates the change in loglikelihood between the current and the proposed llh
+        :return:
+        """
+        cur_llh = self.samples.get_cur_llh()
         prop_llh = self.samples.get_prop_llh()
 
-        if np.isneginf(prop_llh) and np.isneginf(samp_llh):
+        if np.isneginf(prop_llh) and np.isneginf(cur_llh):
             change_llh = 0
-        elif np.isnan(prop_llh) and np.isnan(samp_llh):
+        elif np.isnan(prop_llh) and np.isnan(cur_llh):
             change_llh = 0
             # fix situation where nan in proposal llh results in acceptance, e.g., 8855 [-52.34308085] -10110.84699320795 [-10163.19007406] [-51.76404079] nan [nan] 1 accept
-        elif np.isnan(prop_llh) and not np.isnan(samp_llh):
+        elif np.isnan(prop_llh) and not np.isnan(cur_llh):
             change_llh = np.NINF
-        elif not np.isnan(prop_llh) and np.isnan(samp_llh):
+        elif not np.isnan(prop_llh) and np.isnan(cur_llh):
             change_llh = np.inf
         else:
-            change_llh = prop_llh - samp_llh
+            change_llh = prop_llh - cur_llh
         return change_llh
 
-
-
     def accept_reject(self, accept_prob):
+        """
+        Decides to accept or reject the proposal. Saves the accepted parameters as new current sample
+        :param accept_prob: float Proposal acceptance probability
+        :return:
+        """
         if np.random.random() < accept_prob:
             # Accept and save proposal
+            self.samples.reset_wins()
             self.samples.save_sample(self.samples.get_proposal())
             self.samples.save_sample_okada(self.samples.get_proposal_okada())
             self.samples.save_cur_llh(self.samples.get_prop_llh())
-            self.samples.reset_wins()
         else:
             # Reject Proposal and Save current winner to sample list
             self.samples.increment_wins()
             self.samples.save_sample(self.samples.get_sample())
             self.samples.save_sample_okada(self.samples.get_sample_okada())
-
 
     def map_to_okada(self):
         pass
@@ -59,12 +75,32 @@ class MCMC:
     def acceptance_prob(self):
         pass
 
+    def build_priors(self):
+        samplingMult = 50
+        bandwidthScalar = 2
+        # build longitude, latitude and strike prior
+        data = pd.read_excel('./Data/Fixed92kmFaultOffset50kmgapPts.xls')
+        data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
+        distrb0 = gaussian_kde(data.T)
+
+        # build dip, rake, depth, length, width, and slip prior
+        vals = np.load('./Data/6_param_bootstrapped_data.npy')
+        distrb1 = gaussian_kde(vals.T)
+        distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
+
+        dists = {}
+        dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
+        dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
+
+        self.prior = Prior(dists)
+
     def init_guesses(self, init):
         """
-
-        :param init:
+        Initialize the sample parameters
+        :param init: String: (manual, random or restart)
         :return:
         """
+        guesses = None
         if init == "manual":
           #initial guesses taken from final sample of 260911_ca/001
           strike     =  2.77152900e+02
@@ -113,7 +149,5 @@ class MCMC:
             # np.save("guesses.npy", self.guesses)
             print("initial sample is:")
             print(guesses)
-
-        self.samples.save_sample(guesses)
 
         return guesses

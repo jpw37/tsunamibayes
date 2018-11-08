@@ -2,8 +2,6 @@
 Created 10/19/2018
 """
 import numpy as np
-import pandas as pd
-from scipy.stats import gaussian_kde
 from scipy import stats
 from MCMC import MCMC
 
@@ -20,14 +18,11 @@ class RandomWalk(MCMC):
         pass
 
 
-    def acceptance_prob(self, proposed_params, cur_params):
+    def acceptance_prob(self, prior, proposed_params, cur_params):
         change_llh = self.change_llh_calc()
 
-        # Calculate probability for the proposed sample
-        prop_prior_llh = self.prior.logpdf(proposed_params)
-
-        # Calculate probability for the current sample
-        cur_prior_llh = self.prior.logpdf(cur_params)
+        # Calculate probability for the current sample and proposed sample
+        cur_prior_llh, prop_prior_llh = prior.logpdf(proposed_params, cur_params)
 
         # Log-Likelihood
         change_prior_llh = prop_prior_llh - cur_prior_llh

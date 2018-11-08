@@ -50,115 +50,156 @@ class Samples:
         self.okada = pd.DataFrame(columns=okada_cols)
         self.mcmc = pd.DataFrame(columns=mcmc_cols)
         self.observations = pd.DataFrame(columns=observation_cols)
-        self.priors = None
-        self.proposal = None
 
-    def save_prior(self, saves):
-        """
+        self.wins = 0
+        self.trials = 0
 
-        :param saves:
-        :return:
-        """
-        self.priors = saves
+        self.sample_params = None
+        self.cur_llh = None
+        self.sample_okada_params = None
 
-    def get_prior(self):
-        return self.priors
+        self.proposal_params = None
+        self.prop_llh = None
+        self.proposal_okada_params = None
 
     def save_cur_llh(self, llh):
+        """
+        Saves the current sample loglikelihood
+        :param llh: float: current sample loglikelihood
+        """
         self.cur_llh = llh
 
     def get_cur_llh(self):
+        """
+        Returns the current sample loglikelihood
+        :return: float: current sample loglikelihood
+        """
         return self.cur_llh
 
     # STEP 1
     def save_proposal(self, saves):
-        self.proposal = saves
+        """
+        Save the proposal parameters for saving if the proposal is accepted
+        :param saves: list: proposal parameters
+        """
+        self.proposal_params = saves
 
     def get_proposal(self):
-        return self.proposal
+        """
+        Returns the proposal parameters
+        :return: dataframe row: proposal parameters
+        """
+        return self.proposal_params
 
     # STEP 2
     def save_proposal_okada(self, saves):
-        self.proposal_okada = saves
+        """
+        Saves the 9 okada parameters for the proposal
+        :param saves: list: okada parameters
+        :return:
+        """
+        self.proposal_okada_params = saves
 
     def get_proposal_okada(self):
-        return self.proposal_okada
+        """
+        Returns the 9 okada parameters for the proposal
+        :return: dataframe row:  9 okada parameters for the proposal
+        """
+        return self.proposal_okada_params
 
     # STEP 3
     def save_prop_llh(self, llh):
+        """
+        Save the proposed loglikelihood for debugging and if accepted
+        :param llh:
+        :return:
+        """
         self.prop_llh = llh
 
     def get_prop_llh(self):
+        """
+        Returns the proposed Loglikelihood
+        :return: list: proposed Loglikelihood
+        """
         return self.prop_llh
 
     def save_sample(self, saves):
         """
+        Saves the accepted sample to the samples dataframe
         :param saves:
-        :return:
         """
+        self.sample_params = saves
         self.samples.loc[len(self.samples)] = saves
-        self.samples.to_csv(self.save_path + "samples.csv")
-        return
 
     def get_sample(self):
         """
-        :return:
+        Returns the current sample parameters
+        :return: dataframe row: current sample parameters
         """
         return self.samples.loc[len(self.samples) - 1]
 
     def save_sample_okada(self, saves):
         """
-
-        :param saves:
-        :return:
+        Saves the accepted samples okada parameters to the dataframe
+        :param saves: list: samples okada parameters
         """
+        self.sample_okada_params = saves
         self.okada.loc[len(self.okada)] = saves
-        self.okada.to_csv(self.save_path + "okada.csv")
-        return
 
     def get_sample_okada(self):
         """
-        :return:
+        Returns the sample okada parameters
+        :return: dataframe row: sample okada parameters
         """
         return self.okada.loc[len(self.okada)-1]
 
+    def increment_wins(self):
+        """
+        Increment the counter for the number of times a sample wins
+        """
+        self.wins += 1
+
+    def reset_wins(self):
+        """
+        Reset the number of wins when a new proposal is accepted
+        """
+        self.wins = 0
+
     def save_debug(self):
         """
+        Saves all the parameters into a list to save for the debug file
         :return:
         """
-        saves = None
-        self.save_mcmc(saves)
-
-    def save_mcmc(self, saves):
-        """
-
-        :param saves:
-        :return:
-        """
+        saves = self.sample_params + self.proposal_params + self.sample_okada_params + self.proposal_okada_params \
+                + [self.wins,
+                self.cur_llh,
+                self.prop_llh,
+                self.wins / self.trials]
+        if self.wins > 0:
+            saves += ['Accept']
+        else:
+            saves += ['Reject']
         self.mcmc.loc[len(self.mcmc)] = saves
-        self.mcmc.to_csv(self.save_path + "mcmc.csv")
-        return
 
     def save_obvs(self, saves):
         """
-
+        Saves the data for the observation files
         :param saves:
         :return:
         """
         self.observations.loc[len(self.observations)] = saves
-        self.observations.to_csv(self.save_path + "observations.csv")
         return
 
+    def save_to_csv(self):
+        """
+        Saves the current dataframes to csv files
+        :return:
+        """
+        self.samples.to_csv(self.save_path + "samples.csv")
+        self.okada.to_csv(self.save_path + "okada.csv")
+        self.mcmc.to_csv(self.save_path + "mcmc.csv")
+        self.observations.to_csv(self.save_path + "observations.csv")
 
-    def get_proposed_parameters(self):
-        prop_prior1 = self.samples[-1, [7, 8, 0]] # Prior for longitude, latitude, strike
-        prop_prior2 = self.samples[-1, [6, 5, 3, 1, 2, 4]]  # Prior for dip, rake, depth, length, width, slip
-        return prop_prior1, prop_prior2
-
-    def get_current_parameters(self):
-        cur_samp_prior1 = self.samples[0, [7, 8, 0]]  # As above
-        cur_samp_prior2 = self.samples[0, [6, 5, 3, 1, 2, 4]]
-        return cur_samp_prior1, cur_samp_prior2
 
     def read(self, todo):
         if todo == "read":
@@ -357,5 +398,8 @@ if __name__ == "__main__":
     print(sample[['Longitude', 'Latitude', 'Strike']])
     sample['Longitude'] = 0
     print(sample)
+    samples.save_sample(sample)
+    print(samples.samples)
+
 
 

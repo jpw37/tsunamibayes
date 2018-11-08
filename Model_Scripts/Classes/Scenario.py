@@ -16,7 +16,7 @@ from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
 from Gauge import from_json
-from BuildPriors import build_priors
+from Prior import Prior
 
 class Scenario:
     """
@@ -51,11 +51,9 @@ class Scenario:
 
         self.mcmc.set_samples(self.samples)
         self.init_guesses = self.mcmc.init_guesses(self.init)
+        self.mcmc.build_priors()
 
         self.samples.save_sample(self.init_guesses)
-
-        self.priors = build_priors()
-        self.samples.save_prior(self.priors)
 
         if(os.path.isfile(gauges_file_path)):
             # Make sure these Files Exist
@@ -72,8 +70,7 @@ class Scenario:
         :return:
         """
         mt = MakeTopo()
-        sgc = SetGeoClaw()
-        sgc.rundata.write()
+        SetGeoClaw().rundata.write()
 
         mt.get_topo()
         mt.make_dtopo(self.init_guesses)
@@ -118,15 +115,15 @@ class Scenario:
             # Calculate the acceptance probability
             cur_params = self.samples.get_current_parameters()
             proposed_params = self.samples.get_proposed_parameters()
-            accept_prob = self.mcmc.acceptance_prob(self.priors, cur_params, proposed_params)
+            accept_prob = self.mcmc.acceptance_prob(self.prior, cur_params, proposed_params)
 
             # Decide to accept or reject the proposal and save
             self.mcmc.accept_reject(accept_prob)
 
+            # Saves the stored data for debugging purposes
             self.samples.save_debug()
 
             if i % 500 == 0:
-                # Saves the stored data for debugging purposes
                 self.samples.save_to_csv()
                 # Save to csv
 
