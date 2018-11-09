@@ -106,7 +106,7 @@ class Samples:
             saves = saves.tolist()
         print("------------------SAVING ------------\n", saves)
         self.okada.loc[len(self.okada)] = saves
-        print("SAVED AS", self.okada.loc[len(self.okada)])
+        print("SAVED AS", self.okada.loc[len(self.okada) - 1])
 
     def get_sample_okada(self):
         """
