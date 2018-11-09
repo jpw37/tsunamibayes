@@ -21,8 +21,8 @@ class Prior:
         :param cur_params:
         :return:
         """
-        prop_prior_llh = None
-        cur_samp_prior_llh = None
+        prop_prior_llh = 0.0
+        cur_samp_prior_llh = 0.0
         for prior in self.priors.keys():
             prop_prior_llh += prior.logpdf(proposed_params[self.priors[prior]])
             cur_samp_prior_llh += prior.logpdf(cur_params[self.priors[prior]])
