@@ -104,6 +104,7 @@ class Samples:
         """
         if (saves is pd.DataFrame):
             saves = saves.tolist()
+        print("------------------SAVING ------------\n", saves)
         self.okada.loc[len(self.okada)] = saves
 
     def get_sample_okada(self):
