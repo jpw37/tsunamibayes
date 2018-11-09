@@ -57,14 +57,12 @@ class MCMC:
             # Accept and save proposal
             self.samples.reset_wins()
             self.samples.save_sample(self.samples.get_proposal())
-            print("sample okada_________accept_______________________", self.samples.get_sample_okada())
             self.samples.save_sample_okada(self.samples.get_proposal_okada())
             self.samples.save_sample_llh(self.samples.get_proposal_llh())
         else:
             # Reject Proposal and Save current winner to sample list
             self.samples.increment_wins()
             self.samples.save_sample(self.samples.get_sample())
-            print("sample okada___________________________________", self.samples.get_sample_okada())
             self.samples.save_sample_okada(self.samples.get_sample_okada())
 
     def map_to_okada(self):

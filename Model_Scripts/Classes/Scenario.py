@@ -62,12 +62,13 @@ class Scenario:
         self.init_guesses = self.mcmc.init_guesses(self.init)
         # Save the samples
         self.samples.save_sample(self.init_guesses)
+        # Load the samples
+        self.init_guesses = self.samples.get_sample()
 
         # If using the custom methods map the initial guesses to okada parameters to save as initial sample
         if (self.use_custom):
             self.init_guesses = self.mcmc.map_to_okada(self.init_guesses)
         # Save
-        print("INIT GUESSES", self.init_guesses)
         self.samples.save_sample_okada(self.init_guesses)
 
         # Build the prior for the model, based on the choice of MCMC

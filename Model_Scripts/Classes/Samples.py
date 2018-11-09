@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 import pandas
 from pandas.tools.plotting import scatter_matrix
 import operator
+import pandas as pd
 
 
 class Samples:
@@ -67,7 +68,10 @@ class Samples:
         Saves the accepted sample to the samples dataframe
         :param saves:
         """
+        if(saves is pd.DataFrame):
+            saves = saves.tolist()
         self.samples.loc[len(self.samples)] = saves
+
 
     def get_sample(self):
         """
@@ -82,6 +86,8 @@ class Samples:
         Parameters Proposal is row 0 of the 'proposals' dataframe
         :param saves: list: proposal parameters
         """
+        if (saves is pd.DataFrame):
+            saves = saves.tolist()
         self.proposals.loc[0] = saves
 
     def get_proposal(self):
@@ -96,7 +102,8 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        print("SAVING OKADA____________________")
+        if (saves is pd.DataFrame):
+            saves = saves.tolist()
         self.okada.loc[len(self.okada)] = saves
 
     def get_sample_okada(self):
@@ -113,6 +120,8 @@ class Samples:
         :param saves: list: okada parameters
         :return:
         """
+        if (saves is pd.DataFrame):
+            saves = saves.tolist()
         self.proposals.loc[1] = saves
 
     def get_proposal_okada(self):
@@ -228,7 +237,6 @@ class Samples:
         Saves all the parameters into a list to save for the debug file
         :return:
         """
-        print("proposal okada", self.get_sample_okada().tolist())
         saves = self.get_sample().tolist() + self.get_proposal().tolist() + self.get_sample_okada().tolist() \
                 + self.get_proposal_okada().tolist()
         saves += [self.wins]
@@ -471,6 +479,7 @@ if __name__ == "__main__":
     print(sample)
     samples.save_sample(sample)
     print(samples.samples)
+    print(type(samples.samples))
 
 
 
