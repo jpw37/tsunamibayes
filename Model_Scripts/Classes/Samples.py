@@ -245,9 +245,8 @@ class Samples:
     def save_obvs(self):
         """
         Saves the data for the observation files
-        :param saves:
         """
-        saves = self.compute_mw(*self.proposal_params[['Length', 'Width', 'Slip']])
+        saves = self.compute_mw(*self.get_proposal()[['Length', 'Width', 'Slip']])
         self.observations.loc[len(self.observations)] = saves
 
     def compute_mw(self, L, W, slip, mu=30.e9):
