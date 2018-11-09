@@ -234,7 +234,7 @@ class Samples:
                 + [self.wins,
                 self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh,
                 self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh,
-                self.wins / (self.wins + 1)]
+                (self.wins / (self.wins + 1))]
         if self.wins > 0:
             saves += ['Accepted']
         else:
