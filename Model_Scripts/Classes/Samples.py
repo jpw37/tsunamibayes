@@ -47,6 +47,7 @@ class Samples:
         observation_cols = ["Mw"]  # , "Gauge Max Wave Height", "Gauge Arrival Time"]
 
         self.samples = pd.DataFrame(columns=sample_cols)
+        self.proposals = pd.DataFrame(columns=sample_cols)
         self.okada = pd.DataFrame(columns=okada_cols)
         self.mcmc = pd.DataFrame(columns=mcmc_cols)
         self.observations = pd.DataFrame(columns=observation_cols)
@@ -83,23 +84,24 @@ class Samples:
     def save_proposal(self, saves):
         """
         Save the proposal parameters for saving if the proposal is accepted
+        Parameters Proposal is row 0 of the 'proposals' dataframe
         :param saves: list: proposal parameters
         """
         self.proposal_params = saves
+        self.proposals.loc[0] = saves
 
     def get_proposal(self):
         """
         Returns the proposal parameters
         :return: dataframe row: proposal parameters
         """
-        return self.proposal_params
+        return self.proposals.loc[0]
 
     def save_sample_okada(self, saves):
         """
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        self.sample_okada_params = saves
         self.okada.loc[len(self.okada)] = saves
 
     def get_sample_okada(self):
@@ -112,17 +114,19 @@ class Samples:
     def save_proposal_okada(self, saves):
         """
         Saves the 9 okada parameters for the proposal
+        Okada Parameters Proposal is row 1 of the 'proposals' dataframe
         :param saves: list: okada parameters
         :return:
         """
         self.proposal_okada_params = saves
+        self.proposals.loc[1] = saves
 
     def get_proposal_okada(self):
         """
         Returns the 9 okada parameters for the proposal
         :return: dataframe row:  9 okada parameters for the proposal
         """
-        return self.proposal_okada_params
+        return self.proposals.loc[1]
 
     def save_sample_llh(self, llh):
         """
