@@ -110,7 +110,7 @@ class Scenario:
             self.feedForward.run_geo_claw(proposed_params)
 
             # Calculate the Log Likelihood probability for the new draw
-            proposal_llh = self.feedForward.calculate_probability(self.gauges)
+            proposal_llh = self.feedForward.calculate_llh(self.gauges)
             sample_llh = self.samples.get_sample_llh()
             # Save
             self.samples.save_sample_llh(sample_llh)

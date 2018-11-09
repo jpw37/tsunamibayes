@@ -34,7 +34,6 @@ class FeedForward:
 
         return
 
-
     def read_gauges(self):
         """Read GeoClaw output and look for necessary conditions.
         This will find the max wave height
