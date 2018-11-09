@@ -120,7 +120,7 @@ class Scenario:
             sample_prior_llh, proposal_prior_llh = self.prior.logpdf(proposed_params, sample_params)
             # Save
             self.samples.save_sample_prior_llh(sample_prior_llh)
-            self.samples.save_proposal_prior(proposal_prior_llh)
+            self.samples.save_proposal_prior_llh(proposal_prior_llh)
 
             # Calculate the acceptance probability of the given proposal
             accept_prob = self.mcmc.acceptance_prob(sample_prior_llh, proposal_prior_llh)
