@@ -31,20 +31,20 @@ class MCMC:
         Calculates the change in loglikelihood between the current and the proposed llh
         :return:
         """
-        cur_llh = self.samples.get_cur_llh()
-        prop_llh = self.samples.get_prop_llh()
+        sample_llh = self.samples.get_sample_llh()
+        proposal_llh = self.samples.get_proposal_llh()
 
-        if np.isneginf(prop_llh) and np.isneginf(cur_llh):
+        if np.isneginf(proposal_llh) and np.isneginf(sample_llh):
             change_llh = 0
-        elif np.isnan(prop_llh) and np.isnan(cur_llh):
+        elif np.isnan(proposal_llh) and np.isnan(sample_llh):
             change_llh = 0
             # fix situation where nan in proposal llh results in acceptance, e.g., 8855 [-52.34308085] -10110.84699320795 [-10163.19007406] [-51.76404079] nan [nan] 1 accept
-        elif np.isnan(prop_llh) and not np.isnan(cur_llh):
+        elif np.isnan(proposal_llh) and not np.isnan(sample_llh):
             change_llh = np.NINF
-        elif not np.isnan(prop_llh) and np.isnan(cur_llh):
+        elif not np.isnan(proposal_llh) and np.isnan(sample_llh):
             change_llh = np.inf
         else:
-            change_llh = prop_llh - cur_llh
+            change_llh = proposal_llh - sample_llh
         return change_llh
 
     def accept_reject(self, accept_prob):
