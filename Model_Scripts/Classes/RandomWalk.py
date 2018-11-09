@@ -57,4 +57,4 @@ class RandomWalk(MCMC):
         print("Random walk difference:", e)
         print("New draw:", prev_draw + e)
         new_draw = prev_draw + e
-        return new_draw
+        return new_draw.ravel()
