@@ -102,10 +102,8 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        if(isinstance(saves, pd.DataFrame)):
-            saves = saves.tolist()
         print("------------------SAVING ------------\n", saves.tolist())
-        self.okada.loc[len(self.okada)] = saves
+        self.okada.loc[len(self.okada)] = saves.tolist()
         print("SAVED AS", self.okada.loc[len(self.okada) - 1])
 
     def get_sample_okada(self):
