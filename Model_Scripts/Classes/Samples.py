@@ -230,11 +230,11 @@ class Samples:
         Saves all the parameters into a list to save for the debug file
         :return:
         """
-        saves = self.sample_params + self.proposal_params + self.sample_okada_params + self.proposal_okada_params \
-                + [self.wins,
-                self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh,
-                self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh,
-                (self.wins / (self.wins + 1))]
+        saves = self.sample_params + self.proposal_params + self.sample_okada_params + self.proposal_okada_params
+        saves += [self.wins]
+        saves += [self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh]
+        saves += [self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh]
+        saves += [(self.wins / (self.wins + 1))]
         if self.wins > 0:
             saves += ['Accepted']
         else:
