@@ -23,7 +23,7 @@ class Prior:
         """
         prop_prior_llh = None
         cur_samp_prior_llh = None
-        for prior in self.priors.keys:
+        for prior in self.priors.keys():
             prop_prior_llh += prior.logpdf(proposed_params[self.priors[prior]])
             cur_samp_prior_llh += prior.logpdf(cur_params[self.priors[prior]])
 
