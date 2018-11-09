@@ -60,7 +60,7 @@ class Samples:
         self.sample_posterior_llh = None
 
         self.proposal_params = None
-        self.prop_llh = None
+        self.proposal_llh = None
         self.proposal_okada_params = None
         self.proposal_prior_llh = None
         self.proposal_posterior_llh = None
@@ -152,7 +152,6 @@ class Samples:
         :return: list: proposed Loglikelihood
         """
         return self.proposal_llh
-
 
     def save_sample_prior_llh(self, saves):
         """
