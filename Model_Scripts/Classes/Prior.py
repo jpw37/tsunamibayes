@@ -14,7 +14,7 @@ class Prior:
         """
         self.priors = priors
 
-    def logpdf(self, proposed_params, cur_params):
+    def logpdf(self, cur_params, proposed_params):
         """
         Takes the log pdf of the given priors for the current and proposed parameters
         :param proposed_params:

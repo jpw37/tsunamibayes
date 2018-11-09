@@ -105,6 +105,7 @@ class Scenario:
 
             # Save Proposal
             self.samples.save_proposal_okada(proposed_params)
+            proposed_params = self.samples.get_proposal_okada()
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposed_params)
@@ -117,7 +118,7 @@ class Scenario:
             self.samples.save_proposal_llh(proposal_llh)
 
             # Calculate prior probability for the current sample and proposed sample
-            sample_prior_llh, proposal_prior_llh = self.prior.logpdf(proposed_params, sample_params)
+            sample_prior_llh, proposal_prior_llh = self.prior.logpdf(sample_params, proposed_params)
             # Save
             self.samples.save_sample_prior_llh(sample_prior_llh)
             self.samples.save_proposal_prior_llh(proposal_prior_llh)
