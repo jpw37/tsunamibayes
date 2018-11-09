@@ -104,7 +104,7 @@ class Samples:
         """
         if(isinstance(saves, pd.DataFrame)):
             saves = saves.tolist()
-        print("------------------SAVING ------------\n", saves)
+        print("------------------SAVING ------------\n", saves.tolist())
         self.okada.loc[len(self.okada)] = saves
         print("SAVED AS", self.okada.loc[len(self.okada) - 1])
 
