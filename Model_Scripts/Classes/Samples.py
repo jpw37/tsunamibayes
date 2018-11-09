@@ -96,6 +96,7 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
+        print("SAVING OKADA____________________")
         self.okada.loc[len(self.okada)] = saves
 
     def get_sample_okada(self):
@@ -103,7 +104,7 @@ class Samples:
         Returns the sample okada parameters
         :return: dataframe row: sample okada parameters
         """
-        return self.okada.loc[len(self.okada)-1]
+        return self.okada.loc[len(self.okada) - 1]
 
     def save_proposal_okada(self, saves):
         """

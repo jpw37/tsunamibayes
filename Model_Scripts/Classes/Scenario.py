@@ -67,6 +67,7 @@ class Scenario:
         if (self.use_custom):
             self.init_guesses = self.mcmc.map_to_okada(self.init_guesses)
         # Save
+        print("INIT GUESSES", self.init_guesses)
         self.samples.save_sample_okada(self.init_guesses)
 
         # Build the prior for the model, based on the choice of MCMC
