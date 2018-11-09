@@ -70,7 +70,6 @@ class Samples:
         """
         self.samples.loc[len(self.samples)] = saves
 
-
     def get_sample(self):
         """
         Returns the current sample parameters
@@ -84,7 +83,7 @@ class Samples:
         Parameters Proposal is row 0 of the 'proposals' dataframe
         :param saves: list: proposal parameters
         """
-        self.proposals.loc[0] = saves
+        self.proposals.loc[0] = saves.tolist()
 
     def get_proposal(self):
         """
@@ -98,10 +97,7 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        if(isinstance(saves, pd.DataFrame)):
-            saves = saves.tolist()
-        self.okada.loc[len(self.okada)] = saves
-        print("SAVES",  self.okada.loc[len(self.okada) - 1])
+        self.okada.loc[len(self.okada)] = saves.tolist()
 
     def get_sample_okada(self):
         """
@@ -117,7 +113,7 @@ class Samples:
         :param saves: list: okada parameters
         :return:
         """
-        self.proposals.loc[1] = saves
+        self.proposals.loc[1] = saves.tolist()
 
     def get_proposal_okada(self):
         """
