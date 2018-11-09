@@ -237,6 +237,7 @@ class Samples:
         """
         saves = self.sample_params + self.proposal_params + self.sample_okada_params + self.proposal_okada_params
         saves += [self.wins]
+        print(saves)
         saves += [self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh]
         saves += [self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh]
         saves += [(self.wins / (self.wins + 1))]
