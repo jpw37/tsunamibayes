@@ -16,11 +16,10 @@ from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
 from Gauge import from_json
-from Prior import Prior
 
 class Scenario:
     """
-    Main Class for Running the "Paper Title"
+    Main Class for Running the MCMC Method for ...
 
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
@@ -51,12 +50,12 @@ class Scenario:
 
         self.mcmc.set_samples(self.samples)
         self.init_guesses = self.mcmc.init_guesses(self.init)
-        self.mcmc.build_priors()
-
         self.samples.save_sample(self.init_guesses)
 
+        self.prior = self.mcmc.build_priors()
+
+        # Make sure Pre-Run files have been generated
         if(os.path.isfile(gauges_file_path)):
-            # Make sure these Files Exist
             gauges = np.load(gauges_file_path)
             self.gauges = [from_json(gauge) for gauge in gauges]
             # Do initial run of GeoClaw using the initial guesses.
@@ -69,20 +68,22 @@ class Scenario:
         Runs an initial set up of GeoClaw
         :return:
         """
+        # Set things up
         mt = MakeTopo()
-        SetGeoClaw().rundata.write()
 
+        SetGeoClaw().rundata.write()
         mt.get_topo()
         mt.make_dtopo(self.init_guesses)
 
+        # Run Geoclaw
         os.system('make clean')
         os.system('make clobber')
         os.system('make .output')
 
-        cur_llh = self.feedForward.calculate_llh(self.gauges)
-        self.samples.save_cur_llh(cur_llh)
-
-        return
+        # Calculate the inital loglikelihood
+        sample_llh = self.feedForward.calculate_llh(self.gauges)
+        # Save
+        self.samples.save_sample_llh(sample_llh)
 
     def run(self):
         """
@@ -92,39 +93,53 @@ class Scenario:
         for i in range(self.iterations):
 
             # Get current Sample and draw a proposal sample from it
-            draws = self.mcmc.draw(self.samples.get_sample())
+            sample_params = self.samples.get_sample()
+            proposed_params = self.mcmc.draw(sample_params)
 
             # Save the proposal draw for debugging purposes
-            self.samples.save_proposal(draws)
+            self.samples.save_proposal(proposed_params)
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
-                draws = self.mcmc.map_to_okada(draws)
+                proposed_params = self.mcmc.map_to_okada(proposed_params)
 
-            self.samples.save_proposal_okada(draws)
+            # Save Proposal
+            self.samples.save_proposal_okada(proposed_params)
 
             # Run Geo Claw on the new proposal
-            self.feedForward.run_geo_claw(draws)
+            self.feedForward.run_geo_claw(proposed_params)
 
             # Calculate the Log Likelihood probability for the new draw
-            prop_llh = self.feedForward.calculate_probability(self.gauges)
+            proposal_llh = self.feedForward.calculate_probability(self.gauges)
+            sample_llh = self.samples.get_sample_llh()
+            # Save
+            self.samples.save_sample_llh(sample_llh)
+            self.samples.save_proposal_llh(proposal_llh)
 
-            # Save the Log Likelihood for the proposed draw
-            self.samples.save_prop_llh(prop_llh)
+            # Calculate prior probability for the current sample and proposed sample
+            sample_prior_llh, proposal_prior_llh = self.prior.logpdf(proposed_params, sample_params)
+            # Save
+            self.samples.save_sample_prior_llh(sample_prior_llh)
+            self.samples.save_proposal_prior(proposal_prior_llh)
 
-            # Calculate the acceptance probability
-            cur_params = self.samples.get_current_parameters()
-            proposed_params = self.samples.get_proposed_parameters()
-            accept_prob = self.mcmc.acceptance_prob(self.prior, cur_params, proposed_params)
+            # Calculate the acceptance probability of the given proposal
+            accept_prob = self.mcmc.acceptance_prob(sample_prior_llh, proposal_prior_llh)
 
             # Decide to accept or reject the proposal and save
             self.mcmc.accept_reject(accept_prob)
+
+            # Calculate the sample and proposal posterior loglikelihood
+            sample_post_llh = sample_prior_llh + sample_llh
+            proposal_post_llh = proposal_prior_llh + proposal_llh
+            # Save
+            self.samples.save_sample_posterior_llh(sample_post_llh)
+            self.samples.save_proposal_posterior_llh(proposal_post_llh)
 
             # Saves the stored data for debugging purposes
             self.samples.save_debug()
 
             if i % 500 == 0:
-                self.samples.save_to_csv()
                 # Save to csv
+                self.samples.save_to_csv()
 
         return

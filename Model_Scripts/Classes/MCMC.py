@@ -17,7 +17,6 @@ class MCMC:
         self.samples = None
         self.sample_cols = None
         self.proposal_cols = None
-        self.prior = None
 
     def set_samples(self, Samples):
         """
@@ -59,7 +58,7 @@ class MCMC:
             self.samples.reset_wins()
             self.samples.save_sample(self.samples.get_proposal())
             self.samples.save_sample_okada(self.samples.get_proposal_okada())
-            self.samples.save_cur_llh(self.samples.get_prop_llh())
+            self.samples.save_sample_llh(self.samples.get_proposal_llh())
         else:
             # Reject Proposal and Save current winner to sample list
             self.samples.increment_wins()
@@ -92,7 +91,7 @@ class MCMC:
         dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
         dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
 
-        self.prior = Prior(dists)
+        return Prior(dists)
 
     def init_guesses(self, init):
         """

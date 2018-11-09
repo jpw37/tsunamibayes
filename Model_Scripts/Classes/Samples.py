@@ -27,7 +27,7 @@ class Samples:
         :param proposal_cols:
         """
         self.scenario_title = scenario_title
-        self.save_path = '../ModelOutput/' + self.scenario_title + "_"
+        self.save_path = './ModelOutput/' + self.scenario_title + "_"
 
         if (not sample_cols and not proposal_cols):
             sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude']
@@ -44,7 +44,7 @@ class Samples:
                     ["Proposal Prior", "Proposal LLH", "Proposal Posterior"] + \
                     ["Acceptance ratio", "Proposal Accept/Reject"]
 
-        observation_cols = ["Mw", "Gauge Max Wave Height", "Gauge Arrival Time"]
+        observation_cols = ["Mw"]  # , "Gauge Max Wave Height", "Gauge Arrival Time"]
 
         self.samples = pd.DataFrame(columns=sample_cols)
         self.okada = pd.DataFrame(columns=okada_cols)
@@ -52,76 +52,18 @@ class Samples:
         self.observations = pd.DataFrame(columns=observation_cols)
 
         self.wins = 0
-        self.trials = 0
 
         self.sample_params = None
-        self.cur_llh = None
+        self.sample_llh = None
         self.sample_okada_params = None
+        self.sample_prior_llh = None
+        self.sample_posterior_llh = None
 
         self.proposal_params = None
         self.prop_llh = None
         self.proposal_okada_params = None
-
-    def save_cur_llh(self, llh):
-        """
-        Saves the current sample loglikelihood
-        :param llh: float: current sample loglikelihood
-        """
-        self.cur_llh = llh
-
-    def get_cur_llh(self):
-        """
-        Returns the current sample loglikelihood
-        :return: float: current sample loglikelihood
-        """
-        return self.cur_llh
-
-    # STEP 1
-    def save_proposal(self, saves):
-        """
-        Save the proposal parameters for saving if the proposal is accepted
-        :param saves: list: proposal parameters
-        """
-        self.proposal_params = saves
-
-    def get_proposal(self):
-        """
-        Returns the proposal parameters
-        :return: dataframe row: proposal parameters
-        """
-        return self.proposal_params
-
-    # STEP 2
-    def save_proposal_okada(self, saves):
-        """
-        Saves the 9 okada parameters for the proposal
-        :param saves: list: okada parameters
-        :return:
-        """
-        self.proposal_okada_params = saves
-
-    def get_proposal_okada(self):
-        """
-        Returns the 9 okada parameters for the proposal
-        :return: dataframe row:  9 okada parameters for the proposal
-        """
-        return self.proposal_okada_params
-
-    # STEP 3
-    def save_prop_llh(self, llh):
-        """
-        Save the proposed loglikelihood for debugging and if accepted
-        :param llh:
-        :return:
-        """
-        self.prop_llh = llh
-
-    def get_prop_llh(self):
-        """
-        Returns the proposed Loglikelihood
-        :return: list: proposed Loglikelihood
-        """
-        return self.prop_llh
+        self.proposal_prior_llh = None
+        self.proposal_posterior_llh = None
 
     def save_sample(self, saves):
         """
@@ -138,6 +80,20 @@ class Samples:
         """
         return self.samples.loc[len(self.samples) - 1]
 
+    def save_proposal(self, saves):
+        """
+        Save the proposal parameters for saving if the proposal is accepted
+        :param saves: list: proposal parameters
+        """
+        self.proposal_params = saves
+
+    def get_proposal(self):
+        """
+        Returns the proposal parameters
+        :return: dataframe row: proposal parameters
+        """
+        return self.proposal_params
+
     def save_sample_okada(self, saves):
         """
         Saves the accepted samples okada parameters to the dataframe
@@ -152,6 +108,111 @@ class Samples:
         :return: dataframe row: sample okada parameters
         """
         return self.okada.loc[len(self.okada)-1]
+
+    def save_proposal_okada(self, saves):
+        """
+        Saves the 9 okada parameters for the proposal
+        :param saves: list: okada parameters
+        :return:
+        """
+        self.proposal_okada_params = saves
+
+    def get_proposal_okada(self):
+        """
+        Returns the 9 okada parameters for the proposal
+        :return: dataframe row:  9 okada parameters for the proposal
+        """
+        return self.proposal_okada_params
+
+    def save_sample_llh(self, llh):
+        """
+        Saves the current sample loglikelihood
+        :param llh: float: current sample loglikelihood
+        """
+        self.sample_llh = llh
+
+    def get_sample_llh(self):
+        """
+        Returns the current sample loglikelihood
+        :return: float: current sample loglikelihood
+        """
+        return self.sample_llh
+
+    def save_proposal_llh(self, llh):
+        """
+        Save the proposed loglikelihood for debugging and if accepted
+        :param llh:
+        :return:
+        """
+        self.proposal_llh = llh
+
+    def get_proposal_llh(self):
+        """
+        Returns the proposed Loglikelihood
+        :return: list: proposed Loglikelihood
+        """
+        return self.proposal_llh
+
+
+    def save_sample_prior_llh(self, saves):
+        """
+        Saves the sample prior loglikelihood
+        :param saves:
+        :return:
+        """
+        self.save_sample_prior_llh = saves
+
+    def get_sample_prior_llh(self):
+        """
+        Returns the sample prior loglikelihood
+        :return:
+        """
+        return self.save_sample_prior_llh
+
+    def save_proposal_prior_llh(self, saves):
+        """
+         Saves the proposal prior loglikelihood
+        :param saves:
+        :return:
+        """
+        self.proposal_prior_llh = saves
+
+    def get_proposal_prior_llh(self):
+        """
+         Returns the sample prior loglikelihood
+        :return:
+        """
+        return self.proposal_prior_llh
+
+    def save_sample_posterior_llh(self, saves):
+        """
+         Saves the sample posterior loglikelihood
+        :param saves:
+        :return:
+        """
+        self.sample_posterior_llh = saves
+
+    def get_sample_posterior_llh(self):
+        """
+         Returns the sample posterior loglikelihood
+        :return:
+        """
+        return self.sample_posterior_llh
+
+    def save_proposal_posterior_llh(self, saves):
+        """
+         Saves the proposal posterior loglikelihood
+        :param saves:
+        :return:
+        """
+        self.proposal_posterior_llh = saves
+
+    def get_proposal_posterior_llh(self):
+        """
+         Returns the proposal posterior loglikelihood
+        :return:
+        """
+        return self.proposal_posterior_llh
 
     def increment_wins(self):
         """
@@ -172,23 +233,37 @@ class Samples:
         """
         saves = self.sample_params + self.proposal_params + self.sample_okada_params + self.proposal_okada_params \
                 + [self.wins,
-                self.cur_llh,
-                self.prop_llh,
-                self.wins / self.trials]
+                self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh,
+                self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh,
+                self.wins / (self.wins + 1)]
         if self.wins > 0:
-            saves += ['Accept']
+            saves += ['Accepted']
         else:
-            saves += ['Reject']
+            saves += ['Rejected']
         self.mcmc.loc[len(self.mcmc)] = saves
 
-    def save_obvs(self, saves):
+        self.save_obvs()
+
+    def save_obvs(self):
         """
         Saves the data for the observation files
         :param saves:
-        :return:
         """
+        saves = self.compute_mw(*self.proposal_params[['Length', 'Width', 'Slip']])
         self.observations.loc[len(self.observations)] = saves
-        return
+
+    def compute_mw(self, L, W, slip, mu=30.e9):
+        """
+        Computes the Magnitude for a set of porposal parameters for saving
+        :param L: float: Length of Earthquake
+        :param W: float: Width of Earthquake
+        :param slip: float: Slip of Earthquake
+        :param mu:
+        :return: Magnitude of Earthquake
+        """
+        unitConv = 1e7  # convert from Nm to 1e-7 Nm
+        Mw = (2 / 3) * np.log10(L * W * slip * mu * unitConv) - 10.7
+        return Mw
 
     def save_to_csv(self):
         """
@@ -199,7 +274,6 @@ class Samples:
         self.okada.to_csv(self.save_path + "okada.csv")
         self.mcmc.to_csv(self.save_path + "mcmc.csv")
         self.observations.to_csv(self.save_path + "observations.csv")
-
 
     def read(self, todo):
         if todo == "read":
@@ -213,7 +287,6 @@ class Samples:
             np.save("samples.npy", B)
             print(B)
         return
-
 
     def add_axis_label(self, param, axis):
         # label = param + ' '

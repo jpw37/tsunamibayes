@@ -18,11 +18,8 @@ class RandomWalk(MCMC):
         pass
 
 
-    def acceptance_prob(self, prior, proposed_params, cur_params):
+    def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
         change_llh = self.change_llh_calc()
-
-        # Calculate probability for the current sample and proposed sample
-        cur_prior_llh, prop_prior_llh = prior.logpdf(proposed_params, cur_params)
 
         # Log-Likelihood
         change_prior_llh = prop_prior_llh - cur_prior_llh
