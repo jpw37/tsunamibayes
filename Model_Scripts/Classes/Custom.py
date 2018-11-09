@@ -2,11 +2,12 @@
 
 
 """
-
-import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
+import numpy as np
+
 from MCMC import MCMC
+from Prior import Prior
 
 class Custom(MCMC):
     """
@@ -15,7 +16,7 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Logitude', 'Latitude']
+        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude']
         self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
 
     def draw(self, prev_draw):
@@ -24,19 +25,10 @@ class Custom(MCMC):
         :param prev_draw:
         :return:
         """
+
         draws = prev_draw
 
         return self.map_to_okada(draws)
-
-
-    def map_to_okada(self, draws):
-        """
-        TODO: JARED AND JUSTIN map to okada space
-        :param draws:
-        :return:
-        """
-        self.samples.save_mcmc(draws)
-        return
 
     def build_priors(self):
         samplingMult = 50
@@ -51,8 +43,19 @@ class Custom(MCMC):
         distrb1 = gaussian_kde(vals.T)
         distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
 
-        return distrb0, distrb1
+        dists = {}
+        dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
+        dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
 
+        self.prior = Prior(dists)
+
+    def map_to_okada(self, draws):
+        """
+        TODO: JARED AND JUSTIN map to okada space
+        :param draws:
+        :return:
+        """
+        return
 
     def haversine_distance(self, p1, p2):
         """
