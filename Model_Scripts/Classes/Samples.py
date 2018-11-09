@@ -68,7 +68,7 @@ class Samples:
         Saves the accepted sample to the samples dataframe
         :param saves:
         """
-        if(saves is pd.DataFrame):
+        if(isinstance(saves, pd.DataFrame)):
             saves = saves.tolist()
         self.samples.loc[len(self.samples)] = saves
 
@@ -86,7 +86,7 @@ class Samples:
         Parameters Proposal is row 0 of the 'proposals' dataframe
         :param saves: list: proposal parameters
         """
-        if (saves is pd.DataFrame):
+        if(isinstance(saves, pd.DataFrame)):
             saves = saves.tolist()
         self.proposals.loc[0] = saves
 
@@ -102,7 +102,7 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        if (saves is pd.DataFrame):
+        if(isinstance(saves, pd.DataFrame)):
             saves = saves.tolist()
         print("------------------SAVING ------------\n", saves)
         self.okada.loc[len(self.okada)] = saves
@@ -122,7 +122,7 @@ class Samples:
         :param saves: list: okada parameters
         :return:
         """
-        if (saves is pd.DataFrame):
+        if(isinstance(saves, pd.DataFrame)):
             saves = saves.tolist()
         self.proposals.loc[1] = saves
 
