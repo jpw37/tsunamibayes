@@ -102,6 +102,7 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
+        self.sample_okada_params = saves
         self.okada.loc[len(self.okada)] = saves
 
     def get_sample_okada(self):
