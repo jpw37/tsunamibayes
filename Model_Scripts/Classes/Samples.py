@@ -54,15 +54,11 @@ class Samples:
 
         self.wins = 0
 
-        self.sample_params = None
         self.sample_llh = None
-        self.sample_okada_params = None
         self.sample_prior_llh = None
         self.sample_posterior_llh = None
 
-        self.proposal_params = None
         self.proposal_llh = None
-        self.proposal_okada_params = None
         self.proposal_prior_llh = None
         self.proposal_posterior_llh = None
 
@@ -71,7 +67,6 @@ class Samples:
         Saves the accepted sample to the samples dataframe
         :param saves:
         """
-        self.sample_params = saves
         self.samples.loc[len(self.samples)] = saves
 
     def get_sample(self):
@@ -87,7 +82,6 @@ class Samples:
         Parameters Proposal is row 0 of the 'proposals' dataframe
         :param saves: list: proposal parameters
         """
-        self.proposal_params = saves
         self.proposals.loc[0] = saves
 
     def get_proposal(self):
@@ -102,7 +96,6 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        self.sample_okada_params = saves
         self.okada.loc[len(self.okada)] = saves
 
     def get_sample_okada(self):
@@ -119,7 +112,6 @@ class Samples:
         :param saves: list: okada parameters
         :return:
         """
-        self.proposal_okada_params = saves
         self.proposals.loc[1] = saves
 
     def get_proposal_okada(self):
@@ -235,7 +227,8 @@ class Samples:
         Saves all the parameters into a list to save for the debug file
         :return:
         """
-        saves = self.sample_params + self.proposal_params + self.sample_okada_params + self.proposal_okada_params
+        saves = self.get_sample().tolist() + self.get_proposal().tolist() + self.get_sample_okada().tolist() \
+                + self.get_proposal_okada().tolist()
         saves += [self.wins]
         print(saves)
         saves += [self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh]
