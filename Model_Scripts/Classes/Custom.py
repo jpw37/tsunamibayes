@@ -55,7 +55,7 @@ class Custom(MCMC):
         :param draws:
         :return:
         """
-        return
+        return draws
 
     def haversine_distance(self, p1, p2):
         """
