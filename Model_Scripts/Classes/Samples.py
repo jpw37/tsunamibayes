@@ -227,10 +227,10 @@ class Samples:
         Saves all the parameters into a list to save for the debug file
         :return:
         """
+        print("Sample okada", self.get_sample_okada().tolist())
         saves = self.get_sample().tolist() + self.get_proposal().tolist() + self.get_sample_okada().tolist() \
                 + self.get_proposal_okada().tolist()
         saves += [self.wins]
-        print(saves)
         saves += [self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh]
         saves += [self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh]
         saves += [(self.wins / (self.wins + 1))]
