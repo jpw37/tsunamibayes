@@ -79,7 +79,7 @@ class FeedForward:
         # Calculate p for the arrivals and heights
         llh = 0.  # init p
         # Calculate p for the heights, using the PMFData and PMF classes
-        amplification_data = np.load('../Data/amplification_data.npy')
+        amplification_data = np.load('./Data/amplification_data.npy')
         row_header = amplification_data[:, 0]
         col_header = np.arange(len(amplification_data[0]) - 1) / 4
         pmfData = PMFData(row_header, col_header, amplification_data[:, 1:])
