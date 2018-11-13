@@ -1,6 +1,9 @@
 """
+Created By Cody Kesler
 Created 10/19/2018
+Property of BYU Mathematics Dept.
 """
+
 import pandas as pd
 from scipy.stats import gaussian_kde
 import numpy as np

@@ -1,5 +1,7 @@
 """
-Created 10;/19/2018
+Created By Cody Kesler
+Created 10/19/2018
+Property of BYU Mathematics Dept.
 """
 
 import numpy as np

@@ -1,6 +1,7 @@
 """
+Created By Cody Kesler
 Created 10/19/2018
-BYU Mathematics Dept.
+Property of BYU Mathematics Dept.
 """
 import os
 import numpy as np

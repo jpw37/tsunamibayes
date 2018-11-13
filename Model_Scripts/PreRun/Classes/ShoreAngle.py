@@ -1,3 +1,9 @@
+"""
+Created By Cody Kesler
+Created 10/19/2018
+Property of BYU Mathematics Dept.
+"""
+
 from openpyxl import load_workbook, Workbook
 from scipy import stats
 import math

@@ -1,4 +1,9 @@
-# A file containing the Gauge class and gauge related functions
+"""
+Created By Cody Kesler
+Created 10/19/2018
+Property of BYU Mathematics Dept.
+"""
+
 from scipy import stats
 
 class Gauge:

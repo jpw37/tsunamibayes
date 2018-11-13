@@ -1,4 +1,8 @@
 """
+Created By Cody Kesler
+Created 10/19/2018
+Property of BYU Mathematics Dept.
+
 Create topo and dtopo files needed for this example:
     etopo10min120W60W60S0S.asc        download from GeoClaw topo repository
     dtopo_usgs100227.tt3              create using Okada model

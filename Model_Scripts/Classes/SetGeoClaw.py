@@ -1,4 +1,8 @@
 """
+Created By Cody Kesler
+Created 10/19/2018
+Property of BYU Mathematics Dept.
+
 Module to set up run time parameters for Clawpack.
 
 The values set in the function setrun are then written out to data files
