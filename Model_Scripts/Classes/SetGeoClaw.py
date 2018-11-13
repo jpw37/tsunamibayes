@@ -87,10 +87,10 @@ class SetGeoClaw:
             model_bounds = json.load(json_file)
 
         clawdata.lower[0] = model_bounds['xlower']      # west longitude
-        clawdata.upper[0] = model_bounds['xupper']       # east longitude
+        clawdata.upper[0] = model_bounds['xupper']      # east longitude
 
-        clawdata.lower[1] = model_bounds['ylower']       # south latitude
-        clawdata.upper[1] = model_bounds['yupper']         # north latitude
+        clawdata.lower[1] = model_bounds['ylower']      # south latitude
+        clawdata.upper[1] = model_bounds['yupper']      # north latitude
 
 
 
