@@ -17,8 +17,6 @@ class FeedForward:
     """
 
     def __init__(self):
-        os.system('rm ./.output')
-        os.system('make ./.output')
         pass
 
     def run_geo_claw(self, draws):
