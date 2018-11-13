@@ -30,7 +30,7 @@ class FeedForward:
         mt.get_topo()
         mt.make_dtopo(draws)
 
-        os.system('rm .output')
+        # os.system('rm .output')
         os.system('make .output')
 
         return
