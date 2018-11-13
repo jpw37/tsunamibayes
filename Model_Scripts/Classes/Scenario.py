@@ -37,7 +37,7 @@ class Scenario:
         """
         # Clear previous files
         os.system('rm ./Data/Topo/dtopo.tt3')
-        os.system('rm ./Data/Topo/dtopo.data')
+        os.system('rm ./dtopo.data')
         gauges_file_path = './PreRun/Data/gauges.npy'
 
         self.title = title
@@ -97,7 +97,7 @@ class Scenario:
         # Run Geoclaw
         os.system('make clean')
         os.system('make clobber')
-        os.system('make .output')
+        os.system('make .plot')
 
         # Calculate the inital loglikelihood
         sample_llh = self.feedForward.calculate_llh(self.gauges)
