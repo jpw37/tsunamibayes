@@ -31,7 +31,7 @@ class FeedForward:
         mt.make_dtopo(draws)
 
         os.system('rm .output')
-        os.system('make .plot')
+        os.system('make .output')
 
         return
 
