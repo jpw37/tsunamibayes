@@ -20,7 +20,7 @@ class Samples:
     This class handles the saving and loading for generated, samples, priors, and observations
     """
 
-    def __init__(self, scenario_title, sample_cols=None, proposal_cols=None):
+    def __init__(self, scenario_title, init_guesses, sample_cols=None, proposal_cols=None):
         """
 
         :param scenario_title:
@@ -53,6 +53,8 @@ class Samples:
         self.mcmc = pd.DataFrame(columns=mcmc_cols)
         self.observations = pd.DataFrame(columns=observation_cols)
 
+        self.samples.loc[len(self.samples)] = init_guesses
+
         self.wins = 0
 
         self.sample_llh = None
@@ -68,7 +70,7 @@ class Samples:
         Saves the accepted sample to the samples dataframe
         :param saves:
         """
-        self.samples.loc[len(self.samples)] = saves
+        self.samples.loc[len(self.samples)] = saves.tolist()
 
     def get_sample(self):
         """

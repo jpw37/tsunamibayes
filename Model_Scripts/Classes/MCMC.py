@@ -56,13 +56,13 @@ class MCMC:
         if np.random.random() < accept_prob:
             # Accept and save proposal
             self.samples.reset_wins()
-            self.samples.save_sample(self.samples.get_proposal().tolist())
+            self.samples.save_sample(self.samples.get_proposal())
             self.samples.save_sample_okada(self.samples.get_proposal_okada())
             self.samples.save_sample_llh(self.samples.get_proposal_llh())
         else:
             # Reject Proposal and Save current winner to sample list
             self.samples.increment_wins()
-            self.samples.save_sample(self.samples.get_sample().tolist())
+            self.samples.save_sample(self.samples.get_sample())
             self.samples.save_sample_okada(self.samples.get_sample_okada())
 
     def map_to_okada(self):

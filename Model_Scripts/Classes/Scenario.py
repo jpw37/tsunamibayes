@@ -53,15 +53,13 @@ class Scenario:
         else:
             self.mcmc = RandomWalk(rw_covariance)
 
+        # Get initial draw for the initial run of geoclaw
+        self.init_guesses = self.mcmc.init_guesses(self.init)
         # Initialize the Samples Class
-        self.samples = Samples(title, self.mcmc.sample_cols, self.mcmc.proposal_cols)
+        self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols)
 
         self.mcmc.set_samples(self.samples)
 
-        # Get initial draw for the initial run of geoclaw
-        self.init_guesses = self.mcmc.init_guesses(self.init)
-        # Save the samples
-        self.samples.save_sample(self.init_guesses)
         # Load the samples
         self.init_guesses = self.samples.get_sample()
 
