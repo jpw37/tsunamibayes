@@ -97,7 +97,7 @@ class Scenario:
         # Run Geoclaw
         os.system('make clean')
         os.system('make clobber')
-        os.system('make .output')
+        os.system('make .output OUTDIR=_output')
 
         # Calculate the inital loglikelihood
         sample_llh = self.feedForward.calculate_llh(self.gauges)
