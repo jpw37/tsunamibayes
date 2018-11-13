@@ -16,20 +16,17 @@ class Prior:
         """
         self.priors = priors
 
-    def logpdf(self, cur_params, proposed_params):
+    def logpdf(self, params):
         """
         Takes the log pdf of the given priors for the current and proposed parameters
         :param proposed_params:
         :param cur_params:
         :return:
         """
-        prop_prior_llh = 0.0
-        cur_samp_prior_llh = 0.0
+        llh = 0.0
         for prior in self.priors.keys():
-            prop_prior_llh += prior.logpdf(proposed_params[self.priors[prior]])
-            cur_samp_prior_llh += prior.logpdf(cur_params[self.priors[prior]])
-
-        return prop_prior_llh, cur_samp_prior_llh
+            llh += prior.logpdf(params[self.priors[prior]])
+        return llh
 
     def random_draw(self):
         """

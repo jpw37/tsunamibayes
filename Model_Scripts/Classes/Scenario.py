@@ -136,7 +136,8 @@ class Scenario:
             self.samples.save_proposal_llh(proposal_llh)
 
             # Calculate prior probability for the current sample and proposed sample
-            sample_prior_llh, proposal_prior_llh = self.prior.logpdf(sample_params, proposal_params)
+            sample_prior_llh = self.prior.logpdf(sample_params)
+            proposal_prior_llh = self.prior.logpdf(proposal_params)
             # Save
             self.samples.save_sample_prior_llh(sample_prior_llh)
             self.samples.save_proposal_prior_llh(proposal_prior_llh)
