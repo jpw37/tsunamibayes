@@ -30,3 +30,10 @@ class Prior:
             cur_samp_prior_llh += prior.logpdf(cur_params[self.priors[prior]])
 
         return prop_prior_llh, cur_samp_prior_llh
+
+    def random_draw(self):
+        """
+        Pick a random set of parameters out of the prior
+        :return:
+        """
+        pass

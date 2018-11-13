@@ -161,14 +161,14 @@ class Samples:
         :param saves:
         :return:
         """
-        self.save_sample_prior_llh = saves
+        self.sample_prior_llh = saves
 
     def get_sample_prior_llh(self):
         """
         Returns the sample prior loglikelihood
         :return:
         """
-        return self.save_sample_prior_llh
+        return self.sample_prior_llh
 
     def save_proposal_prior_llh(self, saves):
         """
