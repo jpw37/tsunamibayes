@@ -13,8 +13,9 @@ that will be read in by the Fortran code.
 from __future__ import absolute_import
 from __future__ import print_function
 import os
-import numpy as np
 import json
+
+from clawpack.clawutil import data
 
 class SetGeoClaw:
 
@@ -27,14 +28,11 @@ class SetGeoClaw:
         # Scratch directory for storing topo and dtopo files:
         self.scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 
-        from clawpack.clawutil import data
-
-
         assert claw_pkg.lower() == 'geoclaw', "Expected claw_pkg = 'geoclaw'"
 
         self.claw_pkg = claw_pkg
         self.num_dim = 2
-        self.rundata = data.ClawRunData(claw_pkg, self.num_dim)
+        self.rundata = data.ClawRunData(self.claw_pkg, self.num_dim)
 
 
     #------------------------------
@@ -415,6 +413,7 @@ class SetGeoClaw:
         # for topography, append lines of the form
         #    [topotype, minlevel, maxlevel, t1, t2, fname]
         topo_path = os.path.join('./', 'etopo.tt3')
+        print("----------------------", topo_path, "----------------------")
         topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
         # == setdtopo.data values ==
@@ -422,6 +421,7 @@ class SetGeoClaw:
         # for moving topography, append lines of the form :   (<= 1 allowed for now!)
         #   [topotype, minlevel,maxlevel,fname]
         dtopo_path = os.path.join('./', 'dtopo.tt3')
+        print("----------------------", dtopo_path, "----------------------")
         dtopo_data.dtopofiles.append([3,3,3,dtopo_path])
         dtopo_data.dt_max_dtopo = 0.2
 

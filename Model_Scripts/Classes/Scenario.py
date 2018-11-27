@@ -36,8 +36,8 @@ class Scenario:
         :param iterations: Int: Number of Times to run the model
         """
         # Clear previous files
-        os.system('rm ./Data/Topo/dtopo.tt3')
-        os.system('rm ./dtopo.data')
+        # os.system('rm ./Data/Topo/dtopo.tt3')
+        # os.system('rm ./dtopo.data')
         gauges_file_path = './PreRun/Data/gauges.npy'
 
         self.title = title
