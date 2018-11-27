@@ -68,7 +68,7 @@ class MCMC:
             self.samples.save_sample(self.samples.get_sample())
             self.samples.save_sample_okada(self.samples.get_sample_okada())
 
-    def map_to_okada(self):
+    def map_to_okada(self, draws):
         pass
 
     def draw(self, prev_draw):
