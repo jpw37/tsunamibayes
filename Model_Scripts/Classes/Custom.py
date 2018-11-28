@@ -17,8 +17,8 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude']
-        self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
+        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
+        self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
 
     def draw(self, prev_draw):
         """

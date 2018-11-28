@@ -33,13 +33,13 @@ class Samples:
         self.save_path = './ModelOutput/' + self.scenario_title + "_"
 
         if (not sample_cols and not proposal_cols):
-            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Split', 'Rake', 'Dip', 'Longitude', 'Latitude']
-            proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Split', 'P-Rake', 'P-Dip', 'P-Logitude',
+            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
+            proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude',
                              'P-Latitude']
 
-        okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Split', 'O-Rake', 'O-Dip', 'O-Logitude',
+        okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude',
                       'O-Latitude']
-        proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Split', 'OP-Rake', 'OP-Dip',
+        proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip',
                                'OP-Logitude', 'OP-Latitude']
         mcmc_cols = sample_cols + proposal_cols + okada_cols + proposal_okada_cols + \
                     ["Wins"] + \
