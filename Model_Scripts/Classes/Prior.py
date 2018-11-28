@@ -23,7 +23,7 @@ class Prior:
         :param cur_params:
         :return:
         """
-        llh = []
+        llh = 0.0
         for prior in self.priors.keys():
             llh += prior.logpdf(params[self.priors[prior]].values)[0]
         return llh
