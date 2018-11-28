@@ -25,7 +25,8 @@ class Prior:
         """
         llh = 0.0
         for prior in self.priors.keys():
-            print(type(prior))
+            print(params[self.priors[prior]])
+            print(params[self.priors[prior]].values)
             llh += prior.logpdf(params[self.priors[prior]].values)
         return llh
 
