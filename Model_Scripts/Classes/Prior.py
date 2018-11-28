@@ -25,10 +25,10 @@ class Prior:
         """
         llh = 0.0
         for prior in self.priors.keys():
-            print("Parameters fro logpdf", params[self.priors[prior]])
+            # print("Parameters fro logpdf", params[self.priors[prior]])
             llh += prior.logpdf(params[self.priors[prior]].values)[0]
-            print("inter llh", llh)
-        print("llh", llh)
+            # print("inter llh", llh)
+        # print("llh", llh)
         return llh
 
     def random_draw(self):
