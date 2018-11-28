@@ -23,13 +23,13 @@ class Prior:
         :param cur_params:
         :return:
         """
-        llh = 0.0
+        llh = []
         for prior in self.priors.keys():
             print("Parameters fro logpdf", params[self.priors[prior]])
-            llh += prior.logpdf(params[self.priors[prior]].values)[0]
+            llh.append(prior.logpdf(params[self.priors[prior]].values)[0])
             print("inter llh", llh)
-        print("llh", llh)
-        return llh
+        print("llh", sum(llh))
+        return sum(llh)
 
     def random_draw(self):
         """
