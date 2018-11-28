@@ -58,6 +58,8 @@ class Samples:
         self.samples.loc[len(self.samples)] = init_guesses
 
         self.wins = 0
+        self.trials = 0
+        self.total_sample_wins = 0
 
         self.sample_llh = None
         self.sample_prior_llh = None
@@ -227,6 +229,20 @@ class Samples:
         """
         self.wins = 0
 
+    def win_counter(self):
+        """
+        Increments when a new sample is accepted to keep track of how many generated samples are being accepted
+        :return:
+        """
+        self.total_sample_wins += 1
+
+    def trial_counter(self):
+        """
+        Counts the total number of runs so far
+        :return:
+        """
+        self.trials += 1
+
     def save_debug(self):
         """
         Saves all the parameters into a list to save for the debug file
@@ -237,7 +253,7 @@ class Samples:
         saves += [self.wins]
         saves += [self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh]
         saves += [self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh]
-        saves += [(self.wins / (self.wins + 1))]
+        saves += [(self.total_sample_wins / self.trials)]
         if self.wins > 0:
             saves += ['Accepted']
         else:

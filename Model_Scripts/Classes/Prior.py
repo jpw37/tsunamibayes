@@ -25,11 +25,8 @@ class Prior:
         """
         llh = []
         for prior in self.priors.keys():
-            print("Parameters fro logpdf", params[self.priors[prior]])
-            llh.append(prior.logpdf(params[self.priors[prior]].values)[0])
-            print("inter llh", llh)
-        print("llh", sum(llh))
-        return sum(llh)
+            llh += prior.logpdf(params[self.priors[prior]].values)[0]
+        return llh
 
     def random_draw(self):
         """
