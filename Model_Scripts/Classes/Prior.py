@@ -26,7 +26,6 @@ class Prior:
         llh = 0.0
         for prior in self.priors.keys():
             llh += prior.logpdf(params[self.priors[prior]])
-        print("________", llh)
         return sum(llh)
 
     def random_draw(self):
