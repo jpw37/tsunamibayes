@@ -25,7 +25,7 @@ class Scenario:
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
 
-    def __init__(self, title="Default_Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=10):
+    def __init__(self, title="Default_Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=100):
         """
         Initialize all the correct variables for Running this Scenario
         :param title: Title for Scinerio (ex: 1852)
