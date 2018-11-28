@@ -242,6 +242,7 @@ class Samples:
             saves += ['Accepted']
         else:
             saves += ['Rejected']
+
         self.mcmc.loc[len(self.mcmc)] = saves
 
         self.save_obvs()

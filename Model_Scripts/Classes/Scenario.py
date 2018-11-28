@@ -25,7 +25,7 @@ class Scenario:
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
 
-    def __init__(self, title="Default_Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=10):
+    def __init__(self, title="Default_Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=1):
         """
         Initialize all the correct variables for Running this Scenario
         :param title: Title for Scinerio (ex: 1852)
@@ -149,7 +149,10 @@ class Scenario:
 
             # Calculate the sample and proposal posterior loglikelihood
             sample_post_llh = sample_prior_llh + sample_llh
+            print("--------------------", sample_post_llh, type(sample_post_llh))
             proposal_post_llh = proposal_prior_llh + proposal_llh
+            print("--------------------", proposal_post_llh, type(proposal_post_llh))
+
             # Save
             self.samples.save_sample_posterior_llh(sample_post_llh)
             self.samples.save_proposal_posterior_llh(proposal_post_llh)
