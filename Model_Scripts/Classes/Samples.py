@@ -42,10 +42,9 @@ class Samples:
         proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip',
                                'OP-Logitude', 'OP-Latitude']
         mcmc_cols = sample_cols + proposal_cols + okada_cols + proposal_okada_cols + \
-                    ["Wins"] + \
                     ["Sample Prior", "Sample LLH", "Sample Posterior"] + \
                     ["Proposal Prior", "Proposal LLH", "Proposal Posterior"] + \
-                    ["Acceptance ratio", "Proposal Accept/Reject"]
+                    ["Wins", "Proposal Accept/Reject", "Acceptance ratio"]
 
         observation_cols = ["Mw"]  # , "Gauge Max Wave Height", "Gauge Arrival Time"]
 
@@ -250,14 +249,15 @@ class Samples:
         """
         saves = self.get_sample().tolist() + self.get_proposal().tolist() + self.get_sample_okada().tolist() \
                 + self.get_proposal_okada().tolist()
-        saves += [self.wins]
         saves += [self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh]
         saves += [self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh]
-        saves += [(self.total_sample_wins / self.trials)]
+        saves += [self.wins]
         if self.wins > 0:
             saves += ['Accepted']
         else:
             saves += ['Rejected']
+
+        saves += [(self.total_sample_wins / self.trials)]
 
         self.mcmc.loc[len(self.mcmc)] = saves
 
