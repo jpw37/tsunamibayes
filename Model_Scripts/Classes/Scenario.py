@@ -136,7 +136,9 @@ class Scenario:
 
             # Calculate prior probability for the current sample and proposed sample
             sample_prior_llh = self.prior.logpdf(sample_params)
+            print("--------------------", sample_prior_llh, type(sample_prior_llh))
             proposal_prior_llh = self.prior.logpdf(proposal_params)
+            print("--------------------", proposal_prior_llh, type(proposal_prior_llh))
 
             # Save
             self.samples.save_sample_prior_llh(sample_prior_llh)
@@ -150,7 +152,9 @@ class Scenario:
 
             # Calculate the sample and proposal posterior loglikelihood
             sample_post_llh = sample_prior_llh + sample_llh
+            print("--------------------", sample_post_llh, type(sample_post_llh))
             proposal_post_llh = proposal_prior_llh + proposal_llh
+            print("--------------------", proposal_post_llh, type(proposal_post_llh))
 
             # Save
             self.samples.save_sample_posterior_llh(sample_post_llh)
