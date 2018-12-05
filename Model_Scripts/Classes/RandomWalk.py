@@ -116,3 +116,25 @@ class RandomWalk(MCMC):
 
         # need to add trig correction
         return (20000 + dist * np.tan(20 * np.pi / 180))
+
+    def haversine_distance(self, p1, p2):
+        """
+        This function  is set up separately because the haversine distance
+        likely will still be useful after we're done with this adhoc approach.
+
+        Note, this does not account for the oblateness of the Earth. Not sure if
+        this will cause a problem.
+        """
+        r = 6371000
+
+        # Setting up haversine terms of distance expansion
+        hav_1 = np.power(np.sin((p2[1] - p1[1]) / 2 * np.pi / 180), 2.0)
+        hav_2 = np.cos(p2[1] * np.pi / 180) * np.cos(p1[1] * np.pi / 180) * np.power(
+            np.sin((p2[0] - p1[0]) / 2 * np.pi / 180), 2.0)
+
+        # taking the arcsine of the root of the sum of the haversine terms
+        root = np.sqrt(hav_1 + hav_2)
+        arc = np.arcsin(root)
+
+        # return final distance between the two points
+        return 2 * r * arc
