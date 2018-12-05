@@ -117,10 +117,12 @@ class Scenario:
             proposal_params = self.mcmc.draw(sample_params)
             print(sample_params)
             print(proposal_params)
-            exit()
+
 
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
+
+            exit()
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):

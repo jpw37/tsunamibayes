@@ -88,6 +88,7 @@ class Samples:
         Parameters Proposal is row 0 of the 'proposals' dataframe
         :param saves: list: proposal parameters
         """
+        print(saves)
         self.proposals.loc[0] = saves.tolist()
 
     def get_proposal(self):
