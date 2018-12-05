@@ -122,6 +122,8 @@ class Scenario:
             self.samples.save_proposal(proposal_params)
 
             print(self.samples.get_proposal())
+            self.samples.save_debug()
+            print(self.samples.get_debug())
 
             exit()
 
