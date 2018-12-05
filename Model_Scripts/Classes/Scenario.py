@@ -115,9 +115,13 @@ class Scenario:
             # Get current Sample and draw a proposal sample from it
             sample_params = self.samples.get_sample()
             proposal_params = self.mcmc.draw(sample_params)
+            print(sample_params)
+            print(proposal_params)
 
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
+
+            print(self.samples.get_proposal())
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
@@ -126,6 +130,10 @@ class Scenario:
             # Save Proposal
             self.samples.save_proposal_okada(proposal_params)
             proposal_params = self.samples.get_proposal_okada()
+
+            self.samples.save_debug()
+            print(self.samples.get_debug())
+            exit()
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params)
