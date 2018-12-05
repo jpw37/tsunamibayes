@@ -123,8 +123,6 @@ class Scenario:
 
             print(self.samples.get_proposal())
 
-            exit()
-
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
                 proposal_params = self.mcmc.map_to_okada(proposal_params)
@@ -135,6 +133,7 @@ class Scenario:
 
             self.samples.save_debug()
             print(self.samples.get_debug())
+            exit()
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params)
