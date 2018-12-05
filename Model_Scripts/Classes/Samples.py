@@ -57,7 +57,7 @@ class Samples:
         self.samples.loc[len(self.samples)] = init_guesses
 
         self.wins = 0
-        self.trials = 0
+        self.trials = 1
         self.total_sample_wins = 0
 
         self.sample_llh = None
