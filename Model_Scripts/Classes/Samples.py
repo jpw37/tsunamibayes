@@ -259,7 +259,7 @@ class Samples:
         else:
             saves += ['Rejected']
 
-        saves += [(self.total_sample_wins / self.trials)]
+        saves += [((self.trials - self.total_sample_wins) / self.trials)]
 
         self.mcmc.loc[len(self.mcmc)] = saves
 
