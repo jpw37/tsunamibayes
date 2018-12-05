@@ -133,7 +133,6 @@ class Scenario:
 
             self.samples.save_debug()
             print(self.samples.get_debug())
-            exit()
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params)
