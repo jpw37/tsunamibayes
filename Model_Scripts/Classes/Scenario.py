@@ -122,8 +122,6 @@ class Scenario:
             self.samples.save_proposal(proposal_params)
 
             print(self.samples.get_proposal())
-            self.samples.save_debug()
-            print(self.samples.get_debug())
 
             exit()
 
@@ -134,6 +132,9 @@ class Scenario:
             # Save Proposal
             self.samples.save_proposal_okada(proposal_params)
             proposal_params = self.samples.get_proposal_okada()
+
+            self.samples.save_debug()
+            print(self.samples.get_debug())
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params)
