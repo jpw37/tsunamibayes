@@ -266,7 +266,7 @@ class Samples:
         self.save_obvs()
 
     def get_debug(self):
-        return self.mcmc.loc[-1]
+        return self.mcmc.loc[len(self.mcmc) - 1]
 
     def save_obvs(self):
         """
