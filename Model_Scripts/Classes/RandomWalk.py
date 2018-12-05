@@ -40,24 +40,79 @@ class RandomWalk(MCMC):
             draws (array): An array of the 9 parameter draws.
         """
         # Std deviations for each parameter, the mean is the current location
-        strike = .375
-        length = 4.e3
-        width = 3.e3
-        depth = .1875
-        slip = .01
-        rake = .25
-        dip = .0875
-        longitude = .025
-        latitude = .01875
+        # strike = .375
+        # length = 4.e3
+        # width = 3.e3
+        # depth = .1875
+        # slip = .01
+        # rake = .25
+        # dip = .0875
+        # longitude = .025
+        # latitude = .01875
+        strike_std = 5.  # strike_std    = 1.
+        length_std = 5.e3  # length_std    = 2.e4
+        width_std = 2.e3  # width_std     = 1.e4
+        depth_std = 1.e3  # depth_std     = 2.e3
+        slip_std = 0.5  # slip_std      = 0.5
+        rake_std = 0.5  # rake_std      = 0.5
+        dip_std = 0.1  # dip_std       = 0.1
+        longitude_std = 0.15  # longitude_std = .025
+        latitude_std = 0.15  # latitude_std  = .025
         mean = np.zeros(9)
-        self.covariance = np.diag([strike, length, width, depth, slip, rake,
-                       dip, longitude, latitude])
+        # square for std => cov
+        cov = np.diag(np.square([strike_std, length_std, width_std, depth_std, slip_std, rake_std,
+                                 dip_std, longitude_std, latitude_std]))
 
-        # cov *= 16.0;
+        cov *= 0.25;
 
         # random draw from normal distribution
-        e = stats.multivariate_normal(mean, self.covariance).rvs()
+        e = stats.multivariate_normal(mean, cov).rvs()
+
+        # does sample update normally
         print("Random walk difference:", e)
         print("New draw:", prev_draw + e)
         new_draw = prev_draw + e
-        return new_draw.ravel()
+
+        """
+        Here we make some fixed changes to the dip and depth according 
+        to a simple rule documented elsewhere. This fix will likely
+        depreciate upon finishing proof of concept paper and work on 1852
+        event.
+        """
+        # doctor dip to 20 degrees as discussed
+        new_draw[6] = 20
+        # doctor depth according to adhoc fix
+        new_draw[3] = self.doctored_depth_1852_adhoc(new_draw[7], new_draw[8], new_draw[6])
+
+        # return appropriately doctored draw
+        return new_draw
+
+    def doctored_depth_1852_adhoc(self, longitude, latitude, dip):
+        """
+        This is a function written specifically for our 1852 depth fix.
+        We make use of the fault points used in generating our prior as
+        jumping off point for fixing the depth of an event. We use a
+        simple trig correction based on a 20degree dip angle and the haversine distance
+        to get the depth of the earthquake in question.
+
+        Note, this will do the dip correction regardless of which side
+        of the trench our sample is on. Recognizing when the sample is
+        on the wrong side seems nontrivial, so we have not implemented
+        a check for this here.
+        """
+        # set up sample point and fault array
+        p1 = np.array([longitude, latitude])
+        fault_file = './Data/fault_array.npy'
+        fault_array = np.load(fault_file)
+        # will store haversine distances for comparison
+        dist_array = np.zeros(0.5 * len(fault_array))
+        for i in range(len(dist_array)):
+            x = fault_array[2 * i]
+            y = fault_array[2 * i + 1]
+            p2 = np.array([x, y])
+            dist_array[i] = self.haversine_distance(p1, p2)
+
+        dist = np.amin(dist_array)
+
+        # need to add trig correction
+        return (20000 + dist * np.tan(20 * np.pi / 180))
