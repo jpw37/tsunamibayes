@@ -118,7 +118,6 @@ class Scenario:
             print(sample_params)
             print(proposal_params)
 
-
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
 

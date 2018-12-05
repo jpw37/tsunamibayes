@@ -90,6 +90,7 @@ class Samples:
         """
         print(saves)
         self.proposals.loc[0] = saves.tolist()
+        print(self.proposals.loc[0])
 
     def get_proposal(self):
         """
