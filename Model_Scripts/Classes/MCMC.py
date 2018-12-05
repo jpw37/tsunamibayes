@@ -65,7 +65,7 @@ class MCMC:
             self.samples.save_sample_llh(self.samples.get_proposal_llh())
         else:
             # Reject Proposal and Save current winner to sample list
-            if(self.samples.wins == 0):
+            if(self.samples.wins == 1):
                 self.samples.win_counter()
             self.samples.increment_wins()
             self.samples.save_sample(self.samples.get_sample())
