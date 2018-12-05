@@ -109,9 +109,15 @@ class Scenario:
         """
         for i in range(self.iterations):
 
+            os.system('rm .output')
+            os.system('make .output')
+
             # Get current Sample and draw a proposal sample from it
             sample_params = self.samples.get_sample()
             proposal_params = self.mcmc.draw(sample_params)
+            print(sample_params)
+            print(proposal_params)
+            exit()
 
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
