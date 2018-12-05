@@ -121,6 +121,8 @@ class Scenario:
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
 
+            print(self.samples.get_proposal())
+
             exit()
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)

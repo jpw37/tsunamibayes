@@ -125,7 +125,7 @@ class Samples:
     def get_proposal_okada(self):
         """
         Returns the 9 okada parameters for the proposal
-        :return: dataframe row:  9 okada parameters for the proposal
+        :return: dataframe row: 9 okada parameters for the proposal
         """
         return self.proposals.loc[1]
 
