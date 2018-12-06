@@ -54,10 +54,21 @@ class FeedForward:
                 for each gauge. max_heights[i] corresponds to the maximum
                 height for gauges[i]
         """
-        data = np.loadtxt("./_output/fort.FG1.valuemax")
-        arrivals = data[:, 4]
+        data = np.loadtxt("_output/fort.FG1.valuemax")
+        bath_data = np.loadtxt("_output/fort.FG1.aux1")
+
+        #    arrivals = data[:,4]
+        arrivals = data[:, -1] / 60.  # this is the arrival time of the first wave, not the maximum wave
+        # note that fgmax outputs in seconds, but our likelihood is in minutes
         max_heights = data[:, 3]
-        return arrivals, max_heights
+        bath_depth = bath_data[:, -1]
+
+        max_heights[max_heights < 1e-15] = -9999  # these are locations where the wave never reached the gauge...
+        max_heights[np.abs(max_heights) > 1e15] = -9999  # again places where the wave never reached the gauge...
+        bath_depth[max_heights == 0] = 0
+        wave_heights = max_heights + bath_depth
+
+        return arrivals, wave_heights
 
     def calculate_llh(self, gauges):
         """
@@ -68,7 +79,7 @@ class FeedForward:
         Parameters:
             gauges (list): A list of gauge objects
         Returns:
-            p (float): The sum of the log-likelihoods of the data of each
+            llh (float): The sum of the log-likelihoods of the data of each
                 gauge in gauges.
         """
         names = []
@@ -76,9 +87,9 @@ class FeedForward:
             names.append(gauge.name)
         arrivals, heights = self.read_gauges()
 
-        # Calculate p for the arrivals and heights
+        # Calculate llh for the arrivals and heights
         llh = 0.  # init p
-        # Calculate p for the heights, using the PMFData and PMF classes
+        # Calculate llh for the heights, using the PMFData and PMF classes
         amplification_data = np.load('./Data/amplification_data.npy')
         row_header = amplification_data[:, 0]
         col_header = np.arange(len(amplification_data[0]) - 1) / 4

@@ -134,7 +134,7 @@ class Scenario:
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params)
 
-            # Calculate the Log Likelihood probability for the new draw
+            # Calculate the Log Likelihood for the new draw
             proposal_llh = self.feedForward.calculate_llh(self.gauges)
             sample_llh = self.samples.get_sample_llh()
             # Save
@@ -144,7 +144,6 @@ class Scenario:
             # Calculate prior probability for the current sample and proposed sample
             sample_prior_llh = self.prior.logpdf(sample_params)
             proposal_prior_llh = self.prior.logpdf(proposal_params)
-
             # Save
             self.samples.save_sample_prior_llh(sample_prior_llh)
             self.samples.save_proposal_prior_llh(proposal_prior_llh)
