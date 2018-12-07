@@ -88,11 +88,9 @@ class Scenario:
         :return:
         """
         # Set things up
-        mt = MakeTopo()
-
         SetGeoClaw().rundata.write()
-        mt.get_topo()
-        mt.make_dtopo(self.init_guesses)
+        MakeTopo.get_topo()
+        MakeTopo.make_dtopo(self.init_guesses)
 
         # Run Geoclaw
         os.system('rm .output')
@@ -110,7 +108,7 @@ class Scenario:
         for i in range(self.iterations):
 
             os.system('rm ./Data/Topo/dtopo.tt3')
-            os.system('rm ./Data/Topo/dtopo.data')
+            os.system('rm ./dtopo.data')
 
             os.system('rm .output')
             os.system('make .output')

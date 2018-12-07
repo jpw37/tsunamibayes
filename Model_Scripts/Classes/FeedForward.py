@@ -25,10 +25,9 @@ class FeedForward:
         :param draws: parameters
         :return:
         """
-        mt = MakeTopo()
         # Run GeoClaw using draws
-        mt.get_topo()
-        mt.make_dtopo(draws)
+        MakeTopo.get_topo()
+        MakeTopo.make_dtopo(draws)
 
         os.system('rm .output')
         os.system('make .output OUTDIR=_output')
