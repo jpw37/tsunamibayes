@@ -115,13 +115,9 @@ class Scenario:
             # Get current Sample and draw a proposal sample from it
             sample_params = self.samples.get_sample()
             proposal_params = self.mcmc.draw(sample_params)
-            # print(sample_params)
-            # print(proposal_params)
 
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
-
-            # print(self.samples.get_proposal())
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
@@ -154,10 +150,9 @@ class Scenario:
             # Decide to accept or reject the proposal and save
             self.mcmc.accept_reject(accept_prob)
 
-            # Calculate the sample and proposal posterior loglikelihood
+            # Calculate the sample and proposal posterior log likelihood
             sample_post_llh = sample_prior_llh + sample_llh
             proposal_post_llh = proposal_prior_llh + proposal_llh
-
             # Save
             self.samples.save_sample_posterior_llh(sample_post_llh)
             self.samples.save_proposal_posterior_llh(proposal_post_llh)
@@ -165,8 +160,8 @@ class Scenario:
             # Saves the stored data for debugging purposes
             self.samples.save_debug()
 
+            # Save to csv
             if i % 50 == 0:
-                # Save to csv
                 self.samples.save_to_csv()
 
         self.samples.save_to_csv()
