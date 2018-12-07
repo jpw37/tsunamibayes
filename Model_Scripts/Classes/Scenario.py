@@ -109,6 +109,9 @@ class Scenario:
         """
         for i in range(self.iterations):
 
+            os.system('rm ./Data/Topo/dtopo.tt3')
+            os.system('rm ./Data/Topo/dtopo.data')
+
             os.system('rm .output')
             os.system('make .output')
 
