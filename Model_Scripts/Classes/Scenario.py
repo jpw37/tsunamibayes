@@ -25,7 +25,7 @@ class Scenario:
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
 
-    def __init__(self, title="Default_Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=100):
+    def __init__(self, title="Default_Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=10):
         """
         Initialize all the correct variables for Running this Scenario
         :param title: Title for Scinerio (ex: 1852)
@@ -134,6 +134,7 @@ class Scenario:
             proposal_llh = self.feedForward.calculate_llh(self.gauges)
             sample_llh = self.samples.get_sample_llh()
             # Save
+            print("_____proposal_llh_____", proposal_llh)
             self.samples.save_sample_llh(sample_llh)
             self.samples.save_proposal_llh(proposal_llh)
 
