@@ -88,9 +88,11 @@ class Scenario:
         :return:
         """
         # Set things up
+        mt = MakeTopo()
+
         SetGeoClaw().rundata.write()
-        MakeTopo.get_topo()
-        MakeTopo.make_dtopo(self.init_guesses)
+        mt.get_topo()
+        mt.make_dtopo(self.init_guesses)
 
         # Run Geoclaw
         os.system('rm .output')
@@ -109,9 +111,6 @@ class Scenario:
 
             os.system('rm ./Data/Topo/dtopo.tt3')
             os.system('rm ./dtopo.data')
-
-            os.system('rm .output')
-            os.system('make .output')
 
             # Get current Sample and draw a proposal sample from it
             sample_params = self.samples.get_sample()
