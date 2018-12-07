@@ -412,7 +412,7 @@ class SetGeoClaw:
         topo_data = self.rundata.topo_data
         # for topography, append lines of the form
         #    [topotype, minlevel, maxlevel, t1, t2, fname]
-        topo_path = os.path.join('./', 'etopo.tt3')
+        topo_path = os.path.join('./Data/Topo/', 'etopo.tt3')
         print("----------------------", topo_path, "----------------------")
         topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
@@ -420,7 +420,7 @@ class SetGeoClaw:
         dtopo_data = self.rundata.dtopo_data
         # for moving topography, append lines of the form :   (<= 1 allowed for now!)
         #   [topotype, minlevel,maxlevel,fname]
-        dtopo_path = os.path.join('./', 'dtopo.tt3')
+        dtopo_path = os.path.join('./Data/Topo/', 'dtopo.tt3')
         print("----------------------", dtopo_path, "----------------------")
         dtopo_data.dtopofiles.append([3,3,3,dtopo_path])
         dtopo_data.dt_max_dtopo = 0.2
