@@ -92,9 +92,9 @@ class Scenario:
         make_dtopo(self.init_guesses)
 
         # Run Geoclaw
-        os.system('rm .output')
+        # os.system('make clean')
+        # os.system('make clobber')
         os.system('make .output')
-        os.system('make .data')
 
         # Calculate the inital loglikelihood
         sample_llh = self.feedForward.calculate_llh(self.gauges)
