@@ -9,6 +9,7 @@ from MakeTopo import MakeTopo
 from scipy import stats
 from PMF import PMFData, PMF
 import os
+from SetGeoClaw import SetGeoClaw
 
 class FeedForward:
     """
@@ -27,6 +28,7 @@ class FeedForward:
         """
         mt = MakeTopo()
         # Run GeoClaw using draws
+        SetGeoClaw().rundata.write()
         mt.get_topo()
         mt.make_dtopo(draws)
 
