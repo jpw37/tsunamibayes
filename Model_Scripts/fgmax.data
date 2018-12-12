@@ -5,5 +5,7 @@
 ########################################################
 
 1                    =: num_fgmax_val       
-0                    =: num_fgmax_grids     
+1                    =: num_fgmax_grids     
 
+
+'/tsunami/codykesler/tsunamibayes/Model_Scripts/PreRun/Data/fgmax_grid.txt' 

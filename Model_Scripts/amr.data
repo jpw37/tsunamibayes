@@ -4,20 +4,21 @@
 ###    and then "make .data"                        ####
 ########################################################
 
-1                    =: amr_levels_max      
-1                    =: refinement_ratios_x 
-1                    =: refinement_ratios_y 
-1                    =: refinement_ratios_t 
+3                    =: amr_levels_max      
+2 6                  =: refinement_ratios_x 
+2 6                  =: refinement_ratios_y 
+2 6                  =: refinement_ratios_t 
 
+'center' 'capacity' 'yleft' =: aux_type            
 
 F                    =: flag_richardson     
 -1.0                 =: flag_richardson_tol 
 T                    =: flag2refine         
 0.05                 =: flag2refine_tol     
-2                    =: regrid_interval     
-3                    =: regrid_buffer_width 
+3                    =: regrid_interval     
+2                    =: regrid_buffer_width 
 0.7                  =: clustering_cutoff   
-3                    =: verbosity_regrid    
+0                    =: verbosity_regrid    
 
 
 F                    =: dprint              
@@ -28,6 +29,6 @@ F                    =: nprint
 F                    =: pprint              
 F                    =: rprint              
 F                    =: sprint              
-F                    =: tprint              
+T                    =: tprint              
 F                    =: uprint              
 

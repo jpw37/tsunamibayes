@@ -9,4 +9,4 @@
 100.0                =: deep_depth          
 3                    =: max_level_deep      
 
-F                    =: variable_dt_refinement_ratios # (Set dt refinement ratios automatically) 
+T                    =: variable_dt_refinement_ratios # (Set dt refinement ratios automatically) 

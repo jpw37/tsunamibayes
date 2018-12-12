@@ -5,4 +5,7 @@
 ########################################################
 
 0                    =: test_topography      # (Type topography specification) 
-0                    =: ntopofiles          
+1                    =: ntopofiles          
+
+'/tsunami/codykesler/tsunamibayes/Model_Scripts/Data/etopo.tt3' 
+   3   1   3     0.0000000000e+00     1.0000000000e+10 

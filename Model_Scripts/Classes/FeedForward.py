@@ -53,8 +53,8 @@ class FeedForward:
                 for each gauge. max_heights[i] corresponds to the maximum
                 height for gauges[i]
         """
-        data = np.loadtxt("_output/fort.FG1.valuemax")
-        bath_data = np.loadtxt("_output/fort.FG1.aux1")
+        data = np.loadtxt("./ModelOutput/geoclaw/fort.FG1.valuemax")
+        bath_data = np.loadtxt("./ModelOutput/geoclaw/fort.FG1.aux1")
 
         #    arrivals = data[:,4]
         arrivals = data[:, -1] / 60.  # this is the arrival time of the first wave, not the maximum wave
