@@ -101,6 +101,28 @@ class Scenario:
         # Save
         self.samples.save_sample_llh(sample_llh)
 
+    def clean_up(self):
+        """
+        Cleans up the unnecessary clutter geoclaw outputs
+        :return: None
+        """
+        os.system('rm ./.data')
+        os.system('rm ./amr.data')
+        os.system('rm ./claw.data')
+        os.system('rm ./dtopo.data')
+        os.system('rm ./dtopo.tt3')
+        os.system('rm ./fgmax.data')
+        os.system('rm ./fixed_grids.data')
+        os.system('rm ./friction.data')
+        os.system('rm ./gauges.data')
+        os.system('rm ./geoclaw.data')
+        os.system('rm ./multilayer.data')
+        os.system('rm ./qinit.data')
+        os.system('rm ./refinement.data')
+        os.system('rm ./regions.data')
+        os.system('rm ./surge.data')
+        os.system('rm ./topo.data')
+
     def run(self):
         """
         Runs the Scenario For the given amount of iterations
@@ -109,7 +131,6 @@ class Scenario:
 
             # Remove dtopo file for each run to generate a new one
             os.system('rm ./Data/Topo/dtopo.tt3')
-            os.system('rm ./dtopo.data')
 
             # Get current Sample and draw a proposal sample from it
             sample_params = self.samples.get_sample()
@@ -164,5 +185,7 @@ class Scenario:
             if i % 50 == 0:
                 self.samples.save_to_csv()
 
+        self.clean_up()
         self.samples.save_to_csv()
         return
+
