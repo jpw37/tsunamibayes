@@ -29,7 +29,8 @@ class FeedForward:
         get_topo()
         make_dtopo(draws)
 
-        os.system('rm .output')
+        os.system('make clean')
+        os.system('make clobber')
         os.system('make .output')
 
         return
