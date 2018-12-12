@@ -5,7 +5,7 @@ Property of BYU Mathematics Dept.
 """
 
 import numpy as np
-from MakeTopo import MakeTopo
+import maketopo as mt
 from scipy import stats
 from PMF import PMFData, PMF
 import os
@@ -26,9 +26,6 @@ class FeedForward:
         :param draws: parameters
         :return:
         """
-        mt = MakeTopo()
-        # Run GeoClaw using draws
-        SetGeoClaw().rundata.write()
         mt.get_topo()
         mt.make_dtopo(draws)
 

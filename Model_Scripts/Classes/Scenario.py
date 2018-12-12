@@ -9,7 +9,7 @@ import sys
 
 sys.path.append('./PreRun/Classes/')
 
-from MakeTopo import MakeTopo
+import maketopo as mt
 from SetGeoClaw import SetGeoClaw
 from RandomWalk import RandomWalk
 from IndependentSampler import IndependentSampler
@@ -88,8 +88,6 @@ class Scenario:
         :return:
         """
         # Set things up
-        mt = MakeTopo()
-        SetGeoClaw().rundata.write()
         mt.get_topo()
         mt.make_dtopo(self.init_guesses)
 
