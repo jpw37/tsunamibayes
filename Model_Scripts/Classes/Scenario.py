@@ -89,7 +89,6 @@ class Scenario:
         """
         # Set things up
         mt = MakeTopo()
-
         SetGeoClaw().rundata.write()
         mt.get_topo()
         mt.make_dtopo(self.init_guesses)
@@ -109,6 +108,7 @@ class Scenario:
         """
         for i in range(self.iterations):
 
+            # Remove dtopo file for each run to generate a new one
             os.system('rm ./Data/Topo/dtopo.tt3')
             os.system('rm ./dtopo.data')
 

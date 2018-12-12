@@ -82,9 +82,9 @@ class FeedForward:
             llh (float): The sum of the log-likelihoods of the data of each
                 gauge in gauges.
         """
-        names = []
-        for gauge in gauges:
-            names.append(gauge.name)
+        # names = []
+        # for gauge in gauges:
+        #     names.append(gauge.name)
         arrivals, heights = self.read_gauges()
 
         # Calculate llh for the arrivals and heights
