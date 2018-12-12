@@ -51,7 +51,7 @@ def make_dtopo(params, makeplots=False):
     from clawpack.geoclaw import dtopotools
     import numpy
 
-    dtopo_fname = os.path.join('./', "dtopo.tt3")
+    dtopo_fname = os.path.join('./Data/', "dtopo.tt3")
 
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
