@@ -75,7 +75,7 @@ def setrun(claw_pkg='geoclaw'):
     clawdata.num_dim = num_dim
 
     # Lower and upper edge of computational domain:
-    with open('model_bounds.txt') as json_file:
+    with open('./Data/model_bounds.txt') as json_file:
         model_bounds = json.load(json_file)
 
     clawdata.lower[0] = model_bounds['xlower']      # west longitude
@@ -359,7 +359,7 @@ def setrun(claw_pkg='geoclaw'):
     # == fgmax.data values ==
     fgmax_files = rundata.fgmax_data.fgmax_files
     # for fixed grids append to this list names of any fgmax input files
-    fgmax_files.append('fgmax_grid.txt')
+    fgmax_files.append('./PreRun/Data/fgmax_grid.txt')
     rundata.fgmax_data.num_fgmax_val = 1  # Save depth only
 
     return rundata
@@ -407,14 +407,14 @@ def setgeo(rundata):
     topo_data = rundata.topo_data
     # for topography, append lines of the form
     #    [topotype, minlevel, maxlevel, t1, t2, fname]
-    topo_path = os.path.join('./', 'etopo.tt3')
+    topo_path = os.path.join('./Data/', 'etopo.tt3')
     topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
     # == setdtopo.data values ==
     dtopo_data = rundata.dtopo_data
     # for moving topography, append lines of the form :   (<= 1 allowed for now!)
     #   [topotype, minlevel,maxlevel,fname]
-    dtopo_path = os.path.join('./', 'dtopo.tt3')
+    dtopo_path = os.path.join('./Data/', 'dtopo.tt3')
     dtopo_data.dtopofiles.append([3,3,3,dtopo_path])
     dtopo_data.dt_max_dtopo = 0.2
 
