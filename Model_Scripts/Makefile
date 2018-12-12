@@ -59,7 +59,7 @@ include $(CLAWMAKE)
 # Construct the topography data
 .PHONY: topo all
 topo:
-	python maketopo.py
+	python Classes/maketopo.py
 
 all: 
 	$(MAKE) topo
