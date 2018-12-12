@@ -11,12 +11,12 @@ CLAWMAKE = $(CLAW)/clawutil/src/Makefile.common
 # Adjust these variables if desired:
 # ----------------------------------
 
-CLAW_PKG = geoclaw              # Clawpack package to use
-EXE = xgeoclaw                 # Executable to create
-SETRUN_FILE = setrun.py        # File containing function to make data
-OUTDIR = ModelOutput/geoclaw   # Directory for output
-SETPLOT_FILE = setplot.py      # File containing function to set plots
-PLOTDIR = _plots               # Directory for plots
+CLAW_PKG = geoclaw                  # Clawpack package to use
+EXE = xgeoclaw                      # Executable to create
+SETRUN_FILE = Classes/setrun.py     # File containing function to make data
+OUTDIR = ModelOutput/geoclaw        # Directory for output
+SETPLOT_FILE = setplot.py           # File containing function to set plots
+PLOTDIR = _plots                    # Directory for plots
 
 # Environment variable FC should be set to fortran compiler, e.g. gfortran
 
@@ -59,7 +59,7 @@ include $(CLAWMAKE)
 # Construct the topography data
 .PHONY: topo all
 topo:
-	python maketopo.py
+	python Classes/maketopo.py
 
 all: 
 	$(MAKE) topo
