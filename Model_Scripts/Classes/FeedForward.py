@@ -5,7 +5,7 @@ Property of BYU Mathematics Dept.
 """
 
 import numpy as np
-import maketopo as mt
+from maketopo import get_topo, make_dtopo
 from scipy import stats
 from PMF import PMFData, PMF
 import os
@@ -26,8 +26,8 @@ class FeedForward:
         :param draws: parameters
         :return:
         """
-        mt.get_topo()
-        mt.make_dtopo(draws)
+        get_topo()
+        make_dtopo(draws)
 
         os.system('rm .output')
         os.system('make .output')
