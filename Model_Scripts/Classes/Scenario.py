@@ -94,6 +94,7 @@ class Scenario:
         # Run Geoclaw
         os.system('rm .output')
         os.system('make .output')
+        os.system('make .data')
 
         # Calculate the inital loglikelihood
         sample_llh = self.feedForward.calculate_llh(self.gauges)
