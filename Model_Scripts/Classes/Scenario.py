@@ -130,7 +130,7 @@ class Scenario:
         for i in range(self.iterations):
 
             # Remove dtopo file for each run to generate a new one
-            os.system('rm ./Data/Topo/dtopo.tt3')
+            os.system('rm ./Data/dtopo.tt3')
 
             # Get current Sample and draw a proposal sample from it
             sample_params = self.samples.get_sample()

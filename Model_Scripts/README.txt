@@ -7,7 +7,7 @@ Navigate to the PreRun Folder and open the Guages.ipynb file.
 This has all of the necessary functions for generating
 the guages and the FG MAX data files needed to run the program.
 
-Fill the notebook with your custom guage recordings for your specified event and run all the cells.
+Fill the notebook with your custom gauge recordings for your specified event and run all the cells.
 
 --------------------------  RUNNING THE PROGRAM --------------------------
 
