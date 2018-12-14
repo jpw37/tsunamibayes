@@ -36,7 +36,7 @@ def read_output():
     """
     # Step 1
     # Put gauge numbers into a list.
-    # EARTHQUAKE SPECIFIC (get numbers from SetGeoClaw.py, around line 342)
+    # EARTHQUAKE SPECIFIC (get numbers from setrun.py, around line 342)
     # The following are just placeholders for now
     gauges = [10000, 10010] # Can be any number of gauges (min 1)
     n = len(gauges)

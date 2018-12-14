@@ -10,7 +10,6 @@ import sys
 sys.path.append('./PreRun/Classes/')
 
 from maketopo import get_topo, make_dtopo
-from SetGeoClaw import SetGeoClaw
 from RandomWalk import RandomWalk
 from IndependentSampler import IndependentSampler
 from Samples import Samples

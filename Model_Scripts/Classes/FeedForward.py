@@ -9,7 +9,6 @@ from maketopo import get_topo, make_dtopo
 from scipy import stats
 from PMF import PMFData, PMF
 import os
-from SetGeoClaw import SetGeoClaw
 
 class FeedForward:
     """
