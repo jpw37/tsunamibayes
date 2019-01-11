@@ -9,6 +9,8 @@ from maketopo import get_topo, make_dtopo
 from scipy import stats
 from PMF import PMFData, PMF
 import os
+from scipy.interpolate import interp1d
+
 
 class FeedForward:
     """
@@ -86,42 +88,55 @@ class FeedForward:
         #     names.append(gauge.name)
         arrivals, heights = self.read_gauges()
 
-        # Calculate llh for the arrivals and heights
         llh = 0.  # init p
-        # Calculate llh for the heights, using the PMFData and PMF classes
-        amplification_data = np.load('./Data/amplification_data.npy')
-        row_header = amplification_data[:, 0]
-        col_header = np.arange(len(amplification_data[0]) - 1) / 4
-        pmfData = PMFData(row_header, col_header, amplification_data[:, 1:])
+        # Calculate p for the heights, using the PMFData and PMF classes
+        heightLikelihoodTable = np.load('./Data/gaugeHeightLikelihood.npy')
+        heightValues = heightLikelihoodTable[:, 0]
+        inundationLikelihoodTable = np.load('./DatagaugeInundationLikelihood.npy')
+        inundationValues = inundationLikelihoodTable[:, 0]
+
         for i, gauge in enumerate(gauges):
+            # arrivals
+            print("GAUGE LOG: gauge", i, "(", gauge.longitude, ",", gauge.latitude, "): arrival =", arrivals[i],
+                  ", heights =", heights[i])
             if (gauge.kind[0]):
-                # arrivals
-                value = gauge.arrival_dist.pdf(arrivals[i])
-                if np.abs(value) < 1e-20:
-                    value = 1e-10
-                #            llh += np.log(gauge.arrival_dist.pdf(arrivals[i]))
-                llh += np.log(value)
+                p_i = gauge.arrival_dist.logpdf(arrivals[i])
+                llh += p_i
+                print("GAUGE LOG: gauge", i, " (arrival)   : logpdf +=", p_i)
 
+            # heights
             if (gauge.kind[1]):
-                # heights
-                pmf = pmfData.getPMF(gauge.distance, heights[i])
+                # special case: wave didn't arrive
                 if np.abs(heights[i]) > 999999999:
-                    llh += -9999
+                    p_i = np.NINF
+                # special case: value is outside interpolation bounds
+                # may need to make lower bound 0 and enable extrapolation for values very close to 0
+                elif (heights[i] > max(heightValues) or heights[i] < min(heightValues)):
+                    print("WARNING: height value {:.2f} is outside height interpolation range.".format(heights[i]))
+                    p_i = np.NINF
                 else:
-                    llh_i = pmf.integrate(gauge.height_dist)
-                    llh += np.log(llh_i)
+                    heightLikelihoods = heightLikelihoodTable[:, i + 1]
+                    f = interp1d(heightValues, heightLikelihoods, assume_sorted=True)  # ,kind='cubic')
+                    p_i = np.log(f(heights[i]))
 
+                llh += p_i
+                print("GAUGE LOG: gauge", i, " (height)    : logpdf +=", p_i)
+
+            # inundations
             if (gauge.kind[2]):
-                # inundation
-                pmf = pmfData.getPMF(gauge.distance, heights[i])
-                inun_values = np.power(pmf.vals, 4 / 3) * 0.06 * np.cos(gauge.beta) / (gauge.n ** 2)
-                inun_probability = pmf.probs
-                if len(inun_values) == 0:
-                    print("WARNING: inun_values is zero length")
-                    pmf_inundation = PMF([0., 1.], [0., 0.])
+                # special case: wave didn't arrive
+                if np.abs(heights[i]) > 999999999:
+                    p_i = np.NINF
+                # special case: value is outside interpolation bounds
+                # may need to make lower bound 0 and enable extrapolation for values very close to 0
+                elif (heights[i] > max(heightValues) or heights[i] < min(heightValues)):
+                    print("WARNING: height value {:.2f} is outside inundation interpolation range.".format(heights[i]))
+                    p_i = np.NINF
                 else:
-                    pmf_inundation = PMF(inun_values, inun_probability)
-                llh_inundation = pmf_inundation.integrate(gauge.inundation_dist)
-                llh += np.log(llh_inundation)
+                    inundationLikelihoods = inundationLikelihoodTable[:, i + 1]
+                    f = interp1d(inundationValues, inundationLikelihoods, assume_sorted=True)  # ,kind='cubic')
+                    p_i = np.log(f(heights[i]))
 
+                llh += p_i
+                print("GAUGE LOG: gauge", i, " (inundation): logpdf +=", p_i)
         return llh

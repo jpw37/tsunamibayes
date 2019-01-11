@@ -46,7 +46,7 @@ class Custom(MCMC):
 
         dists = {}
         dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
-        dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
+        dists[distrb1] = ['Length', 'Width', 'Slip'] # 'Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip'
 
         self.prior = Prior(dists)
 

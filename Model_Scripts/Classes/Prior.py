@@ -3,7 +3,7 @@ Created By Cody Kesler
 Created 10/19/2018
 Property of BYU Mathematics Dept.
 """
-
+import numpy as np
 
 class Prior:
     """
@@ -15,6 +15,18 @@ class Prior:
         :param priors: dict: kde distributions to their respective parameters for sampling
         """
         self.priors = priors
+
+    def prior_logpdf(self, sample):
+        # prior for longitude, latitude, strike
+        lpdf = self.priors[0].logpdf(sample[[7, 8, 0]])
+
+        # prior for length, width, slip
+        # this is a lognormal so the logpdf is a little more complicated
+        # justin sent an email to jared on 01/04/2019 documenting the formula below
+        lpdf += self.priors[1].logpdf(np.log(sample[[1, 2, 4]])) - np.log(sample[1]) - np.log(sample[2]) - np.log(
+            sample[4])
+
+        return lpdf
 
     def logpdf(self, params):
         """

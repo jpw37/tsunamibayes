@@ -1,1 +1,0 @@
-{"xlower": 125.0, "xupper": 135.0, "ylower": -8.0, "yupper": -2.0, "run_time": 75.0}

@@ -6,26 +6,15 @@ import sys
 sys.path.append('./Classes')
 
 from Scenario import Scenario
+import json
 
 if __name__ == "__main__":
-    if(len(sys.argv) > 1):
-        title = sys.argv[1]
+    scenario = Scenario()
 
-        if int(sys.argv[2]) == 1:
-            use_custom = True
-        else:
-            use_custom = False
+    if(len(sys.argv) == 1):
+        if(sys.argv[1] == 'custom'):
+            with open('./inputs.txt') as json_file:
+                inputs = json.load(json_file)
+            scenario = Scenario(inputs['title'], inputs['custom'], inputs['init'], inputs['rw_covariance'], inputs['method'], inputs['iterations'])
 
-        # manual
-        init = sys.argv[3]
-
-        rw_covariance = int(sys.argv[4])
-
-        method = sys.argv[5]
-
-        iterations = int(sys.argv[6])
-
-        scenario = Scenario(title, use_custom, init, rw_covariance, method, iterations)
-    else:
-        scenario = Scenario()
     scenario.run()
