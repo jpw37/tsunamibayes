@@ -7,5 +7,5 @@
 0                    =: test_topography      # (Type topography specification) 
 1                    =: ntopofiles          
 
-'/tsunami/whitehead/tsunamibayes/Model_Scripts/etopo.tt3' 
+'/tsunami/codykesler/tsunamibayes/Model_Scripts/Data/etopo.tt3'
    3   1   3     0.0000000000e+00     1.0000000000e+10 
