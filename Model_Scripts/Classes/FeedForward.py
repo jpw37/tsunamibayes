@@ -92,7 +92,7 @@ class FeedForward:
         # Calculate p for the heights, using the PMFData and PMF classes
         heightLikelihoodTable = np.load('./Data/gaugeHeightLikelihood.npy')
         heightValues = heightLikelihoodTable[:, 0]
-        inundationLikelihoodTable = np.load('./DatagaugeInundationLikelihood.npy')
+        inundationLikelihoodTable = np.load('./Data/gaugeInundationLikelihood.npy')
         inundationValues = inundationLikelihoodTable[:, 0]
 
         for i, gauge in enumerate(gauges):
