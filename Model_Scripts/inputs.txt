@@ -1,2 +1,1 @@
-{"title": "Default", "custom": False, "init": "manual", "rw_covariance": 0.5,  "method": "random_walk", "iterations": 1,
-"xlower": 125.0, "xupper": 134.5, "ylower": -9.5, "yupper": -2.5, "run_time": 150.0}
+{"title": "Default", "custom": False, "init": "manual", "rw_covariance": 0.5, "method": "random_walk", "iterations": 1, "xlower": 125.0, "xupper": 134.5, "ylower": -9.5, "yupper": -2.5, "run_time": 150.0}
