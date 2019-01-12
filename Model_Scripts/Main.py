@@ -11,7 +11,7 @@ import json
 if __name__ == "__main__":
     scenario = Scenario()
 
-    if(len(sys.argv) == 1):
+    if(len(sys.argv) > 1):
         if(sys.argv[1] == 'custom'):
             with open('./inputs.txt') as json_file:
                 inputs = json.load(json_file)
