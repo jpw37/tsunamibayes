@@ -85,7 +85,7 @@ def make_dtopo(params, makeplots=False):
         #y = numpy.linspace(-40, -30, 100)
         times = [1.]
 
-        with open('./inputs.txt') as json_file:
+        with open('./PreRun/Data/model_bounds.txt') as json_file:
             model_bounds = json.load(json_file)
 
         xlower = model_bounds['xlower']
