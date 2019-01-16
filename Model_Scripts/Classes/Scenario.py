@@ -9,7 +9,7 @@ import sys
 
 sys.path.append('./PreRun/Classes/')
 
-from MakeTopo import get_topo, make_dtopo
+from maketopo import get_topo, make_dtopo
 from RandomWalk import RandomWalk
 from IndependentSampler import IndependentSampler
 from Samples import Samples
@@ -91,8 +91,8 @@ class Scenario:
         make_dtopo(self.init_guesses)
 
         # Run Geoclaw
-        os.system("make topo")
         os.system('make clean')
+        os.system("make topo")
         os.system('make clobber')
         os.system('make .output')
 
