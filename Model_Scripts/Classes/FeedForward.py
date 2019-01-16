@@ -5,7 +5,7 @@ Property of BYU Mathematics Dept.
 """
 
 import numpy as np
-from MakeTopo import get_topo, make_dtopo
+from maketopo import get_topo, make_dtopo
 from scipy import stats
 from PMF import PMFData, PMF
 import os
