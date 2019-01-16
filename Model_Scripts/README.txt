@@ -13,7 +13,9 @@ Fill the notebook with your custom gauge recordings for your specified event and
 
 Next in the Command Line navigate to the Model_Scripts/ folder.
 
-Run python Main.py
+and enter:
+
+python Main.py
 
 If you give it no command line arguments it will run with the default settings as given in the Scenario Class:
 
@@ -22,19 +24,14 @@ use_custom=False,
 init='manual',
 rw_covariance=1.0,
 method="random_walk",
-iterations=10
+iterations=1
 
-You can modify this as you please or entering the arguments in the command line as follows:
+You can modify the **inputs.txt** file as you please and enter:
 
-title = sys.argv[1]
-use_custom = sys.argv[2]
-init = sys.argv[3]
-rw_covariance = sys.argv[4]
-method = sys.argv[5]
-iterations = int(sys.argv[6]
+python Main.py 1
 
+and it will take the arguments from the inputs file
 
-ex. : python Main.py 1852 True random 1.0 random_walk 1000000
 
 This will run the program a million times initialized with random parameters and
 with the methods from the Custom Class.
