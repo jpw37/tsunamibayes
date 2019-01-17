@@ -109,7 +109,6 @@ class MCMC:
         """
         guesses = None
         if init == "manual":
-          #initial guesses taken from final sample of 260911_ca/001
           # initial guesses taken from final sample of 260911_ca/001
           strike = 4.75550982e+01
           length = 5.45554071e+05

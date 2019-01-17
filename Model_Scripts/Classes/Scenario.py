@@ -185,7 +185,7 @@ class Scenario:
             if i % 50 == 0:
                 self.samples.save_to_csv()
 
-        self.clean_up()
+        # self.clean_up()
         self.samples.save_to_csv()
         return
 
