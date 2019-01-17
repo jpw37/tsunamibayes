@@ -111,18 +111,18 @@ class MCMC:
         if init == "manual":
           #initial guesses taken from final sample of 260911_ca/001
           # initial guesses taken from final sample of 260911_ca/001
-          strike = 2.77152900e+02
-          length = 3.36409138e+05
-          width = 3.59633559e+04
-          depth = 2.50688161e+04
-          slip = 9.17808160e+00
-          rake = 5.96643293e+01
-          dip = 1.18889907e+01
-          longitude = 1.31448175e+02
-          latitude = -4.63296475e+00
+          strike = 4.75550982e+01
+          length = 5.45554071e+05
+          width = 2.36829768e+05
+          depth = 1.45425680e+04
+          slip = 1.50792243e+01
+          rake = 9.00000000e+01
+          dip = 1.50000000e+01
+          long = 1.32383631e+02
+          lat = -6.48340463e+00
 
           guesses = np.array([strike, length, width, depth, slip, rake, dip,
-              longitude, latitude])
+              lat, long])
 
         elif init == "random":
             # draw initial sample at random from prior (kdes)
