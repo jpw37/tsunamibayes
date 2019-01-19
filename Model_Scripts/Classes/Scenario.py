@@ -92,7 +92,7 @@ class Scenario:
 
         # Run Geoclaw
         os.system('make clean')
-        os.system("make topo")
+        os.system("make data")
         os.system('make clobber')
         os.system('make .output')
 
