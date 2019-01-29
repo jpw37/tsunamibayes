@@ -93,6 +93,7 @@ class Scenario:
         # os.system('make clean')
         # os.system("make data")
         # os.system('make clobber')
+        os.system('make topo')
         os.system('rm .output')
         os.system('make .output')
 
