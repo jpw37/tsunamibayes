@@ -121,7 +121,7 @@ class MCMC:
           lat = -6.48340463e+00
 
           guesses = np.array([strike, length, width, depth, slip, rake, dip,
-              lat, long])
+              long, lat])
 
         elif init == "random":
             # draw initial sample at random from prior (kdes)

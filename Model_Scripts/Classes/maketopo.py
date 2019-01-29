@@ -68,7 +68,7 @@ def make_dtopo(params, makeplots=False):
     usgs_subfault.dip = params[6]
     usgs_subfault.longitude = params[7]
     usgs_subfault.latitude = params[8]
-    usgs_subfault.coordinate_specification = "top center"
+    usgs_subfault.coordinate_specification = "centroid"
 
     fault = dtopotools.Fault()
     fault.subfaults = [usgs_subfault]
