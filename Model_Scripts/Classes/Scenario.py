@@ -36,7 +36,6 @@ class Scenario:
         """
         # Clear previous files
         os.system('rm ./Data/dtopo.tt3')
-        os.system('rm ./dtopo.data')
         gauges_file_path = './PreRun/Data/gauges.npy'
 
         self.title = title
