@@ -106,22 +106,7 @@ class Scenario:
         Cleans up the unnecessary clutter geoclaw outputs
         :return: None
         """
-        os.system('rm ./.data')
-        os.system('rm ./amr.data')
-        os.system('rm ./claw.data')
-        os.system('rm ./dtopo.data')
-        os.system('rm ./dtopo.tt3')
-        os.system('rm ./fgmax.data')
-        os.system('rm ./fixed_grids.data')
-        os.system('rm ./friction.data')
-        os.system('rm ./gauges.data')
-        os.system('rm ./geoclaw.data')
-        os.system('rm ./multilayer.data')
-        os.system('rm ./qinit.data')
-        os.system('rm ./refinement.data')
-        os.system('rm ./regions.data')
-        os.system('rm ./surge.data')
-        os.system('rm ./topo.data')
+        os.system('rm ModelOutput/geoclaw/*.data')
 
     def run(self):
         """
