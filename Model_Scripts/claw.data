@@ -5,8 +5,8 @@
 ########################################################
 
 2                    =: num_dim             
-125.0 -8.0           =: lower               
-135.0 -2.0           =: upper               
+125.0 -9.5           =: lower               
+134.5 -2.5           =: upper               
 30 30                =: num_cells           
 
 3                    =: num_eqn             
@@ -17,7 +17,7 @@
 
 1                    =: output_style        
 3                    =: num_output_times    
-4500.0               =: tfinal              
+9000.0               =: tfinal              
 T                    =: output_t0           
 
 1                    =: output_format       

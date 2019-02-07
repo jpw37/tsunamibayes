@@ -410,6 +410,21 @@ def setgeo(rundata):
     topo_path = os.path.join('./Data/', 'etopo.tt3')
     topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
+    topo_path = os.path.join('./Data/', 'banda_map_merged.tt3')
+    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
+    topo_path = os.path.join('./Data/', 'gauge10002_merged3.tt3')
+    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
+    topo_path = os.path.join('./Data/', 'gauge10004_merged3.tt3')
+    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
+    topo_path = os.path.join('./Data/', 'gauge10005_merged3.tt3')
+    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
+    topo_path = os.path.join('./Data/', 'gauge10006_merged3.tt3')
+    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
     # == setdtopo.data values ==
     dtopo_data = rundata.dtopo_data
     # for moving topography, append lines of the form :   (<= 1 allowed for now!)
