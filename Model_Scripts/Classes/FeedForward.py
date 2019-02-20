@@ -33,7 +33,7 @@ class FeedForward:
         # os.system('make clean')
         # os.system('make clobber')
         os.system('rm .output')
-        os.system('make .output _output="ModelOutput/geoclaw/"')
+        os.system('make .output')
 
         return
 

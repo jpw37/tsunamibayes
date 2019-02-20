@@ -93,8 +93,8 @@ class Scenario:
         # os.system('make clean')
         # os.system('make clobber')
         os.system('rm .output')
-	# If you change the output directory for geoclaw in the mainfile change this _outut location
-        os.system('make .output _output="ModelOutput/geoclaw/"')
+        # If you change the output directory for geoclaw in the mainfile change this _outut location
+        os.system('make .output')
 
         # Calculate the inital loglikelihood
         sample_llh = self.feedForward.calculate_llh(self.gauges)
