@@ -7,7 +7,7 @@
 1                    =: mdtopofiles         
 
 
-'/tsunami/codykesler/tsunamibayes/Model_Scripts/Data/dtopo.tt3' 
+'/tsunami/codykesler/tsunamibayes/Model_Scripts/InputData/dtopo.tt3' 
   3   3   3
 
 0.2                  =: dt_max_dtopo        
