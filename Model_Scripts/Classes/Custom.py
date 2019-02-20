@@ -35,12 +35,12 @@ class Custom(MCMC):
         samplingMult = 50
         bandwidthScalar = 2
         # build longitude, latitude and strike prior
-        data = pd.read_excel('./Data/Fixed92kmFaultOffset50kmgapPts.xls')
+        data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xls')
         data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
         distrb0 = gaussian_kde(data.T)
 
         # build dip, rake, depth, length, width, and slip prior
-        vals = np.load('./Data/6_param_bootstrapped_data.npy')
+        vals = np.load('./InputData/6_param_bootstrapped_data.npy')
         distrb1 = gaussian_kde(vals.T)
         distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
 
@@ -95,7 +95,7 @@ class Custom(MCMC):
         """
         # set up sample point and fault array
         p1 = np.array([longitude, latitude])
-        fault_file = './Data/fault_array.npy'
+        fault_file = './InputData/fault_array.npy'
         fault_array = np.load(fault_file)
         # will store haversine distances for comparison
         dist_array = np.zeros(0.5 * len(fault_array))

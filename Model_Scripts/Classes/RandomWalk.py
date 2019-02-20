@@ -102,7 +102,7 @@ class RandomWalk(MCMC):
         """
         # set up sample point and fault array
         p1 = np.array([longitude, latitude])
-        fault_file = './Data/fault_array.npy'
+        fault_file = './InputData/fault_array.npy'
         fault_array = np.load(fault_file)
         # will store haversine distances for comparison
         dist_array = np.zeros(0.5 * len(fault_array))

@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from scipy import stats
 
-amp_data_path = "../../Data/amplification_data.npy"
+amp_data_path = "../../InputData/amplification_data.npy"
 
 #tohokuKDE() makes a single KDE for a single column of x and y values
 def tohokuKDE(onHeights, offHeights):

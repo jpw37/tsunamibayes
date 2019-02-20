@@ -10,11 +10,11 @@ from Gauge import from_json
 from tohoku import tohokuKDE
 
 
-gauges_path = "../Data/gauges.npy"
-amp_data_path = "../../Data/amplification_data.npy"
-height_llh_path = "../../Data/gaugeHeightLikelihood.npy"
-inun_llh_path = "../../Data/gaugeInundationLikelihood.npy"
-gauge_output = '../Data/gauge_llh_ht.png'
+gauges_path = "../InputData/gauges.npy"
+amp_data_path = "../../InputData/amplification_data.npy"
+height_llh_path = "../../InputData/gaugeHeightLikelihood.npy"
+inun_llh_path = "../../InputData/gaugeInundationLikelihood.npy"
+gauge_output = '../InputData/gauge_llh_ht.png'
 
 
 #function to compute the height likelihood

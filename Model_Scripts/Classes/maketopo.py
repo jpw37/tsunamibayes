@@ -51,7 +51,7 @@ def make_dtopo(params, makeplots=False):
     from clawpack.geoclaw import dtopotools
     import numpy
 
-    dtopo_fname = os.path.join('./Data/', "dtopo.tt3")
+    dtopo_fname = os.path.join('./InputData/', "dtopo.tt3")
 
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
@@ -85,7 +85,7 @@ def make_dtopo(params, makeplots=False):
         #y = numpy.linspace(-40, -30, 100)
         times = [1.]
 
-        with open('./PreRun/Data/model_bounds.txt') as json_file:
+        with open('./PreRun/InputData/model_bounds.txt') as json_file:
             model_bounds = json.load(json_file)
 
         xlower = model_bounds['xlower']

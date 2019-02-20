@@ -35,8 +35,8 @@ class Scenario:
         :param iterations: Int: Number of Times to run the model
         """
         # Clear previous files
-        os.system('rm ./Data/dtopo.tt3')
-        gauges_file_path = './PreRun/Data/gauges.npy'
+        os.system('rm ./InputData/dtopo.tt3')
+        gauges_file_path = './PreRun/InputData/gauges.npy'
 
         self.title = title
         self.iterations = iterations
@@ -115,7 +115,7 @@ class Scenario:
         for i in range(self.iterations):
 
             # Remove dtopo file for each run to generate a new one
-            os.system('rm ./Data/dtopo.tt3')
+            os.system('rm ./InputData/dtopo.tt3')
 
             # Get current Sample and draw a proposal sample from it
             sample_params = self.samples.get_sample()
