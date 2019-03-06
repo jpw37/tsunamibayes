@@ -13,7 +13,9 @@ from Prior import Prior
 class MCMC:
     """
     This Parent Class takes care of generating prior and calculating the probability given the prior and the observation
-    Random Walk and Independent Sampler Inherit from this interface
+    Random Walk and Independent Sampler Inherit from this interface.
+
+    Can be overridden by the Custom Class if custom = 1 in the inputs for custom calculations
     """
 
     def __init__(self):

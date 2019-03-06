@@ -17,6 +17,11 @@ class Prior:
         self.priors = priors
 
     def prior_logpdf(self, sample):
+        """
+        Calculate the prior log likelihood
+        :param sample:
+        :return:
+        """
         # prior for longitude, latitude, strike
         lpdf = self.priors[0].logpdf(sample[[7, 8, 0]])
 

@@ -263,6 +263,10 @@ class Samples:
         self.save_obvs()
 
     def get_debug(self):
+        """
+        Returns the last line of the debug file
+        :return:
+        """
         return self.mcmc.loc[len(self.mcmc) - 1]
 
     def save_obvs(self):
@@ -294,6 +298,9 @@ class Samples:
         self.okada.to_csv(self.save_path + "okada.csv")
         self.mcmc.to_csv(self.save_path + "mcmc.csv")
         self.observations.to_csv(self.save_path + "observations.csv")
+
+
+    # Below is old code to display the graphs from the say the samples were stored previously
 
     def read(self, todo):
         if todo == "read":

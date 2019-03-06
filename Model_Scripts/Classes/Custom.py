@@ -32,6 +32,10 @@ class Custom(MCMC):
         return self.map_to_okada(draws)
 
     def build_priors(self):
+        """
+        Builds the priors
+        :return:
+        """
         samplingMult = 50
         bandwidthScalar = 2
         # build longitude, latitude and strike prior

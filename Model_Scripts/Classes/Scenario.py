@@ -90,10 +90,8 @@ class Scenario:
         make_dtopo(self.init_guesses)
 
         # Run Geoclaw
-        # os.system('make clean')
-        # os.system('make clobber')
         os.system('rm .output')
-        # If you change the output directory for geoclaw in the mainfile change this _outut location
+        # If you change the output directory for geoclaw in the mainfile, change this _output="" location to same one
         os.system('make .output')
 
         # Calculate the inital loglikelihood

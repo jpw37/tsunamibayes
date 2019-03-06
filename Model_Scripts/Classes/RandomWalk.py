@@ -22,6 +22,13 @@ class RandomWalk(MCMC):
 
 
     def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
+        """
+        Calculate the acceptance probability given the llh for the current and proposed parameters
+
+        :param prop_prior_llh: proposed parameters likelihood
+        :param cur_prior_llh: current parameters likelihood
+        :return:
+        """
         change_llh = self.change_llh_calc()
 
         # Log-Likelihood

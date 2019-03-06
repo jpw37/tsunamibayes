@@ -100,9 +100,9 @@ class FeedForward:
         inundationValues = inundationLikelihoodTable[:, 0]
 
         for i, gauge in enumerate(gauges):
-            # arrivals
             print("GAUGE LOG: gauge", i, "(", gauge.longitude, ",", gauge.latitude, "): arrival =", arrivals[i],
                   ", heights =", heights[i])
+            # arrivals
             if (gauge.kind[0]):
                 p_i = gauge.arrival_dist.logpdf(arrivals[i])
                 llh += p_i
