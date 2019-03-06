@@ -78,28 +78,3 @@
    mx =          460   x = (   128.50000012106659      ,   128.88250012106644      )
    my =          460   y = (  -3.7999994188648381      ,  -3.4174994188649910      )
    dx, dy (meters/degrees) =    8.3333333333299999E-004   8.3333333333299999E-004
-    
-    /tsunami/codykesler/tsunamibayes/Model_Scripts/InputData/gauge10006_merged3.tt3                                                                       
-   itopotype =            3
-   minlevel, maxlevel =            1           3
-   tlow, thi =    0.0000000000000000        10000000000.000000     
-   mx =          700   x = (   128.50000012106659      ,   129.08250012106635      )
-   my =          700   y = (  -3.5999994188648392      ,  -3.0174994188650723      )
-   dx, dy (meters/degrees) =    8.3333333333299999E-004   8.3333333333299999E-004
-  
-   Ranking of topography files  finest to coarsest:            6           5           4           3           2           7           1
-  
-  
- --------------------------------------------
- SETQINIT:
- -------------
-   qinit_type = 0, no perturbation
-  
- --------------------------------------------
- Multilayer Parameters:
- ----------------------
-    check_richardson: T
-    richardson_tolerance:  0.94999999999999996     
-    eigen_method:           4
-    inundation_method:           2
-    dry_tolerance:   1.0000000000000000E-003   1.0000000000000000E-003
