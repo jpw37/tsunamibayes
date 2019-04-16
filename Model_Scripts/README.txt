@@ -8,6 +8,7 @@ This has all of the necessary functions for generating
 the guages and the FG MAX data files needed to run the program.
 
 Fill the notebook with your custom gauge recordings for your specified event and run all the cells.
+(Example is in the Template_For_PreRun_Gauges.ipynb)
 
 --------------------------  RUNNING THE PROGRAM --------------------------
 
@@ -50,7 +51,7 @@ The output for this program is complied into the Model_Scripts/ModelOutput Folde
 
 title_mcmc.csv - The master debug file
 title_smaples - The sampled parameter space parameters for each winning sample.
-                (This will be the same as okada is custom is not used)
+                (This will be the same as okada if custom is not used)
 title_okada.csv - The full okada parameters for each winning sample
 title_observations - Misc
 
