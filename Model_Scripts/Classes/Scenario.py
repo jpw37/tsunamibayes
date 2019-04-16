@@ -34,6 +34,11 @@ class Scenario:
         :param method: String: MCMC Method to use
         :param iterations: Int: Number of Times to run the model
         """
+
+        # Clean geoclaw files
+        os.system('make clean')
+        os.system('make clobber')
+
         # Clear previous files
         os.system('rm ./InputData/dtopo.tt3')
         gauges_file_path = './PreRun/InputData/gauges.npy'
