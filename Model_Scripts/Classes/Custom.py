@@ -12,7 +12,7 @@ from Prior import Prior
 
 class Custom(MCMC):
     """
-    Use this class to create custom build_prior, and drawing methods for the MCMC method
+    Use this class to create a custom prior and custom earthquake parameters MCMC draws
     When the Variable for use_custom is set to true, this class will be used as the main MCMC class for the Scenario
     """
     def __init__(self):
@@ -29,7 +29,7 @@ class Custom(MCMC):
 
         draws = prev_draw
 
-        return self.map_to_okada(draws)
+        return draws
 
     def build_priors(self):
         """
