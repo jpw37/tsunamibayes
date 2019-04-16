@@ -3,11 +3,8 @@ matplotlib.use('agg', warn=False, force=True)
 from matplotlib import pyplot as plt
 
 import numpy as np
-
-import json
 from Gauge import from_json
 from tohoku import tohokuKDE
-
 
 gauges_path = "../InputData/gauges.npy"
 amp_data_path = "../../InputData/amplification_data.npy"
