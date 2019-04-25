@@ -6,11 +6,11 @@ import numpy as np
 from Gauge import from_json
 from tohoku import tohokuKDE
 
-gauges_path = "../InputData/gauges.npy"
-amp_data_path = "../../InputData/amplification_data.npy"
-height_llh_path = "../../InputData/gaugeHeightLikelihood.npy"
-inun_llh_path = "../../InputData/gaugeInundationLikelihood.npy"
-gauge_output = '../InputData/gauge_llh_ht.png'
+gauges_path = "InputData/gauges.npy"
+amp_data_path = "../InputData/amplification_data.npy"
+height_llh_path = "../InputData/gaugeHeightLikelihood.npy"
+inun_llh_path = "../InputData/gaugeInundationLikelihood.npy"
+gauge_output = 'InputData/gauge_llh_ht.png'
 
 
 def buildGaugeLikelihoods(gaugeFile=gauges_path, tohokuFile=amp_data_path, heightFile=height_llh_path,
@@ -231,4 +231,4 @@ def trapRuleWeights(x):
     return wt
 
 
-buildGaugeLikelihoods()
+#buildGaugeLikelihoods()

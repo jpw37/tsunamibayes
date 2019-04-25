@@ -5,8 +5,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 from scipy import stats
 
-amp_data_path = "../../InputData/amplification_data.npy"
-
 #tohokuKDE() makes a single KDE for a single column of x and y values
 def tohokuKDE(onHeights, offHeights):
   #remove points where on or off shore heights are 0
@@ -15,21 +13,21 @@ def tohokuKDE(onHeights, offHeights):
   offHeights = offHeights[ onHeights != 0.0]
   onHeights  =  onHeights[ onHeights != 0.0]
 
-  ##remove points where on or off shore heights are >34.
-  ##this is purely for empirical reasons
-  #onHeights  =  onHeights[offHeights < 34.0]
-  #offHeights = offHeights[offHeights < 34.0]
+  #remove points where on or off shore heights are >25.
+  #this is purely for empirical reasons
+  onHeights  =  onHeights[offHeights < 25.0]
+  offHeights = offHeights[offHeights < 25.0]
   
   #build KDE
   values = np.vstack([onHeights, offHeights])
-  kernel = stats.gaussian_kde(values)#,bw_method=1.0)
+  kernel = stats.gaussian_kde(values,bw_method=0.5)
 
   return kernel;
 
 
 #makeTohokuKDEs() builds a height KDE for
 #each column of the amplification data
-def makeTohokuKDEs(flNm=amp_data_path):
+def makeTohokuKDEs(flNm='amplification_data.npy'):
   heightKdes     = []
   inundationKdes = []
 
@@ -47,7 +45,7 @@ def makeTohokuKDEs(flNm=amp_data_path):
 
 #plotTohokuKDEs() plots the height KDEs
 def plotTohokuKDEs():
-  heightKdes = makeTohokuKDEs(amp_data_path);
+  heightKdes = makeTohokuKDEs('amplification_data.npy');
   
   xmin =  0.0;
   xmax =  max([ kde.dataset[0,:].max() for kde in heightKdes ]);#max([ val[:,0].max() for val in vals ]);#amplification_data[:,0].max()
@@ -81,4 +79,3 @@ def plotTohokuKDEs():
     plt.savefig(pltNm+".pdf")
     print("wrote: "+pltNm+".{png,pdf}")
     plt.close()
-
