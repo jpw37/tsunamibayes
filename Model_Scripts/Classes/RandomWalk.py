@@ -112,7 +112,8 @@ class RandomWalk(MCMC):
         fault_file = './InputData/fault_array.npy'
         fault_array = np.load(fault_file)
         # will store haversine distances for comparison
-        dist_array = np.zeros(0.5 * len(fault_array))
+        #dist_array = np.zeros(0.5 * len(fault_array))
+        dist_array = np.zeros(len(fault_array)//2)
         for i in range(len(dist_array)):
             x = fault_array[2 * i]
             y = fault_array[2 * i + 1]
