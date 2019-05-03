@@ -125,7 +125,7 @@ class Custom(MCMC):
         """
         return draws
 
-    def make_observations(params, arrivals, heights):
+    def make_observations(self, params, arrivals, heights):
         """
         Computes the observations to save to the observations file based off the earthqauke parameters
         and the wave heights and arrival times at each gauge.  The default setting is to save the
@@ -136,7 +136,7 @@ class Custom(MCMC):
         :return: a list that provides the observations in the correct ordering
         """
         obvs = []
-        obvs[0] = self.compute_mw(self, params[1], params[2], params[4]) #first the magnitude
+        obvs[0] = self.compute_mw(params[1], params[2], params[4]) #first the magnitude
         for ii in range(len(arrivals)): #alternate arrival times with wave heights
             obvs.append(arrivals[ii])
             obvs.append(heights[ii])

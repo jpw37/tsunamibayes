@@ -272,7 +272,7 @@ class Samples:
         """
         return self.mcmc.loc[len(self.mcmc) - 1]
 
-    def save_obvs(obvs):
+    def save_obvs(self,obvs):
         """
         Saves the data for the observation files
         """
