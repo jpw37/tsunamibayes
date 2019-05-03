@@ -22,12 +22,13 @@ class Samples:
     This class handles the saving and loading for generated, samples, priors, and observations
     """
 
-    def __init__(self, scenario_title, init_guesses, sample_cols=None, proposal_cols=None):
+    def __init__(self, scenario_title, init_guesses, sample_cols=None, proposal_cols=None, observation_cols=None):
         """
 
         :param scenario_title:
         :param sample_cols:
         :param proposal_cols:
+        :param gauges:
         """
         self.scenario_title = scenario_title
         self.save_path = './ModelOutput/' + self.scenario_title + "_"
@@ -36,6 +37,10 @@ class Samples:
             sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
             proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude',
                              'P-Latitude']
+        if (not observation_cols):
+            observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height',
+                                'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival','gauge 4 height',
+                                'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
 
         okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude',
                       'O-Latitude']
@@ -45,8 +50,6 @@ class Samples:
                     ["Sample Prior", "Sample LLH", "Sample Posterior"] + \
                     ["Proposal Prior", "Proposal LLH", "Proposal Posterior"] + \
                     ["Wins", "Proposal Accept/Reject", "Acceptance ratio"]
-
-        observation_cols = ["Mw"]  # , "Gauge Max Wave Height", "Gauge Arrival Time"]
 
         self.samples = pd.DataFrame(columns=sample_cols)
         self.proposals = pd.DataFrame(columns=sample_cols)
@@ -269,25 +272,11 @@ class Samples:
         """
         return self.mcmc.loc[len(self.mcmc) - 1]
 
-    def save_obvs(self):
+    def save_obvs(obvs):
         """
         Saves the data for the observation files
         """
-        saves = self.compute_mw(*self.get_proposal()[['Length', 'Width', 'Slip']])
-        self.observations.loc[len(self.observations)] = saves
-
-    def compute_mw(self, L, W, slip, mu=30.e9):
-        """
-        Computes the Magnitude for a set of porposal parameters for saving
-        :param L: float: Length of Earthquake
-        :param W: float: Width of Earthquake
-        :param slip: float: Slip of Earthquake
-        :param mu:
-        :return: Magnitude of Earthquake
-        """
-        unitConv = 1e7  # convert from Nm to 1e-7 Nm
-        Mw = (2 / 3) * np.log10(L * W * slip * mu * unitConv) - 10.7
-        return Mw
+        self.observations.loc[len(self.observations)] = obvs
 
     def save_to_csv(self):
         """

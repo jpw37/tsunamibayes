@@ -112,15 +112,15 @@ class MCMC:
         guesses = None
         if init == "manual":
           # initial guesses taken from final sample of 260911_ca/001
-          strike = 4.75550982e+01
-          length = 5.45554071e+05
-          width = 2.36829768e+05
-          depth = 1.45425680e+04
-          slip = 1.50792243e+01
+          strike = 2.07067660e+02
+          length = 4.95504849e+05
+          width = 8.28010242e+04
+          depth = 3.20738808e+04
+          slip = 9.60388484e+00
           rake = 9.00000000e+01
-          dip = 1.50000000e+01
-          long = 1.32383631e+02
-          lat = -6.48340463e+00
+          dip = 1.30000000e+01
+          long = 1.30923166e+02
+          lat = -6.95948070e+00
 
           guesses = np.array([strike, length, width, depth, slip, rake, dip,
               long, lat])

@@ -24,7 +24,7 @@ class Scenario:
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
 
-    def __init__(self, title="Default_Title", use_custom=False, init='manual', rw_covariance=1.0, method="random_walk", iterations=1):
+    def __init__(self, title="Default_Title", use_custom=True, init='manual', rw_covariance=1.0, method="random_walk", iterations=1):
         """
         Initialize all the correct variables for Running this Scenario
         :param title: Title for Scinerio (ex: 1852)
@@ -60,21 +60,12 @@ class Scenario:
         # Get initial draw for the initial run of geoclaw
         self.init_guesses = self.mcmc.init_guesses(self.init)
         # Initialize the Samples Class
-        self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols)
+        self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols)
 
         self.mcmc.set_samples(self.samples)
 
         # Load the samples
         self.init_guesses = self.samples.get_sample()
-
-        # If using the custom methods map the initial guesses to okada parameters to save as initial sample
-        if (self.use_custom):
-            self.init_guesses = self.mcmc.map_to_okada(self.init_guesses)
-        # Save
-        self.samples.save_sample_okada(self.init_guesses)
-
-        # Build the prior for the model, based on the choice of MCMC
-        self.prior = self.mcmc.build_priors()
 
         # Make sure Pre-Run files have been generated
         if(os.path.isfile(gauges_file_path)):
@@ -84,6 +75,15 @@ class Scenario:
             self.setGeoClaw()
         else:
             raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
+
+        # If using the custom methods map the initial guesses to okada parameters to save as initial sample
+        if (self.use_custom):
+            self.init_guesses = self.mcmc.map_to_okada(self.init_guesses)
+        # Save
+        self.samples.save_sample_okada(self.init_guesses)
+
+        # Build the prior for the model, based on the choice of MCMC
+        self.prior = self.mcmc.build_priors()
 
     def setGeoClaw(self):
         """
@@ -100,9 +100,13 @@ class Scenario:
         os.system('make .output')
 
         # Calculate the inital loglikelihood
-        sample_llh = self.feedForward.calculate_llh(self.gauges)
+        sample_llh, sample_arr, sample_heights = self.feedForward.calculate_llh(self.gauges)
         # Save
         self.samples.save_sample_llh(sample_llh)
+
+        # Now Save the observations based off the sample and the arrival times & wave heights
+        obvs = self.mcmc.make_observations(self.init_guesses, sample_arr, sample_heights)
+        self.samples.save_obvs(obvs)
 
     def clean_up(self):
         """
@@ -139,12 +143,14 @@ class Scenario:
             self.feedForward.run_geo_claw(proposal_params)
 
             # Calculate the Log Likelihood for the new draw
-            proposal_llh = self.feedForward.calculate_llh(self.gauges)
+            proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
             sample_llh = self.samples.get_sample_llh()
             # Save
             print("_____proposal_llh_____", proposal_llh)
             self.samples.save_sample_llh(sample_llh)
             self.samples.save_proposal_llh(proposal_llh)
+            proposal_obvs = self.mcmc.make_observations(proposal_params, proposal_arr, proposal_heights)
+            self.samples.save_obvs(proposal_obvs)
 
             # Calculate prior probability for the current sample and proposed sample
             sample_prior_llh = self.prior.logpdf(sample_params)

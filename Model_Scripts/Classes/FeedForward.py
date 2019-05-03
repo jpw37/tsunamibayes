@@ -86,6 +86,8 @@ class FeedForward:
         Returns:
             llh (float): The sum of the log-likelihoods of the data of each
                 gauge in gauges.
+            arrivals (list): arrival times at each respective gauge
+            heights (list): arrival heights at each respective gauge
         """
         # names = []
         # for gauge in gauges:
@@ -143,4 +145,4 @@ class FeedForward:
 
                 llh += p_i
                 print("GAUGE LOG: gauge", i, " (inundation): logpdf +=", p_i)
-        return llh
+        return llh, arrivals, heights
