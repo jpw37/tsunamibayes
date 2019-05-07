@@ -99,9 +99,11 @@ class MCMC:
         distrb1 = gaussian_kde(vals_1852.T)
         distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
 
-        dists = {}
-        dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
-        dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
+        dists = [distrb0, distrb1]
+
+        # DEPRECATED?
+        # dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
+        # dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
 
         return Prior(dists)
 
