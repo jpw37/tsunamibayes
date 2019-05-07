@@ -91,7 +91,10 @@ class Prior(rv_continuous):
         """
         # CHECK ORDER OF PRODUCED RESULTS
         if size is None:
-            return np.hstack((self.priors[0].resample(), self.priors[1].resample()))
+            samples = np.hstack((self.priors[0].resample(),
+                                    self.priors[1].resample()))
+            return np.exp(samples) # since based on log
         else:
-            return np.vstack((self.priors[0].resample(size),
-                                self.priors[1].resample(size)))
+            samples = np.vstack((self.priors[0].resample(size),
+                                    self.priors[1].resample(size)))
+            return np.exp(samples) # since based on log
