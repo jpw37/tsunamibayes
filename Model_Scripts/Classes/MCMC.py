@@ -94,7 +94,9 @@ class MCMC:
 
         # build dip, rake, depth, length, width, and slip prior
         vals = np.load('./InputData/6_param_bootstrapped_data.npy')
-        distrb1 = gaussian_kde(vals.T)
+        vals_1852=vals[:,3:]
+        vals_1852 = np.log(vals_1852)
+        distrb1 = gaussian_kde(vals_1852.T)
         distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
 
         dists = {}

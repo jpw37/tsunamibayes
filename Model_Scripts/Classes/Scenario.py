@@ -181,4 +181,3 @@ class Scenario:
 
         self.samples.save_to_csv()
         return
-
