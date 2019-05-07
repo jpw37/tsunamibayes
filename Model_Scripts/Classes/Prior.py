@@ -3,7 +3,7 @@ Created By Cody Kesler
 Created 10/19/2018
 Property of BYU Mathematics Dept.
 """
-import numpy as np
+import numpy as np # testing
 
 class Prior:
     """
