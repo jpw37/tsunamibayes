@@ -6,6 +6,7 @@ Property of BYU Mathematics Dept.
 import pandas as pd
 from scipy.stats import gaussian_kde
 import numpy as np
+from scipy import stats
 
 from MCMC import MCMC
 from Prior import Prior
@@ -141,7 +142,8 @@ class Custom(MCMC):
         :return: a list that provides the observations in the correct ordering
         """
         obvs = []
-        obvs[0] = self.compute_mw(params[1], params[2], params[4]) #first the magnitude
+        #obvs[0] = self.compute_mw(params[1], params[2], params[4]) #first the magnitude
+        obvs.append(self.compute_mw(params[1], params[2], params[4])) #first the magnitude
         for ii in range(len(arrivals)): #alternate arrival times with wave heights
             obvs.append(arrivals[ii])
             obvs.append(heights[ii])
@@ -202,7 +204,7 @@ class Custom(MCMC):
         fault_file = './InputData/fault_array.npy'
         fault_array = np.load(fault_file)
         # will store haversine distances for comparison
-        dist_array = np.zeros(0.5 * len(fault_array))
+        dist_array = np.zeros(len(fault_array)//2)
         for i in range(len(dist_array)):
             x = fault_array[2 * i]
             y = fault_array[2 * i + 1]
