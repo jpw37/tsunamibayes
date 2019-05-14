@@ -127,9 +127,23 @@ class Custom(MCMC):
         """
         TODO: JARED AND JUSTIN map to okada space
         :param draws:
-        :return:
+        :return: okada_params
         """
-        return draws
+        long = draw["Longitude"]
+        lat = draw["Latitude"]
+        strike = draw["Strike"]
+        mw = get_magnitude(draws) # TODO: Implement this
+
+        length = from_error_bounds(mw) # TODO: Implement this
+        width = from_error_bounds(mw) # TODO: Implement this
+        slip = compute_slip(length, width, mw) # TODO: Implement this
+        rake = 90
+        dip = 13
+        depth = self.doctored_depth_1852_adhoc(long, lat, dip)
+        vals = np.array([strike, length, width, depth, slip, rake, dip, long, lat])
+        okada_params = pd.DataFrame(columns=self.sample_cols)
+        okada_params.loc[0] = vals
+        return okada_params
 
     def make_observations(self, params, arrivals, heights):
         """
