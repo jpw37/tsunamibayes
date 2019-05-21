@@ -87,6 +87,7 @@ class Custom(MCMC):
         Returns:
             draws (array): An array of the 9 parameter draws.
         """
+        """DEPRICATED 
         # Std deviations for each parameter, the mean is the current location
         # strike = .375
         # length = 4.e3
@@ -120,12 +121,13 @@ class Custom(MCMC):
         print("Random walk difference:", e)
         print("New draw:", prev_draw + e)
         new_draw = prev_draw + e
-
+        """
         """
         Here we make some fixed changes to the dip and depth according
         to a simple rule documented elsewhere. This fix will likely
         depreciate upon finishing proof of concept paper and work on 1852
         event.
+        """
         """
         # doctor dip to 20 degrees as discussed
         new_draw[6] = 20
@@ -134,7 +136,34 @@ class Custom(MCMC):
 
         # return appropriately doctored draw
         return new_draw
+        """
+        strike_std = 5.
+        longitude_std = 0.15 
+        latitude_std = 0.15 
+        magnitude_std = 0.1 #garret arbitraily chose this
 
+        # square for std => cov
+        cov = np.diag(np.square([strike_std, longitude_std, latitude_std, magnitude_std]))
+        mean = np.zeros(4)
+        cov *= 0.25 
+
+        # random draw from normal distribution
+        e = stats.multivariate_normal(mean, cov).rvs()
+
+        # does sample update normally
+        print("Random walk difference:", e)
+        print("New draw:", prev_draw + e)
+        
+        #prev_draw should be a pandas but we will change to arrays until we get it all worked out
+        temp = prev_draw + e
+
+        length = get_length(temp['Magnitude']) #these are floats so the hstack below will break
+        width = get_width(temp['Magnitude'])
+
+        return np.hstack((temp,length,width))
+
+
+        
     def build_priors(self):
         """
         Builds the priors
