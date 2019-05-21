@@ -21,6 +21,46 @@ class Custom(MCMC):
         self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
         self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
+    
+    def get_length(self, mag):
+	    """ Length is sampled from a truncated normal distribution that
+		is centered at the linear regression of log10(length_meters) and magnitude.
+        Linear regression is calculated from wellscoppersmith data.
+
+		Parameters:
+		mag (float): the magnitude of the earthquake
+
+		Returns:
+		length (float): a sample from the normal distribution centered on the regression
+	    """
+	    m1 = 0.6423327398       # slope
+	    c1 = 0.1357387698       # y intercept
+    	e1 = 0.4073300731874614 # error bar 
+
+	    #Calculate bounds on error distribution
+	    a = mag * m1 + c1 - e1  
+	    b = mag * m1 + c1 + e1
+	    return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(length)
+
+    def get_width(self, mag):
+	    """ Width is sampled from a truncated normal distribution that
+		is centered at the linear regression of log10(width_meters) and magnitude
+        Linear regression is calculated from wellscoppersmith data.
+
+		Parameters:
+		mag (float): the magnitude of the earthquake
+
+		Returns:
+		width (float): a sample from the normal distribution centered on the regression
+	    """
+	    m2 = 0.4832185193       # slope
+	    c2 = 0.1179508532       # y intercept
+	    e2 = 0.4093407095518345 # error bar 
+
+	    #Calculate bounds on error distribution
+	    a = mag * m2 + c2 - e2
+	    b = mag * m2 + c2 + e2
+	    return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width)
 
     def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
         """
@@ -129,18 +169,18 @@ class Custom(MCMC):
         :param draws:
         :return: okada_params
         """
-        long = draw["Longitude"]
+        lon = draw["Longitude"]
         lat = draw["Latitude"]
         strike = draw["Strike"]
-        mw = get_magnitude(draws) # TODO: Implement this
+        mw = draw["Magnitude"]
 
-        length = from_error_bounds(mw) # TODO: Implement this
-        width = from_error_bounds(mw) # TODO: Implement this
+        length = get_length(mw)
+        width = get_width(mw)
         slip = compute_slip(length, width, mw) # TODO: Implement this
         rake = 90
         dip = 13
-        depth = self.doctored_depth_1852_adhoc(long, lat, dip)
-        vals = np.array([strike, length, width, depth, slip, rake, dip, long, lat])
+        depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
+        vals = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
         okada_params = pd.DataFrame(columns=self.sample_cols)
         okada_params.loc[0] = vals
         return okada_params
