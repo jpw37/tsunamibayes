@@ -58,6 +58,23 @@ class Prior(rv_continuous):
 
         return lpdf
 
+    def _rvs(self, size=None):
+        """
+        Pick a random set of parameters out of the prior
+        :return:
+        """
+        # CHECK ORDER OF PRODUCED RESULTS
+        if size is None:
+            samples = np.vstack((self.priors[0].resample(1),
+                                    self.priors[1].resample(1)))
+            return np.exp(samples) # since based on log
+        else:
+            samples = np.vstack((self.priors[0].resample(size),
+                                    self.priors[1].resample(size)))
+            return np.exp(samples) # since based on log
+
+    def hello(self):
+        return "what da"
 
         # DEPRICATED
         # # prior for longitude, latitude, strike
@@ -66,7 +83,7 @@ class Prior(rv_continuous):
         # # prior for length, width, slip
         # # this is a lognormal so the logpdf is a little more complicated
         # # justin sent an email to jared on 01/04/2019 documenting the formula below
-        # lpdf += self.priors[1].logpdf(np.log(sample[[1, 2, 4]])) - np.log(sample[1]) - np.log(sample[2]) - np.log(
+        # lpdf += self.priors[ 1].logpdf(np.log(sample[[1, 2, 4]])) - np.log(sample[1]) - np.log(sample[2]) - np.log(
         #     sample[4])
         #
         # return lpdf
@@ -83,18 +100,3 @@ class Prior(rv_continuous):
     #     for prior in self.priors.keys():
     #         llh += prior.logpdf(params[self.priors[prior]].values)[0]
     #     return llh
-
-    def _rvs(self, size=None):
-        """
-        Pick a random set of parameters out of the prior
-        :return:
-        """
-        # CHECK ORDER OF PRODUCED RESULTS
-        if size is None:
-            samples = np.hstack((self.priors[0].resample(),
-                                    self.priors[1].resample()))
-            return np.exp(samples) # since based on log
-        else:
-            samples = np.vstack((self.priors[0].resample(size),
-                                    self.priors[1].resample(size)))
-            return np.exp(samples) # since based on log
