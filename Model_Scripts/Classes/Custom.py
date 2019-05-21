@@ -11,6 +11,8 @@ from scipy import stats
 from MCMC import MCMC
 from Prior import Prior
 
+from scipy.stats import truncnorm
+
 class Custom(MCMC):
     """
     Use this class to create a custom prior and custom earthquake parameters MCMC draws
@@ -23,7 +25,7 @@ class Custom(MCMC):
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
     
     def get_length(self, mag):
-	    """ Length is sampled from a truncated normal distribution that
+        """ Length is sampled from a truncated normal distribution that
 		is centered at the linear regression of log10(length_meters) and magnitude.
         Linear regression was calculated from wellscoppersmith data.
 
@@ -33,14 +35,14 @@ class Custom(MCMC):
 		Returns:
 		length (float): a sample from the normal distribution centered on the regression
 	    """
-	    m1 = 0.6423327398       # slope
-	    c1 = 0.1357387698       # y intercept
-    	e1 = 0.4073300731874614 # error bar 
-
-	    #Calculate bounds on error distribution
-	    a = mag * m1 + c1 - e1  
-	    b = mag * m1 + c1 + e1
-	    return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(length)
+        m1 = 0.6423327398       # slope
+        c1 = 0.1357387698       # y intercept
+        e1 = 0.4073300731874614 # Error bar
+        
+        #Calculate bounds on error distribution
+        a = mag * m1 + c1 - e1
+        b = mag * m1 + c1 + e1
+        return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length)
 
     def get_width(self, mag):
 	    """ Width is sampled from a truncated normal distribution that
