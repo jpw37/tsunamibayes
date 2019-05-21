@@ -25,7 +25,7 @@ class Custom(MCMC):
     def get_length(self, mag):
 	    """ Length is sampled from a truncated normal distribution that
 		is centered at the linear regression of log10(length_meters) and magnitude.
-        Linear regression is calculated from wellscoppersmith data.
+        Linear regression was calculated from wellscoppersmith data.
 
 		Parameters:
 		mag (float): the magnitude of the earthquake
@@ -45,7 +45,7 @@ class Custom(MCMC):
     def get_width(self, mag):
 	    """ Width is sampled from a truncated normal distribution that
 		is centered at the linear regression of log10(width_meters) and magnitude
-        Linear regression is calculated from wellscoppersmith data.
+        Linear regression was calculated from wellscoppersmith data.
 
 		Parameters:
 		mag (float): the magnitude of the earthquake
@@ -61,6 +61,19 @@ class Custom(MCMC):
 	    a = mag * m2 + c2 - e2
 	    b = mag * m2 + c2 + e2
 	    return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width)
+
+    def get_slip(length,width,mag):
+	    """Calculated from magnitude and rupture area, Ron Harris gave us the equation
+		    Parameters:
+		    Length (float): meters
+		    Width (float): meters
+		    mag (float): moment magnitude
+
+		    Return:
+		    slip (float): meters
+	    """
+	    rigidity = 10 #This is a placeholder: 21 may 2019
+	    return mag/(length*width*rigidity)
 
     def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
         """
@@ -205,7 +218,7 @@ class Custom(MCMC):
 
         length = get_length(mw)
         width = get_width(mw)
-        slip = compute_slip(length, width, mw) # TODO: Implement this
+        slip = get_slip(length, width, mw)
         rake = 90
         dip = 13
         depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
