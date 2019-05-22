@@ -23,7 +23,7 @@ class Custom(MCMC):
         self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
         self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
-    
+
     def get_length(self, mag):
         """ Length is sampled from a truncated normal distribution that
 		is centered at the linear regression of log10(length_meters) and magnitude.
@@ -38,7 +38,7 @@ class Custom(MCMC):
         m1 = 0.6423327398       # slope
         c1 = 0.1357387698       # y intercept
         e1 = 0.4073300731874614 # Error bar
-        
+
         #Calculate bounds on error distribution
         a = mag * m1 + c1 - e1
         b = mag * m1 + c1 + e1
@@ -57,7 +57,7 @@ class Custom(MCMC):
 	    """
 	    m2 = 0.4832185193       # slope
 	    c2 = 0.1179508532       # y intercept
-	    e2 = 0.4093407095518345 # error bar 
+	    e2 = 0.4093407095518345 # error bar
 
 	    #Calculate bounds on error distribution
 	    a = mag * m2 + c2 - e2
@@ -102,7 +102,7 @@ class Custom(MCMC):
         Returns:
             draws (array): An array of the 9 parameter draws.
         """
-        """DEPRICATED 
+        """DEPRICATED
         # Std deviations for each parameter, the mean is the current location
         # strike = .375
         # length = 4.e3
@@ -153,14 +153,14 @@ class Custom(MCMC):
         return new_draw
         """
         strike_std = 5.
-        longitude_std = 0.15 
-        latitude_std = 0.15 
+        longitude_std = 0.15
+        latitude_std = 0.15
         magnitude_std = 0.1 #garret arbitraily chose this
 
         # square for std => cov
         cov = np.diag(np.square([strike_std, longitude_std, latitude_std, magnitude_std]))
         mean = np.zeros(4)
-        cov *= 0.25 
+        cov *= 0.25
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
@@ -168,7 +168,7 @@ class Custom(MCMC):
         # does sample update normally
         print("Random walk difference:", e)
         print("New draw:", prev_draw + e)
-        
+
         #prev_draw should be a pandas but we will change to arrays until we get it all worked out
         temp = prev_draw + e
 
@@ -178,7 +178,7 @@ class Custom(MCMC):
         return np.hstack((temp,length,width))
 
 
-        
+
     def build_priors(self):
         """
         Builds the priors
@@ -205,7 +205,7 @@ class Custom(MCMC):
         # dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
         # dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip'] # 'Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip'
 
-        self.prior = Prior(dists)
+        return Prior(dists)
 
     def map_to_okada(self, draws):
         """
