@@ -65,17 +65,19 @@ class Custom(MCMC):
 	    return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width)
 
     def get_slip(self, length, width, mag):
-	    """Calculated from magnitude and rupture area, Ron Harris gave us the equation
-		    Parameters:
-		    Length (float): meters
-		    Width (float): meters
-		    mag (float): moment magnitude
-
-		    Return:
-		    slip (float): meters
-	    """
-	    rigidity = 10 #This is a placeholder: 21 may 2019
-	    return mag/(length*width*rigidity)
+        """Calculated from magnitude and rupture area, Ron Harris gave us the equation
+            Parameters:
+            Length (float): meters
+            Width (float): meters
+            mag (float): moment magnitude
+            
+            Return:
+            slip (float): meters
+            """
+        #Dr. Harris' rigidity constant : 32e11 dynes/cm^2 
+        mu = 3.2e15 # changing cm^2 to m^2
+        slip = 10**(3/2 * ( mag + 6.06 )) / (mu * length * width)
+        return slip
 
     def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
         """
