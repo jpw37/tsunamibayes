@@ -12,7 +12,7 @@ matplotlib.use('agg', warn=False, force=True)
 
 from matplotlib import pyplot as plt
 import pandas
-from pandas.tools.plotting import scatter_matrix
+from pandas.plotting import scatter_matrix
 import operator
 import pandas as pd
 
@@ -105,7 +105,7 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        self.okada.loc[len(self.okada)] = saves.tolist()
+        self.okada.loc[len(self.okada)] = saves.values.tolist()[0] #pandas DataFrame
 
     def get_sample_okada(self):
         """

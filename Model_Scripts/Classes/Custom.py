@@ -64,7 +64,7 @@ class Custom(MCMC):
 	    b = mag * m2 + c2 + e2
 	    return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width)
 
-    def get_slip(length,width,mag):
+    def get_slip(self, length, width, mag):
 	    """Calculated from magnitude and rupture area, Ron Harris gave us the equation
 		    Parameters:
 		    Length (float): meters
@@ -167,13 +167,13 @@ class Custom(MCMC):
 
         # does sample update normally
         print("Random walk difference:", e)
-        print("New draw:", prev_draw + e)
+        print("New draw:", prev_draw.values + e)
 
         #prev_draw should be a pandas but we will change to arrays until we get it all worked out
-        temp = prev_draw + e
+        temp = prev_draw.values + e
 
-        length = get_length(temp['Magnitude']) #these are floats so the hstack below will break
-        width = get_width(temp['Magnitude'])
+        length = self.get_length(temp['Magnitude']) #these are floats so the hstack below will break
+        width = self.get_width(temp['Magnitude'])
 
         return np.hstack((temp,length,width))
 
@@ -213,14 +213,14 @@ class Custom(MCMC):
         :param draws:
         :return: okada_params
         """
-        lon = draw["Longitude"]
-        lat = draw["Latitude"]
-        strike = draw["Strike"]
-        mw = draw["Magnitude"]
-
-        length = get_length(mw)
-        width = get_width(mw)
-        slip = get_slip(length, width, mw)
+        lon = draws["Longitude"]
+        lat = draws["Latitude"]
+        strike = draws["Strike"]
+        #mw = draw["Magnitude"]
+        mw = 8.0 #PLACEHOLDER
+        length = self.get_length(mw)
+        width = self.get_width(mw)
+        slip = self.get_slip(length, width, mw)
         rake = 90
         dip = 13
         depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
