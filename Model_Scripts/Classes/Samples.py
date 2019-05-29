@@ -54,10 +54,11 @@ class Samples:
         self.samples = pd.DataFrame(columns=sample_cols)
         self.proposals = pd.DataFrame(columns=sample_cols)
         self.okada = pd.DataFrame(columns=okada_cols)
+        self.proposal_okada = pd.DataFrame(columns=okada_cols)
         self.mcmc = pd.DataFrame(columns=mcmc_cols)
         self.observations = pd.DataFrame(columns=observation_cols)
 
-        self.samples.loc[len(self.samples)] = init_guesses
+        self.samples.loc[len(self.samples)] = init_guesses.values.tolist()[0]
 
         self.wins = 1
         self.trials = 1
@@ -91,7 +92,12 @@ class Samples:
         Parameters Proposal is row 0 of the 'proposals' dataframe
         :param saves: list: proposal parameters
         """
-        self.proposals.loc[0] = saves.tolist()
+        #print("save_proposal():")
+        #print("saves is:")
+        #print(saves)
+        #print("proposals are:")
+        #print(self.proposals)
+        self.proposals.loc[0] = saves.values.tolist()[0] #Pandas dataframe
 
     def get_proposal(self):
         """
@@ -105,7 +111,8 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        self.okada.loc[len(self.okada)] = saves.values.tolist()[0] #pandas DataFrame
+        #self.okada.loc[len(self.okada)] = saves.values.tolist()[0] #pandas DataFrame
+        self.okada.loc[len(self.okada)] = saves #not a pandas DataFrame :-)
 
     def get_sample_okada(self):
         """
@@ -121,14 +128,19 @@ class Samples:
         :param saves: list: okada parameters
         :return:
         """
-        self.proposals.loc[1] = saves.tolist()
+        #print("save_proposal_okada():")
+        #print("saves is:")
+        #print(saves)
+        #print("proposals are:")
+        #print(self.proposals)
+        self.proposal_okada.loc[0] = saves
 
     def get_proposal_okada(self):
         """
         Returns the 9 okada parameters for the proposal
         :return: dataframe row: 9 okada parameters for the proposal
         """
-        return self.proposals.loc[1]
+        return self.proposal_okada.loc[0]
 
     def save_sample_llh(self, llh):
         """

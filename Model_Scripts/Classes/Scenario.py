@@ -92,7 +92,7 @@ class Scenario:
         """
         # Set things up
         get_topo()
-        make_dtopo(self.init_guesses)
+        make_dtopo(self.mcmc.map_to_okada(self.init_guesses))
 
         # Run Geoclaw
         os.system('rm .output')
@@ -128,16 +128,27 @@ class Scenario:
             sample_params = self.samples.get_sample()
             proposal_params = self.mcmc.draw(sample_params)
 
+            #print("proposal_params after draw():")
+            #print(proposal_params)
+
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
+
+            #print("proposal_params after save_proposal():")
+            #print(proposal_params)
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
                 proposal_params = self.mcmc.map_to_okada(proposal_params)
+            else:
+                proposal_params = proposal_params
+
+            #print("proposal_params:")
+            #print(proposal_params)
 
             # Save Proposal
             self.samples.save_proposal_okada(proposal_params)
-            proposal_params = self.samples.get_proposal_okada()
+            #proposal_params = self.samples.get_proposal_okada()
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params)

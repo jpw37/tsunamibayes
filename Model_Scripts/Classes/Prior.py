@@ -44,17 +44,36 @@ class Prior(rv_continuous):
         :param sample:
         :return:
         """
+        #9-parameter version
+        ##make sure that sample is rejected if length, width, depth, or slip are negative
+        #if sample[1] < 0 or sample[2] < 0 or sample[3] < 0 or sample[4] < 0:
+        #    lpdf = np.NINF
+        #else:
+        #    #prior for longitude, latitude, strike
+        #    lpdf = self.priors[0].logpdf(sample[[7,8,0]])
+        #    #prior for length, width, slip
+        #    #this is a lognormal so the logpdf is a little more complicated
+        #    #justin sent an email to jared on 01/04/2019 documenting the formula below
+        #    lpdf += self.priors[1].logpdf( np.log(sample[[1,2,4]]) ) - np.log(
+        #        sample[1]) - np.log(sample[2]) - np.log(sample[4])
         #make sure that sample is rejected if length, width, depth, or slip are negative
-        if sample[1] < 0 or sample[2] < 0 or sample[3] < 0 or sample[4] < 0:
+
+        #GRL-style 6-parameter sampling
+        lon    = sample.ix[0,"Longitude"]
+        lat    = sample.ix[0,"Latitude"]
+        strike = sample.ix[0,"Strike"]
+        length = sample.ix[0,"Length"]
+        width  = sample.ix[0,"Width"]
+        slip   = sample.ix[0,"Slip"]
+        if length < 0 or width < 0 or slip < 0:
             lpdf = np.NINF
         else:
             #prior for longitude, latitude, strike
-            lpdf = self.priors[0].logpdf(sample[[7,8,0]])
+            lpdf = self.priors[0].logpdf(np.array([lon,lat,strike]))
             #prior for length, width, slip
             #this is a lognormal so the logpdf is a little more complicated
             #justin sent an email to jared on 01/04/2019 documenting the formula below
-            lpdf += self.priors[1].logpdf( np.log(sample[[1,2,4]]) ) - np.log(
-                sample[1]) - np.log(sample[2]) - np.log(sample[4])
+            lpdf += self.priors[1].logpdf( np.log(np.array([length,width,slip])) ) - np.log( length ) - np.log(width) - np.log(slip)
 
         return lpdf
 

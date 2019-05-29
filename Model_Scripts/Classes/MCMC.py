@@ -84,83 +84,25 @@ class MCMC:
     def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
         pass
 
-    def build_priors(self):
-        samplingMult = 50
-        bandwidthScalar = 2
-        # build longitude, latitude and strike prior
-        data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xls')
-        data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
-        distrb0 = gaussian_kde(data.T)
-
-        # build dip, rake, depth, length, width, and slip prior
-        vals = np.load('./InputData/6_param_bootstrapped_data.npy')
-        vals_1852=vals[:,3:]
-        vals_1852 = np.log(vals_1852)
-        distrb1 = gaussian_kde(vals_1852.T)
-        distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
-
-        dists = [distrb0, distrb1]
-
-        # DEPRECATED?
-        # dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
-        # dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
-
-        return Prior(dists)
-
-    def init_guesses(self, init):
-        """
-        Initialize the sample parameters
-        :param init: String: (manual, random or restart)
-        :return:
-        """
-        guesses = None
-        if init == "manual":
-          # initial guesses taken from sample 49148 of 20190320_chains/007
-          strike =  1.90000013e+02
-          length =  1.33325981e+05
-          width  =  8.45009646e+04
-          depth  =  5.43529311e+04
-          slip   =  2.18309283e+01
-          rake   =  9.00000000e+01
-          dip    =  1.30000000e+01
-          long   =  1.30850829e+02
-          lat    = -5.45571375e+00
-
-          guesses = np.array([strike, length, width, depth, slip, rake, dip,
-              long, lat])
-
-        elif init == "random":
-            # draw initial sample at random from prior (kdes)
-            priors = self.build_priors()
-            p0 = priors[0].resample(1)[:, 0]
-            longitude = p0[0]
-            latitude = p0[1]
-            strike = p0[2]
-
-            # draw from prior but redraw if values are unphysical
-            length = -1.
-            width = -1.
-            depth = -1.
-            slip = -1.
-            rake = -1.
-            dip = -1.
-            while length <= 0. or width <= 0. or depth <= 0. or slip <= 0.:
-                p1 = priors[1].resample(1)[:, 0]
-                length = p1[3]
-                width = p1[4]
-                depth = p1[2]
-                slip = p1[5]
-                rake = p1[1]
-                dip = p1[0]
-
-            guesses = np.array([strike, length, width, depth, slip, rake, dip,
-                                     longitude, latitude])
-
-        elif init == "restart":
-            guesses = np.load('../samples.npy')[0][:9]
-
-            # np.save("guesses.npy", self.guesses)
-            print("initial sample is:")
-            print(guesses)
-
-        return guesses
+#    def build_priors(self):
+#        samplingMult = 50
+#        bandwidthScalar = 2
+#        # build longitude, latitude and strike prior
+#        data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xls')
+#        data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
+#        distrb0 = gaussian_kde(data.T)
+#
+#        # build dip, rake, depth, length, width, and slip prior
+#        vals = np.load('./InputData/6_param_bootstrapped_data.npy')
+#        vals_1852=vals[:,3:]
+#        vals_1852 = np.log(vals_1852)
+#        distrb1 = gaussian_kde(vals_1852.T)
+#        distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
+#
+#        dists = [distrb0, distrb1]
+#
+#        # DEPRECATED?
+#        # dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
+#        # dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
+#
+#        return Prior(dists)

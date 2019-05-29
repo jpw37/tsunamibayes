@@ -20,8 +20,10 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
-        self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
+        #self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
+        #self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
+        self.sample_cols = ['Strike', 'Length', 'Width', 'Slip', 'Longitude', 'Latitude']
+        self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Slip', 'P-Logitude', 'P-Latitude']
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
 
     def get_length(self, mag):
@@ -104,30 +106,17 @@ class Custom(MCMC):
         Returns:
             draws (array): An array of the 9 parameter draws.
         """
-        """DEPRICATED
         # Std deviations for each parameter, the mean is the current location
-        # strike = .375
-        # length = 4.e3
-        # width = 3.e3
-        # depth = .1875
-        # slip = .01
-        # rake = .25
-        # dip = .0875
-        # longitude = .025
-        # latitude = .01875
         strike_std = 5.  # strike_std    = 1.
         length_std = 5.e3  # length_std    = 2.e4
         width_std = 2.e3  # width_std     = 1.e4
-        depth_std = 1.e3  # depth_std     = 2.e3
         slip_std = 0.5  # slip_std      = 0.5
-        rake_std = 0.5  # rake_std      = 0.5
-        dip_std = 0.1  # dip_std       = 0.1
         longitude_std = 0.15  # longitude_std = .025
         latitude_std = 0.15  # latitude_std  = .025
-        mean = np.zeros(9)
+        mean = np.zeros(6)
         # square for std => cov
-        cov = np.diag(np.square([strike_std, length_std, width_std, depth_std, slip_std, rake_std,
-                                 dip_std, longitude_std, latitude_std]))
+        cov = np.diag(np.square([strike_std, length_std, width_std, slip_std, 
+                                 longitude_std, latitude_std]))
 
         cov *= 0.25;
 
@@ -135,49 +124,40 @@ class Custom(MCMC):
         e = stats.multivariate_normal(mean, cov).rvs()
 
         # does sample update normally
+        vals = prev_draw.values + e
+        new_draw = pd.DataFrame(columns=self.sample_cols)
+        new_draw.loc[0] = vals
         print("Random walk difference:", e)
-        print("New draw:", prev_draw + e)
-        new_draw = prev_draw + e
-        """
-        """
-        Here we make some fixed changes to the dip and depth according
-        to a simple rule documented elsewhere. This fix will likely
-        depreciate upon finishing proof of concept paper and work on 1852
-        event.
-        """
-        """
-        # doctor dip to 20 degrees as discussed
-        new_draw[6] = 20
-        # doctor depth according to adhoc fix
-        new_draw[3] = self.doctored_depth_1852_adhoc(new_draw[7], new_draw[8], new_draw[6])
+        print("New draw:", new_draw)
 
-        # return appropriately doctored draw
+        # return new draw
         return new_draw
-        """
-        strike_std = 5.
-        longitude_std = 0.15
-        latitude_std = 0.15
-        magnitude_std = 0.1 #garret arbitraily chose this
 
-        # square for std => cov
-        cov = np.diag(np.square([strike_std, longitude_std, latitude_std, magnitude_std]))
-        mean = np.zeros(4)
-        cov *= 0.25
+        #stub for magnitude sampling
+        #strike_std = 5.
+        #longitude_std = 0.15
+        #latitude_std = 0.15
+        #magnitude_std = 0.1 #garret arbitraily chose this
 
-        # random draw from normal distribution
-        e = stats.multivariate_normal(mean, cov).rvs()
+        ## square for std => cov
+        #cov = np.diag(np.square([strike_std, longitude_std, latitude_std, magnitude_std]))
+        #mean = np.zeros(4)
+        #cov *= 0.25
 
-        # does sample update normally
-        print("Random walk difference:", e)
-        print("New draw:", prev_draw.values + e)
+        ## random draw from normal distribution
+        #e = stats.multivariate_normal(mean, cov).rvs()
 
-        #prev_draw should be a pandas but we will change to arrays until we get it all worked out
-        temp = prev_draw.values + e
+        ## does sample update normally
+        #print("Random walk difference:", e)
+        #print("New draw:", prev_draw.values + e)
 
-        length = self.get_length(temp['Magnitude']) #these are floats so the hstack below will break
-        width = self.get_width(temp['Magnitude'])
+        ##prev_draw should be a pandas but we will change to arrays until we get it all worked out
+        #temp = prev_draw.values + e
 
-        return np.hstack((temp,length,width))
+        #length = self.get_length(temp['Magnitude']) #these are floats so the hstack below will break
+        #width = self.get_width(temp['Magnitude'])
+
+        #return np.hstack((temp,length,width))
 
 
 
@@ -215,20 +195,30 @@ class Custom(MCMC):
         :param draws:
         :return: okada_params
         """
-        lon = draws["Longitude"]
-        lat = draws["Latitude"]
-        strike = draws["Strike"]
-        #mw = draw["Magnitude"]
-        mw = 8.0 #PLACEHOLDER
-        length = self.get_length(mw)
-        width = self.get_width(mw)
-        slip = self.get_slip(length, width, mw)
+        #GRL-style 6-parameter sampling
+        lon    = draws.ix[0,"Longitude"]
+        lat    = draws.ix[0,"Latitude"]
+        strike = draws.ix[0,"Strike"]
+        length = draws.ix[0,"Length"]
+        width  = draws.ix[0,"Width"]
+        slip   = draws.ix[0,"Slip"]
+
+        ##stub for magnitude sampling
+        ##mw = draw["Magnitude"]
+        #mw = 8.0 #PLACEHOLDER
+        #length = self.get_length(mw)
+        #width = self.get_width(mw)
+        #slip = self.get_slip(length, width, mw)
+
+        #deterministic okada parameters
         rake = 90
         dip = 13
         depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
-        vals = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
-        okada_params = pd.DataFrame(columns=self.sample_cols)
-        okada_params.loc[0] = vals
+
+        #vals = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
+        #okada_params = pd.DataFrame(columns=self.sample_cols)
+        #okada_params.loc[0] = vals
+        okada_params = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
         return okada_params
 
     def make_observations(self, params, arrivals, heights):
@@ -315,3 +305,77 @@ class Custom(MCMC):
 
         # need to add trig correction
         return (20000 + dist * np.tan(20 * np.pi / 180))
+
+    def init_guesses(self, init):
+        """
+        Initialize the sample parameters
+        :param init: String: (manual, random or restart)
+        :return:
+        """
+        guesses = None
+        if init == "manual":
+            # initial guesses taken from sample 49148 of 20190320_chains/007
+            #strike =  1.90000013e+02
+            #length =  1.33325981e+05
+            #width  =  8.45009646e+04
+            #depth  =  5.43529311e+04
+            #slip   =  2.18309283e+01
+            #rake   =  9.00000000e+01
+            #dip    =  1.30000000e+01
+            #long   =  1.30850829e+02
+            #lat    = -5.45571375e+00
+  
+            #guesses = np.array([strike, length, width, depth, slip, rake, dip,
+            #  long, lat])
+            strike =  1.90000013e+02
+            length =  1.33325981e+05
+            width  =  8.45009646e+04
+            slip   =  2.18309283e+01
+            lon    =  1.30850829e+02
+            lat    = -5.45571375e+00
+  
+            #guesses = np.array([strike, length, width, slip, long, lat])
+            vals = np.array([strike, length, width, slip, lon, lat])
+            guesses = pd.DataFrame(columns=self.sample_cols)
+            guesses.loc[0] = vals
+
+        elif init == "random":
+            # draw initial sample at random from prior (kdes)
+            priors = self.build_priors()
+            p0 = priors[0].resample(1)[:, 0]
+            longitude = p0[0]
+            latitude = p0[1]
+            strike = p0[2]
+
+            # draw from prior but redraw if values are unphysical
+            length = -1.
+            width = -1.
+            depth = -1.
+            slip = -1.
+            rake = -1.
+            dip = -1.
+            while length <= 0. or width <= 0. or depth <= 0. or slip <= 0.:
+                p1 = priors[1].resample(1)[:, 0]
+                length = p1[3]
+                width = p1[4]
+                depth = p1[2]
+                slip = p1[5]
+                rake = p1[1]
+                dip = p1[0]
+
+            #guesses = np.array([strike, length, width, depth, slip, rake, dip,
+            #                         longitude, latitude])
+            vals = np.array([strike, length, width, slip, lon, lat])
+            guesses = pd.DataFrame(columns=self.sample_cols)
+            guesses.loc[0] = vals
+            raise Exception('random initialization not currently tested')
+
+        elif init == "restart":
+            #guesses = np.load('../samples.npy')[0][:9]
+
+            ## np.save("guesses.npy", self.guesses)
+            #print("initial sample is:")
+            #print(guesses)
+            raise Exception('restart initialization not currently implemented')
+
+        return guesses
