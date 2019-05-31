@@ -170,36 +170,36 @@ class Scenario:
             self.samples.save_obvs(proposal_obvs)
 
             # Calculate prior probability for the current sample and proposed sample
-            #sample_prior_llh = 0.0
-            #proposal_prior_llh = 0.0
-            sample_prior_llh = self.prior.logpdf(sample_params)
-            proposal_prior_llh = self.prior.logpdf(proposal_params.loc[0])
-            #print("proposal_prior_llh is:")
-            #print(proposal_prior_llh)
-            #print("sample_prior_llh is:")
-            #print(sample_prior_llh)
+            #sample_prior_lpdf = 0.0
+            #proposal_prior_lpdf = 0.0
+            sample_prior_lpdf = self.prior.logpdf(sample_params)
+            proposal_prior_lpdf = self.prior.logpdf(proposal_params)
+            #print("proposal_prior_lpdf is:")
+            #print(proposal_prior_lpdf)
+            #print("sample_prior_lpdf is:")
+            #print(sample_prior_lpdf)
 
             # Save
-            self.samples.save_sample_prior_llh(sample_prior_llh)
-            self.samples.save_proposal_prior_llh(proposal_prior_llh)
+            self.samples.save_sample_prior_lpdf(sample_prior_lpdf)
+            self.samples.save_proposal_prior_lpdf(proposal_prior_lpdf)
 
-            #print("proposal_prior_llh is:")
-            #print(proposal_prior_llh)
-            #print("sample_prior_llh is:")
-            #print(sample_prior_llh)
+            #print("proposal_prior_lpdf is:")
+            #print(proposal_prior_lpdf)
+            #print("sample_prior_lpdf is:")
+            #print(sample_prior_lpdf)
 
             # Calculate the acceptance probability of the given proposal
-            accept_prob = self.mcmc.acceptance_prob(sample_prior_llh, proposal_prior_llh)
+            accept_prob = self.mcmc.acceptance_prob(sample_prior_lpdf, proposal_prior_lpdf)
 
             # Decide to accept or reject the proposal and save
             self.mcmc.accept_reject(accept_prob)
 
             # Calculate the sample and proposal posterior log likelihood
-            sample_post_llh = sample_prior_llh + sample_llh
-            proposal_post_llh = proposal_prior_llh + proposal_llh
+            sample_post_lpdf = sample_prior_lpdf + sample_llh
+            proposal_post_lpdf = proposal_prior_lpdf + proposal_llh
             # Save
-            self.samples.save_sample_posterior_llh(sample_post_llh)
-            self.samples.save_proposal_posterior_llh(proposal_post_llh)
+            self.samples.save_sample_posterior_lpdf(sample_post_lpdf)
+            self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
 
             # Saves the stored data for debugging purposes
             self.samples.save_debug()

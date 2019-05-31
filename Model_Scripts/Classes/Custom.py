@@ -81,30 +81,26 @@ class Custom(MCMC):
         slip = 10**(3/2 * ( mag + 6.06 )) / (mu * length * width)
         return slip
 
-    def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
+    def acceptance_prob(self, cur_prior_lpdf, prop_prior_lpdf):
         """
-        Calculate the acceptance probability given the llh for the current and proposed parameters
+        Calculate the acceptance probability given the lpdf for the current and proposed parameters
 
-        :param prop_prior_llh: proposed parameters likelihood
-        :param cur_prior_llh: current parameters likelihood
+        :param prop_prior_lpdf: proposed parameters likelihood
+        :param cur_prior_lpdf: current parameters likelihood
         :return:
         """
         change_llh = self.change_llh_calc()
 
         # Log-Likelihood
-        change_prior_llh = prop_prior_llh - cur_prior_llh
+        change_prior_lpdf = prop_prior_lpdf - cur_prior_lpdf
 
-        print("prop_prior_llh is:")
-        print(prop_prior_llh)
-        print("cur_prior_llh is:")
-        print(cur_prior_llh)
-        #print("change_llh is:")
-        #print(change_llh)
-        #print("change_prior_llh is:")
-        #print(change_prior_llh)
+        print("prop_prior_lpdf is:")
+        print(prop_prior_lpdf)
+        print("cur_prior_lpdf is:")
+        print(cur_prior_lpdf)
 
         # Note we use np.exp(new - old) because it's the log-likelihood
-        return min(1, np.exp(change_llh+change_prior_llh))
+        return min(1, np.exp(change_llh+change_prior_lpdf))
 
     def draw(self, prev_draw):
         """
@@ -139,8 +135,8 @@ class Custom(MCMC):
         print("Random walk difference:", e)
         print("New draw:", new_draw)
 
-        # return new draw
-        return new_draw
+        # return new draw (pandas series)
+        return new_draw.loc[0]
 
         #stub for magnitude sampling
         #strike_std = 5.
@@ -176,9 +172,9 @@ class Custom(MCMC):
         :return:
         """
         samplingMult = 50
-        bandwidthScalar = 2
+        bandwidthScalar = 2.0
         # build longitude, latitude and strike prior
-        data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xls')
+        data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xlsx')
         data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
         distrb0 = gaussian_kde(data.T)
 
@@ -205,12 +201,12 @@ class Custom(MCMC):
         :return: okada_params
         """
         #GRL-style 6-parameter sampling
-        lon    = draws.ix[0,"Longitude"]
-        lat    = draws.ix[0,"Latitude"]
-        strike = draws.ix[0,"Strike"]
-        length = draws.ix[0,"Length"]
-        width  = draws.ix[0,"Width"]
-        slip   = draws.ix[0,"Slip"]
+        lon    = draws["Longitude"]
+        lat    = draws["Latitude"]
+        strike = draws["Strike"]
+        length = draws["Length"]
+        width  = draws["Width"]
+        slip   = draws["Slip"]
 
         ##stub for magnitude sampling
         ##mw = draw["Magnitude"]
@@ -242,7 +238,7 @@ class Custom(MCMC):
         """
         obvs = []
         #obvs[0] = self.compute_mw(params[1], params[2], params[4]) #first the magnitude
-        obvs.append(self.compute_mw(params.ix[0,"Length"], params.ix[0,"Width"], params.ix[0,"Slip"])) #first the magnitude
+        obvs.append(self.compute_mw(params["Length"], params["Width"], params["Slip"])) #first the magnitude
         for ii in range(len(arrivals)): #alternate arrival times with wave heights
             obvs.append(arrivals[ii])
             obvs.append(heights[ii])
@@ -298,22 +294,61 @@ class Custom(MCMC):
         on the wrong side seems nontrivial, so we have not implemented
         a check for this here.
         """
-        # set up sample point and fault array
-        p1 = np.array([longitude, latitude])
+        ## set up sample point and fault array
+        #p1 = np.array([longitude, latitude])
+        #fault_file = './InputData/fault_array.npy'
+        #fault_array = np.load(fault_file)
+        ## will store haversine distances for comparison
+        #dist_array = np.zeros(len(fault_array)//2)
+        #for i in range(len(dist_array)):
+        #    x = fault_array[2 * i]
+        #    y = fault_array[2 * i + 1]
+        #    p2 = np.array([x, y])
+        #    dist_array[i] = self.haversine_distance(p1, p2)
+
+        #dist = np.amin(dist_array)
+
+        ## need to add trig correction
+        #return (20000 + dist * np.tan(20 * np.pi / 180))
+        #set up sample point and fault array
+        p1 = np.array([longitude,latitude])
         fault_file = './InputData/fault_array.npy'
         fault_array = np.load(fault_file)
-        # will store haversine distances for comparison
+        #will store haversine distances for comparison
         dist_array = np.zeros(len(fault_array)//2)
         for i in range(len(dist_array)):
-            x = fault_array[2 * i]
-            y = fault_array[2 * i + 1]
-            p2 = np.array([x, y])
+            x = fault_array[2*i]
+            y = fault_array[2*i + 1]
+            p2 = np.array([x,y])
             dist_array[i] = self.haversine_distance(p1, p2)
 
-        dist = np.amin(dist_array)
+        dist    = np.amin(dist_array)
+        distind = np.argmin(dist_array)
+        arcpt = np.array([fault_array[2*distind],fault_array[2*distind + 1]])
 
-        # need to add trig correction
-        return (20000 + dist * np.tan(20 * np.pi / 180))
+        #arcmidpt = np.array([129.,-6.])
+        #dist_array = np.zeros(len(fault_array)//2)
+        #for i in range(len(dist_array)):
+        #    x = fault_array[2*i]
+        #    y = fault_array[2*i + 1]
+        #    p2 = np.array([x,y])
+        #    dist_array[i] = self.haversine_distance(arcmidpt, p2)
+        #midptdist = np.amin(dist_array)
+        
+        #midpoint of prior arc
+        arcmidpt = np.array([129.,-6.])
+        #distance between midpoint and point
+        distpt = self.haversine_distance(p1, arcmidpt)
+        #distance between midpoint and arc
+        distarc = self.haversine_distance(arcpt, arcmidpt)
+        slope = 1. if distpt < distarc else -1.
+        print("distpt is:")
+        print(distpt)
+        print("distarc is:")
+        print(distarc)
+
+        #need to add trig correction
+        return (21316. + slope*dist*np.tan(dip*np.pi/180))
 
     def init_guesses(self, init):
         """

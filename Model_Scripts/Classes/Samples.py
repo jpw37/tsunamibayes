@@ -65,12 +65,12 @@ class Samples:
         self.total_sample_wins = 0
 
         self.sample_llh = None
-        self.sample_prior_llh = None
-        self.sample_posterior_llh = None
+        self.sample_prior_lpdf = None
+        self.sample_posterior_lpdf = None
 
         self.proposal_llh = None
-        self.proposal_prior_llh = None
-        self.proposal_posterior_llh = None
+        self.proposal_prior_lpdf = None
+        self.proposal_posterior_lpdf = None
 
     def save_sample(self, saves):
         """
@@ -171,65 +171,65 @@ class Samples:
         """
         return self.proposal_llh
 
-    def save_sample_prior_llh(self, saves):
+    def save_sample_prior_lpdf(self, saves):
         """
         Saves the sample prior loglikelihood
         :param saves:
         :return:
         """
-        self.sample_prior_llh = saves
+        self.sample_prior_lpdf = saves
 
-    def get_sample_prior_llh(self):
+    def get_sample_prior_lpdf(self):
         """
         Returns the sample prior loglikelihood
         :return:
         """
-        return self.sample_prior_llh
+        return self.sample_prior_lpdf
 
-    def save_proposal_prior_llh(self, saves):
+    def save_proposal_prior_lpdf(self, saves):
         """
          Saves the proposal prior loglikelihood
         :param saves:
         :return:
         """
-        self.proposal_prior_llh = saves
+        self.proposal_prior_lpdf = saves
 
-    def get_proposal_prior_llh(self):
+    def get_proposal_prior_lpdf(self):
         """
          Returns the sample prior loglikelihood
         :return:
         """
-        return self.proposal_prior_llh
+        return self.proposal_prior_lpdf
 
-    def save_sample_posterior_llh(self, saves):
+    def save_sample_posterior_lpdf(self, saves):
         """
          Saves the sample posterior loglikelihood
         :param saves:
         :return:
         """
-        self.sample_posterior_llh = saves
+        self.sample_posterior_lpdf = saves
 
-    def get_sample_posterior_llh(self):
+    def get_sample_posterior_lpdf(self):
         """
          Returns the sample posterior loglikelihood
         :return:
         """
-        return self.sample_posterior_llh
+        return self.sample_posterior_lpdf
 
-    def save_proposal_posterior_llh(self, saves):
+    def save_proposal_posterior_lpdf(self, saves):
         """
          Saves the proposal posterior loglikelihood
         :param saves:
         :return:
         """
-        self.proposal_posterior_llh = saves
+        self.proposal_posterior_lpdf = saves
 
-    def get_proposal_posterior_llh(self):
+    def get_proposal_posterior_lpdf(self):
         """
          Returns the proposal posterior loglikelihood
         :return:
         """
-        return self.proposal_posterior_llh
+        return self.proposal_posterior_lpdf
 
     def increment_wins(self):
         """
@@ -263,8 +263,8 @@ class Samples:
         :return:
         """
         saves = self.get_sample().tolist() + self.get_proposal().tolist() + self.get_sample_okada().tolist() + self.get_proposal_okada().tolist()
-        saves += [self.sample_prior_llh, self.sample_llh, self.sample_posterior_llh]
-        saves += [self.proposal_prior_llh, self.proposal_llh, self.proposal_posterior_llh]
+        saves += [self.sample_prior_lpdf, self.sample_llh, self.sample_posterior_lpdf]
+        saves += [self.proposal_prior_lpdf, self.proposal_llh, self.proposal_posterior_lpdf]
         saves += [self.wins]
         if self.wins == 1:
             saves += ['Accepted']
