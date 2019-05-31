@@ -387,4 +387,7 @@ class Custom(MCMC):
             #print(guesses)
             raise Exception('restart initialization not currently implemented')
 
+        print("initial sample:")
+        print(guesses)
+
         return guesses

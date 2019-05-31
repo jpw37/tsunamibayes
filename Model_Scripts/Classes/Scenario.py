@@ -91,16 +91,25 @@ class Scenario:
         Runs an initial set up of GeoClaw
         :return:
         """
-        # Set things up
-        get_topo()
-        make_dtopo(self.mcmc.map_to_okada(self.init_guesses))
+        # # Set things up
+        # get_topo()
+        # make_dtopo(self.mcmc.map_to_okada(self.init_guesses))
 
+        # # Run Geoclaw
+        # os.system('rm .output')
+        # # If you change the output directory for geoclaw in the mainfile, change this _output="" location to same one
+        # os.system('make .output')
+
+        # Get Okada parameters for initial guesses
+        okada_params = self.mcmc.map_to_okada(self.init_guesses)
+        print("init_guesses:")
+        print(self.init_guesses)
+        print("okada_params:")
+        print(okada_params)
         # Run Geoclaw
-        os.system('rm .output')
-        # If you change the output directory for geoclaw in the mainfile, change this _output="" location to same one
-        os.system('make .output')
+        self.feedForward.run_geo_claw(okada_params)
 
-        # Calculate the inital loglikelihood
+        # Calculate the inital log likelihood
         sample_llh, sample_arr, sample_heights = self.feedForward.calculate_llh(self.gauges)
         # Save
         self.samples.save_sample_llh(sample_llh)
@@ -129,14 +138,8 @@ class Scenario:
             sample_params = self.samples.get_sample()
             proposal_params = self.mcmc.draw(sample_params)
 
-            #print("proposal_params after draw():")
-            #print(proposal_params)
-
             # Save the proposal draw for debugging purposes
             self.samples.save_proposal(proposal_params)
-
-            #print("proposal_params after save_proposal():")
-            #print(proposal_params)
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
@@ -144,12 +147,14 @@ class Scenario:
             else:
                 proposal_params_okada = proposal_params
 
-            #print("proposal_params:")
-            #print(proposal_params)
-
             # Save Proposal
             self.samples.save_proposal_okada(proposal_params_okada)
             #proposal_params = self.samples.get_proposal_okada()
+
+            print("proposal_params:")
+            print(proposal_params)
+            print("proposal_params_okada:")
+            print(proposal_params_okada)
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params_okada)
@@ -165,23 +170,23 @@ class Scenario:
             self.samples.save_obvs(proposal_obvs)
 
             # Calculate prior probability for the current sample and proposed sample
-            sample_prior_llh = 0.0
-            proposal_prior_llh = 0.0
+            #sample_prior_llh = 0.0
+            #proposal_prior_llh = 0.0
             sample_prior_llh = self.prior.logpdf(sample_params)
-            proposal_prior_llh = self.prior.logpdf(proposal_params)
-            print("proposal_prior_llh is:")
-            print(proposal_prior_llh)
-            print("sample_prior_llh is:")
-            print(sample_prior_llh)
+            proposal_prior_llh = self.prior.logpdf(proposal_params.loc[0])
+            #print("proposal_prior_llh is:")
+            #print(proposal_prior_llh)
+            #print("sample_prior_llh is:")
+            #print(sample_prior_llh)
 
             # Save
             self.samples.save_sample_prior_llh(sample_prior_llh)
             self.samples.save_proposal_prior_llh(proposal_prior_llh)
 
-            print("proposal_prior_llh is:")
-            print(proposal_prior_llh)
-            print("sample_prior_llh is:")
-            print(sample_prior_llh)
+            #print("proposal_prior_llh is:")
+            #print(proposal_prior_llh)
+            #print("sample_prior_llh is:")
+            #print(sample_prior_llh)
 
             # Calculate the acceptance probability of the given proposal
             accept_prob = self.mcmc.acceptance_prob(sample_prior_llh, proposal_prior_llh)

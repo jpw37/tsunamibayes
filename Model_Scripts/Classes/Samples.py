@@ -275,7 +275,7 @@ class Samples:
 
         self.mcmc.loc[len(self.mcmc)] = saves
 
-        self.save_obvs()
+        #self.save_obvs(saves)
 
     def get_debug(self):
         """

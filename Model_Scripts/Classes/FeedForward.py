@@ -21,14 +21,14 @@ class FeedForward:
     def __init__(self):
         pass
 
-    def run_geo_claw(self, draws):
+    def run_geo_claw(self, okada_params):
         """
         Runs Geoclaw
         :param draws: parameters
         :return:
         """
         get_topo()
-        make_dtopo(draws)
+        make_dtopo(okada_params)
 
         # os.system('make clean')
         # os.system('make clobber')
