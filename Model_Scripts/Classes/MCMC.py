@@ -38,6 +38,10 @@ class MCMC:
         """
         sample_llh = self.samples.get_sample_llh()
         proposal_llh = self.samples.get_proposal_llh()
+        print("sample_llh is:")
+        print(sample_llh)
+        print("proposal_llh is:")
+        print(proposal_llh)
 
         if np.isneginf(proposal_llh) and np.isneginf(sample_llh):
             change_llh = 0

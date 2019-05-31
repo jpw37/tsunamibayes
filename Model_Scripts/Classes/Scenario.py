@@ -5,6 +5,7 @@ Property of BYU Mathematics Dept.
 """
 import os
 import numpy as np
+import pandas as pd
 import sys
 
 sys.path.append('./PreRun/Classes/')
@@ -139,19 +140,19 @@ class Scenario:
 
             # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
             if(self.use_custom):
-                proposal_params = self.mcmc.map_to_okada(proposal_params)
+                proposal_params_okada = self.mcmc.map_to_okada(proposal_params)
             else:
-                proposal_params = proposal_params
+                proposal_params_okada = proposal_params
 
             #print("proposal_params:")
             #print(proposal_params)
 
             # Save Proposal
-            self.samples.save_proposal_okada(proposal_params)
+            self.samples.save_proposal_okada(proposal_params_okada)
             #proposal_params = self.samples.get_proposal_okada()
 
             # Run Geo Claw on the new proposal
-            self.feedForward.run_geo_claw(proposal_params)
+            self.feedForward.run_geo_claw(proposal_params_okada)
 
             # Calculate the Log Likelihood for the new draw
             proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
@@ -164,11 +165,23 @@ class Scenario:
             self.samples.save_obvs(proposal_obvs)
 
             # Calculate prior probability for the current sample and proposed sample
+            sample_prior_llh = 0.0
+            proposal_prior_llh = 0.0
             sample_prior_llh = self.prior.logpdf(sample_params)
             proposal_prior_llh = self.prior.logpdf(proposal_params)
+            print("proposal_prior_llh is:")
+            print(proposal_prior_llh)
+            print("sample_prior_llh is:")
+            print(sample_prior_llh)
+
             # Save
             self.samples.save_sample_prior_llh(sample_prior_llh)
             self.samples.save_proposal_prior_llh(proposal_prior_llh)
+
+            print("proposal_prior_llh is:")
+            print(proposal_prior_llh)
+            print("sample_prior_llh is:")
+            print(sample_prior_llh)
 
             # Calculate the acceptance probability of the given proposal
             accept_prob = self.mcmc.acceptance_prob(sample_prior_llh, proposal_prior_llh)

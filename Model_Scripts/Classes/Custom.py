@@ -94,6 +94,15 @@ class Custom(MCMC):
         # Log-Likelihood
         change_prior_llh = prop_prior_llh - cur_prior_llh
 
+        print("prop_prior_llh is:")
+        print(prop_prior_llh)
+        print("cur_prior_llh is:")
+        print(cur_prior_llh)
+        #print("change_llh is:")
+        #print(change_llh)
+        #print("change_prior_llh is:")
+        #print(change_prior_llh)
+
         # Note we use np.exp(new - old) because it's the log-likelihood
         return min(1, np.exp(change_llh+change_prior_llh))
 
@@ -233,7 +242,7 @@ class Custom(MCMC):
         """
         obvs = []
         #obvs[0] = self.compute_mw(params[1], params[2], params[4]) #first the magnitude
-        obvs.append(self.compute_mw(params[1], params[2], params[4])) #first the magnitude
+        obvs.append(self.compute_mw(params.ix[0,"Length"], params.ix[0,"Width"], params.ix[0,"Slip"])) #first the magnitude
         for ii in range(len(arrivals)): #alternate arrival times with wave heights
             obvs.append(arrivals[ii])
             obvs.append(heights[ii])

@@ -5,6 +5,7 @@ Property of BYU Mathematics Dept.
 """
 import numpy as np
 from scipy.stats import rv_continuous
+import pandas as pd
 
 class Prior(rv_continuous):
     """
@@ -58,22 +59,38 @@ class Prior(rv_continuous):
         #        sample[1]) - np.log(sample[2]) - np.log(sample[4])
         #make sure that sample is rejected if length, width, depth, or slip are negative
 
+        #print("sample:")
+        #print(sample)
+        #print("type of sample:")
+        #print(type(sample))
         #GRL-style 6-parameter sampling
-        lon    = sample.ix[0,"Longitude"]
-        lat    = sample.ix[0,"Latitude"]
-        strike = sample.ix[0,"Strike"]
-        length = sample.ix[0,"Length"]
-        width  = sample.ix[0,"Width"]
-        slip   = sample.ix[0,"Slip"]
+        #lon    = sample["Longitude"]
+        #lat    = sample["Latitude"]
+        #strike = sample["Strike"]
+        #length = sample["Length"]
+        #width  = sample["Width"]
+        #slip   = sample["Slip"]
+        lon    = sample[4]
+        lat    = sample[5]
+        strike = sample[0]
+        length = sample[1]
+        width  = sample[2]
+        slip   = sample[3]
         if length < 0 or width < 0 or slip < 0:
             lpdf = np.NINF
         else:
             #prior for longitude, latitude, strike
-            lpdf = self.priors[0].logpdf(np.array([lon,lat,strike]))
+            lpdf = self.priors[0].logpdf(np.array([lon,lat,strike]))[0]
+            print("lpdf is:")
+            print(lpdf)
+
             #prior for length, width, slip
             #this is a lognormal so the logpdf is a little more complicated
             #justin sent an email to jared on 01/04/2019 documenting the formula below
-            lpdf += self.priors[1].logpdf( np.log(np.array([length,width,slip])) ) - np.log( length ) - np.log(width) - np.log(slip)
+            lpdf += self.priors[1].logpdf( np.log(np.array([length,width,slip])) )[0] - np.log( length ) - np.log(width) - np.log(slip)
+
+            print("lpdf is:")
+            print(lpdf)
 
         return lpdf
 
@@ -92,30 +109,3 @@ class Prior(rv_continuous):
                                     self.priors[1].resample(size)))
             return np.exp(samples) # since based on log
 
-    def hello(self):
-        return "what da"
-
-        # DEPRICATED
-        # # prior for longitude, latitude, strike
-        # lpdf = self.priors[0].logpdf(sample[[7, 8, 0]])
-        #
-        # # prior for length, width, slip
-        # # this is a lognormal so the logpdf is a little more complicated
-        # # justin sent an email to jared on 01/04/2019 documenting the formula below
-        # lpdf += self.priors[ 1].logpdf(np.log(sample[[1, 2, 4]])) - np.log(sample[1]) - np.log(sample[2]) - np.log(
-        #     sample[4])
-        #
-        # return lpdf
-
-        # DEPRICATED?
-    # def logpdf(self, params):
-    #     """
-    #     Takes the log pdf of the given priors for the current and proposed parameters
-    #     :param proposed_params: dictionary: {distribution object: parameters}
-    #     :param cur_params: current numbers for the parameters
-    #     :return: llh (float) sum of the loglikelihoods for each prior dist with is corresponding parameters
-    #     """
-    #     llh = 0.0
-    #     for prior in self.priors.keys():
-    #         llh += prior.logpdf(params[self.priors[prior]].values)[0]
-    #     return llh
