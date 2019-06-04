@@ -7,7 +7,6 @@ Property of BYU Mathematics Dept.
 import numpy as np
 from maketopo import get_topo, make_dtopo
 from scipy import stats
-from PMF import PMFData, PMF
 import os
 from scipy.interpolate import interp1d
 
@@ -95,7 +94,6 @@ class FeedForward:
         arrivals, heights = self.read_gauges()
 
         llh = 0.  # init p
-        # Calculate p for the heights, using the PMFData and PMF classes
         heightLikelihoodTable = np.load('./InputData/gaugeHeightLikelihood.npy')
         heightValues = heightLikelihoodTable[:, 0]
         inundationLikelihoodTable = np.load('./InputData/gaugeInundationLikelihood.npy')

@@ -58,7 +58,8 @@ class Samples:
         self.mcmc = pd.DataFrame(columns=mcmc_cols)
         self.observations = pd.DataFrame(columns=observation_cols)
 
-        self.samples.loc[len(self.samples)] = init_guesses.values.tolist()[0]
+        #self.samples.loc[len(self.samples)] = init_guesses.values.tolist()[0]
+        self.samples.loc[len(self.samples)] = init_guesses.loc[0]
 
         self.wins = 1
         self.trials = 1
