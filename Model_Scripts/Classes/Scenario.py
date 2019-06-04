@@ -188,12 +188,6 @@ class Scenario:
             #print("sample_prior_lpdf is:")
             #print(sample_prior_lpdf)
 
-            # Calculate the acceptance probability of the given proposal
-            accept_prob = self.mcmc.acceptance_prob(sample_prior_lpdf, proposal_prior_lpdf)
-
-            # Decide to accept or reject the proposal and save
-            self.mcmc.accept_reject(accept_prob)
-
             # Calculate the sample and proposal posterior log likelihood
             sample_post_lpdf = sample_prior_lpdf + sample_llh
             proposal_post_lpdf = proposal_prior_lpdf + proposal_llh
@@ -201,12 +195,27 @@ class Scenario:
             self.samples.save_sample_posterior_lpdf(sample_post_lpdf)
             self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
 
+            # Calculate the acceptance probability of the given proposal
+            accept_prob = self.mcmc.acceptance_prob(sample_prior_lpdf, proposal_prior_lpdf)
+
+            # Decide to accept or reject the proposal and save
+            ar = self.mcmc.accept_reject(accept_prob)
+
             # Saves the stored data for debugging purposes
             self.samples.save_debug()
 
             # Save to csv
             if i % 50 == 0:
                 self.samples.save_to_csv()
+
+            if ar:
+                self.samples.save_sample(self.samples.get_proposal())
+                self.samples.save_sample_okada(self.samples.get_proposal_okada())
+                self.samples.save_sample_llh(self.samples.get_proposal_llh())
+            else:
+                self.samples.increment_wins()
+                self.samples.save_sample(self.samples.get_sample())
+                self.samples.save_sample_okada(self.samples.get_sample_okada())
 
         self.samples.save_to_csv()
         return

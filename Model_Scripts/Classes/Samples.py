@@ -97,7 +97,7 @@ class Samples:
         #print(saves)
         #print("proposals are:")
         #print(self.proposals)
-        self.proposals.loc[0] = saves.values.tolist()[0] #Pandas dataframe
+        self.proposals.loc[0] = saves.values.tolist() #Pandas dataframe
 
     def get_proposal(self):
         """
