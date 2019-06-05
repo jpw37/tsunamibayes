@@ -3,10 +3,15 @@
 # """
 import argparse
 import os
+import sys
 from datetime import datetime
 
 
 ## SETUP: PARSE ARGUMENTS AND SET UP RUN DIRECTORY ##
+
+#print the command line arguments
+print("Command line arguments are:")
+print(sys.argv)
 
 #set up command line arguments
 parser = argparse.ArgumentParser(description='Run a tsunamibayes scenario.')
@@ -20,8 +25,8 @@ parser.add_argument('--nsamp', dest='nsamp', default=1,
                    help='number of samples (default: 1)')
 parser.add_argument('--rwcov', dest='rwcov', default=0.5,
                    help='random walk covariance (default: 0.5)')
-parser.add_argument('--init', dest='init', default='rand',
-                   help='initial sample: rand, manual, restart (default: rand)')
+parser.add_argument('--init', dest='init', default='random',
+                   help='initial sample: random, manual, restart (default: rand)')
 parser.add_argument('--rundir', dest='rundir', default='default',
                    help='directory to run from (default: create unique directory with scenario name)')
 parser.add_argument('--runbase', dest='runbase', default='../../runs',
@@ -29,6 +34,10 @@ parser.add_argument('--runbase', dest='runbase', default='../../runs',
 
 #parse command line arguments
 args = parser.parse_args()
+
+##print the command line arguments
+#print("Command line arguments are:")
+#print(args)
 
 #check if the scenario exists
 scenDir='Scenarios/'+args.scenario
@@ -69,3 +78,6 @@ from Scenario import Scenario
 ##old version: scenario = Scenario(inputs['title'], inputs['custom'], inputs['init'], inputs['rw_covariance'], inputs['method'], inputs['iterations'])
 scenario = Scenario(title=args.scenario, init=args.init, rw_covariance=args.rwcov, method=args.mcmc, iterations=int(args.nsamp))
 scenario.run()
+
+print("Scenario run complete. Results are in the run directory: "+args.rundir)
+

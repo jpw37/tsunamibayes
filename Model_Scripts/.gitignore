@@ -1,0 +1,3 @@
+#ignore slurm output files
+slurm-*.out
+
