@@ -87,8 +87,8 @@ def setrun(claw_pkg='geoclaw'):
 
 
     # Number of grid cells: Coarsest grid
-    clawdata.num_cells[0] = 30
-    clawdata.num_cells[1] = 30
+    clawdata.num_cells[0] = model_bounds['xcoarse_grid']
+    clawdata.num_cells[1] = model_bounds['ycoarse_grid']
 
     # ---------------
     # Size of system:
@@ -338,7 +338,12 @@ def setrun(claw_pkg='geoclaw'):
     rundata.regiondata.regions = []
     # to specify regions of refinement append lines of the form
     #  [minlevel,maxlevel,t1,t2,x1,x2,y1,y2]
-    #rundata.regiondata.regions.append([3, 3, 0., 10000., -85,-72,-38,-25])
+    
+    regions_bounds = model_bounds["regions_bounds"]
+    for i in range(len(regions_bounds)):
+        rundata.regiondata.regions.append([3,3,0., 1.e10]+regions_bounds[i])
+ 
+ #   rundata.regiondata.regions.append([3, 3, 0., 10000., -85,-72,-38,-25])
     #rundata.regiondata.regions.append([3, 3, 8000., 26000., -90,-80,-30,-15])
 
     # ---------------
@@ -410,20 +415,31 @@ def setgeo(rundata):
     topo_path = os.path.join('./InputData/', 'etopo.tt3')
     topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
-    topo_path = os.path.join('./InputData/', 'banda_map_merged.tt3')
-    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+    with open('./PreRun/InputData/model_bounds.txt') as json_file:
+        model_bounds = json.load(json_file)
 
-    topo_path = os.path.join('./InputData/', 'gauge10002_merged3.tt3')
-    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+        print("printing model_bounds")
+        print(model_bounds)
+        gauge_topo = model_bounds["gauge_topo"]
 
-    topo_path = os.path.join('./InputData/', 'gauge10004_merged3.tt3')
-    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+    for i in range(len(gauge_topo)):
+        topo_path = os.path.join('./InputData/', gauge_topo[i])
+        topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
-    topo_path = os.path.join('./InputData/', 'gauge10005_merged3.tt3')
-    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+#    topo_path = os.path.join('./InputData/', 'banda_map_merged.tt3')
+#    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
-    topo_path = os.path.join('./InputData/', 'gauge10006_merged3.tt3')
-    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+#    topo_path = os.path.join('./InputData/', 'gauge10002_merged3.tt3')
+#    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
+#    topo_path = os.path.join('./InputData/', 'gauge10004_merged3.tt3')
+#    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
+#    topo_path = os.path.join('./InputData/', 'gauge10005_merged3.tt3')
+#    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+
+#    topo_path = os.path.join('./InputData/', 'gauge10006_merged3.tt3')
+#    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
     # == setdtopo.data values ==
     dtopo_data = rundata.dtopo_data
