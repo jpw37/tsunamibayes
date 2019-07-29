@@ -87,9 +87,9 @@ class Scenario:
 
         # If using the custom methods map the initial guesses to okada parameters to save as initial sample
         if (self.use_custom):
-            self.init_guesses = self.mcmc.map_to_okada(self.init_guesses)
+            self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
         # Save
-        self.samples.save_sample_okada(self.init_guesses)
+        self.samples.save_sample_okada(self.init_okada_params)
 
         # Build the prior for the model, based on the choice of MCMC
         self.prior = self.mcmc.build_priors()
@@ -112,6 +112,7 @@ class Scenario:
         okada_params = self.mcmc.map_to_okada(self.init_guesses)
         print("init_guesses:")
         print(self.init_guesses)
+        print(type(self.init_guesses))
         print("okada_params:")
         print(okada_params)
         # Run Geoclaw
@@ -167,11 +168,28 @@ class Scenario:
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params_okada)
 
+
+            """
+            BEGIN SHAKE MODEL
+            """
+            print("init_guesses:")
+            print(self.init_guesses)
+            print(type(self.init_guesses))
+            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
+            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges )
+            """
+            END SHAKE MODEL
+            """
+
             # Calculate the Log Likelihood for the new draw
             proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
             sample_llh = self.samples.get_sample_llh()
-            # Save
+
+            # Save SHAKE STUFF
             print("_____proposal_llh_____", proposal_llh)
+            proposal_llh += self.proposal_shake_llh
+            print("_____proposal_llh_____", proposal_llh)
+
             self.samples.save_sample_llh(sample_llh)
             self.samples.save_proposal_llh(proposal_llh)
             proposal_obvs = self.mcmc.make_observations(proposal_params, proposal_arr, proposal_heights)
