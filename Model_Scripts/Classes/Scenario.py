@@ -17,6 +17,7 @@ from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
 from Gauge import from_json
+from pandas import read_pickle
 
 class Scenario:
     """
@@ -43,6 +44,7 @@ class Scenario:
         # Clear previous files
         os.system('rm ./InputData/dtopo.tt3')
         gauges_file_path = './PreRun/InputData/gauges.npy'
+        shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
 
         self.title = title
         self.iterations = iterations
@@ -76,6 +78,12 @@ class Scenario:
             self.setGeoClaw()
         else:
             raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
+
+        #test shake gauge input
+        if(os.path.isfile(shake_gauges_file_path)):
+            self.shake_gauges = read_pickle(shake_gauges_file_path)
+        else:
+            raise ValueError("Shake gauge file does not exist")
 
         # If using the custom methods map the initial guesses to okada parameters to save as initial sample
         if (self.use_custom):
