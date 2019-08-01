@@ -193,13 +193,13 @@ class FeedForward:
         if integrate:
             for i, gauge in enumerate(gauges):
                 MMI_distribution = stats.norm(loc=MMI[i], scale=sigma_MMI)
-                f = lambda x: gauge.likelihood.pdf(x) * \
+                f = lambda x: gauge.distribution.pdf(x) * \
                     MMI_distribution.pdf(x)
                 L = quad(f, 0, 12)[0]
                 llh += np.log(L)
 
         else:
             for i, gauge in enumerate(gauges):
-                llh += gauge.likelihood.logpdf(MMI[i])
+                llh += gauge.distribution.logpdf(MMI[i])
 
         return llh

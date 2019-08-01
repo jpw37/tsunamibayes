@@ -172,11 +172,14 @@ class Scenario:
             """
             BEGIN SHAKE MODEL
             """
+            #To speed up shake model calculation set this False
+            shake_option = True
+
             print("init_guesses:")
             print(self.init_guesses)
             print(type(self.init_guesses))
             self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
-            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges )
+            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
             """
             END SHAKE MODEL
             """
