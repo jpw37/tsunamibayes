@@ -17,6 +17,7 @@ from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
 from Gauge import from_json
+from Adjoint import Adjoint
 
 class Scenario:
     """
@@ -67,6 +68,10 @@ class Scenario:
 
         # Load the samples
         self.init_guesses = self.samples.get_sample()
+
+        # JW: Create the adjoint object here...right now is given as a separate class
+        self.adjoint = Adjoint()
+        self.adjoint.run_geo_claw()
 
         # Make sure Pre-Run files have been generated
         if(os.path.isfile(gauges_file_path)):

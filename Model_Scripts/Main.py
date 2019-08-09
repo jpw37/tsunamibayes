@@ -71,6 +71,7 @@ os.chdir(args.rundir)
 
 import sys
 sys.path.append('./Classes')
+sys.path.append('.')
 
 from Scenario import Scenario
 

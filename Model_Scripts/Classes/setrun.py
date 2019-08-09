@@ -284,12 +284,12 @@ def setrun(claw_pkg='geoclaw'):
     amrdata = rundata.amrdata
 
     # max number of refinement levels:
-    amrdata.amr_levels_max = 3
+    amrdata.amr_levels_max = len(model_bounds['AMR_levels'])  #JW: I'm not sure if this is going to work...check this :)
 
     # List of refinement ratios at each level (length at least mxnest-1)
-    amrdata.refinement_ratios_x = [2,6]
-    amrdata.refinement_ratios_y = [2,6]
-    amrdata.refinement_ratios_t = [2,6]
+    amrdata.refinement_ratios_x = model_bounds['AMR_levels']
+    amrdata.refinement_ratios_y = model_bounds['AMR_levels']
+    amrdata.refinement_ratios_t = model_bounds['AMR_levels']
 
 
     # Specify type of each aux variable in amrdata.auxtype.
@@ -338,10 +338,10 @@ def setrun(claw_pkg='geoclaw'):
     rundata.regiondata.regions = []
     # to specify regions of refinement append lines of the form
     #  [minlevel,maxlevel,t1,t2,x1,x2,y1,y2]
-    
+    maxlevel = len(model_bounds["AMR_levels"])+1
     regions_bounds = model_bounds["regions_bounds"]
     for i in range(len(regions_bounds)):
-        rundata.regiondata.regions.append([3,3,0., 1.e10]+regions_bounds[i])
+        rundata.regiondata.regions.append([maxlevel,maxlevel,0., 1.e10]+regions_bounds[i])
  
  #   rundata.regiondata.regions.append([3, 3, 0., 10000., -85,-72,-38,-25])
     #rundata.regiondata.regions.append([3, 3, 8000., 26000., -90,-80,-30,-15])
@@ -366,6 +366,31 @@ def setrun(claw_pkg='geoclaw'):
     # for fixed grids append to this list names of any fgmax input files
     fgmax_files.append('./PreRun/InputData/fgmax_grid.txt')
     rundata.fgmax_data.num_fgmax_val = 1  # Save depth only
+
+    #------------------------------------------------------------------                                                                         
+    # Adjoint specific data:                                                                                                                    
+    #------------------------------------------------------------------                                                                         
+    # Also need to set flagging method and appropriate tolerances above                                                                         
+
+    adjointdata = rundata.adjointdata
+    adjointdata.use_adjoint = True
+
+    # location of adjoint solution, must first be created:                                                                                      
+    adjointdata.adjoint_outdir = os.path.abspath('./InputData/adjoint/_output')
+
+    # time period of interest:                                                                                                                  
+    adjointdata.t1 = rundata.clawdata.t0
+    adjointdata.t2 = rundata.clawdata.tfinal
+
+    # or try a shorter time period of interest:                                                                                                 
+    #adjointdata.t1 = 3. * 3600.                                                                                                                
+    #adjointdata.t2 = 4.5 * 3600.                                                                                                               
+
+    if adjointdata.use_adjoint:
+        # need an additional aux variable for inner product:                                                                                    
+        rundata.amrdata.aux_type.append('center')
+        rundata.clawdata.num_aux = len(rundata.amrdata.aux_type)
+        adjointdata.innerprod_index = len(rundata.amrdata.aux_type)
 
     return rundata
     # end of function setrun
@@ -408,12 +433,6 @@ def setgeo(rundata):
     refinement_data.deep_depth = 1e2
     refinement_data.max_level_deep = 3
 
-    # == settopo.data values ==
-    topo_data = rundata.topo_data
-    # for topography, append lines of the form
-    #    [topotype, minlevel, maxlevel, t1, t2, fname]
-    topo_path = os.path.join('./InputData/', 'etopo.tt3')
-    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
 
     with open('./PreRun/InputData/model_bounds.txt') as json_file:
         model_bounds = json.load(json_file)
@@ -421,10 +440,19 @@ def setgeo(rundata):
         print("printing model_bounds")
         print(model_bounds)
         gauge_topo = model_bounds["gauge_topo"]
+    maxlevel = len(model_bounds['AMR_levels'])+1
+
+
+    # == settopo.data values ==
+    topo_data = rundata.topo_data
+    # for topography, append lines of the form
+    #    [topotype, minlevel, maxlevel, t1, t2, fname]
+    topo_path = os.path.join('./InputData/', 'etopo.tt3')
+    topo_data.topofiles.append([3, 1, maxlevel, 0., 1.e10, topo_path])
 
     for i in range(len(gauge_topo)):
         topo_path = os.path.join('./InputData/', gauge_topo[i])
-        topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
+        topo_data.topofiles.append([3, 1, maxlevel, 0., 1.e10, topo_path])
 
 #    topo_path = os.path.join('./InputData/', 'banda_map_merged.tt3')
 #    topo_data.topofiles.append([3, 1, 3, 0., 1.e10, topo_path])
@@ -446,7 +474,7 @@ def setgeo(rundata):
     # for moving topography, append lines of the form :   (<= 1 allowed for now!)
     #   [topotype, minlevel,maxlevel,fname]
     dtopo_path = os.path.join('./InputData/', 'dtopo.tt3')
-    dtopo_data.dtopofiles.append([3,3,3,dtopo_path])
+    dtopo_data.dtopofiles.append([3,maxlevel,maxlevel,dtopo_path])
     dtopo_data.dt_max_dtopo = 0.2
 
 
