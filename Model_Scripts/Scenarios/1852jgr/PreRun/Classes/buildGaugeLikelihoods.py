@@ -198,7 +198,7 @@ def heightToInundation(onHeights,gauge):
     return np.power(np.maximum(onHeights,0),4/3) * 0.06 * np.cos(np.pi*gauge.beta/180.0) / (gauge.n**2)
 
 
-def plotGaugeLikelihoods(inputFile='gaugeHeightLikelihood.npy',outputFile='gauge_llh_ht.png'):
+def plotGaugeLikelihoods(inputFile=height_llh_path,outputFile='gauge_llh_ht.png'):
     """
 
     :param inputFile:

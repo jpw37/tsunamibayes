@@ -15,12 +15,16 @@ def tohokuKDE(onHeights, offHeights):
 
   #remove points where on or off shore heights are >25.
   #this is purely for empirical reasons
-  onHeights  =  onHeights[offHeights < 25.0]
-  offHeights = offHeights[offHeights < 25.0]
+#  onHeights  =  onHeights[offHeights < 25.0]
+#  offHeights = offHeights[offHeights < 25.0]
+  onHeights = onHeights[offHeights > 0.2]
+  offHeights = offHeights[offHeights > 0.2]
+  offHeights = offHeights[onHeights > 0.2]
+  onHeights = onHeights[onHeights > 0.2]
   
   #build KDE
   values = np.vstack([onHeights, offHeights])
-  kernel = stats.gaussian_kde(values,bw_method=0.5)
+  kernel = stats.gaussian_kde(values,bw_method=0.25)
 
   return kernel;
 
