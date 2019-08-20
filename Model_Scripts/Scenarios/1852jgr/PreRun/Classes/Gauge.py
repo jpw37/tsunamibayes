@@ -46,7 +46,13 @@ class Gauge:
             elif kind[0] == 'chi2':
                 k = arrival_params[0]
                 loc = arrival_params[1]
-                self.arrival_dist = stats.chi2(k, loc=loc)
+                scale = arrival_params[2]
+                self.arrival_dist = stats.chi2(k, loc=loc, scale=scale)
+            elif kind[0] == 'chi':
+                k = arrival_params[0]
+                loc = arrival_params[1]
+                scale = arrival_params[2]
+                self.arrival_dist = stats.chi(k, loc=loc, scale=scale)
             elif kind[0] == 'skewnorm':
                 skew_param = arrival_params[0]
                 mean = arrival_params[1]
@@ -60,7 +66,13 @@ class Gauge:
             elif kind[1] == 'chi2':
                 k = height_params[0]
                 loc = height_params[1]
-                self.height_dist = stats.chi2(k, loc=loc)
+                scale = height_params[2]
+                self.height_dist = stats.chi2(k, loc=loc, scale=scale)
+            elif kind[1] == 'chi':
+                k = height_params[0]
+                loc = height_params[1]
+                scale = height_params[2]
+                self.height_dist = stats.chi(k, loc=loc, scale=scale)
             elif kind[1] == 'skewnorm':
                 skew_param = height_params[0]
                 mean = height_params[1]
@@ -74,7 +86,13 @@ class Gauge:
             elif kind[2] == 'chi2':
                 k = inundation_params[0]
                 loc = inundation_params[1]
-                self.inundation_dist = stats.chi2(k, loc=loc)
+                scale = inundation_params[2]
+                self.inundation_dist = stats.chi2(k, loc=loc, scale=scale)
+            elif kind[2] == 'chi':
+                k = inundation_params[0]
+                loc = inundation_params[1]
+                scale = inundation_params[2]
+                self.inundation_dist = stats.chi(k, loc=loc, scale=scale)
             elif kind[2] == 'skewnorm':
                 skew_param = inundation_params[0]
                 mean = inundation_params[1]
