@@ -78,13 +78,21 @@ def computeHeightLikelihoodPdf(kde, gauge, offShoreHeights):
     # quadrature rule (long-term it would be better to use a gaussian quadrature
     # rule with points/weights picked by the gauge distribution)
     maxOnShoreHeight = kde.dataset[0, :].max()
-    if gauge.kind[1] == "chi2" and gauge.height_params[0] < 2.0:  # chi2 can have infinite pdf
-        x = np.linspace(gauge.height_params[1] + 0.01, maxOnShoreHeight, num=5000)
+    gaugePdf = gauge.height_dist.pdf
+    if gauge.kind[1] == "norm":  
+        # use optimal quadrature for normal distributions
+        # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
+        x,wt = gaussHermite(50, mu=gauge.height_params[0], sig=gauge.height_params[1]);
+        gaugePdf = lambda x:1
+    elif gauge.kind[1] == "chi2" and gauge.height_params[0] < 2.0:  # chi2 can have infinite pdf
+        print("chi2: x is from ",gauge.height_params[1],"to",maxOnShoreHeight)
+        x = np.linspace(gauge.height_params[1] + 0.001, maxOnShoreHeight, num=1000)
+        wt = trapRuleWeights(x);  # trapezoidal rule
     else:
         x = np.linspace(0.0, maxOnShoreHeight, num=1000)
-    wt = trapRuleWeights(x);  # trapezoidal rule
+        wt = trapRuleWeights(x);  # trapezoidal rule
 
-    return computeLikelihoodPdf(kde.pdf, gauge.height_dist.pdf, x, wt, offShoreHeights)
+    return computeLikelihoodPdf(kde.pdf, gaugePdf, x, wt, offShoreHeights)
 
 
 # function to compute the inundation likelihood
@@ -98,13 +106,20 @@ def computeInundationLikelihoodPdf(kde, gauge, offShoreHeights):
     :return:
     """
     maxInundation = kde.dataset[0, :].max()
-    if gauge.kind[2] == "chi2" and gauge.height_params[0] < 2.0:  # chi2 can have infinite pdf
-        x = np.linspace(gauge.inundation_params[1] + 0.01, maxInundation, num=5000)
+    gaugePdf = gauge.inundation_dist.pdf
+    if gauge.kind[2] == "norm":  
+        # use optimal quadrature for normal distributions
+        # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
+        x,wt = gaussHermite(50, mu=gauge.inundation_params[0], sig=gauge.inundation_params[1]);
+        gaugePdf = lambda x:1
+    elif gauge.kind[2] == "chi2" and gauge.inundation_params[0] < 2.0:  # chi2 can have infinite pdf
+        x = np.linspace(gauge.inundation_params[1] + 0.001, maxInundation, num=1000)
+        wt = trapRuleWeights(x)  # trapezoidal rule
     else:
         x = np.linspace(0.0, maxInundation, num=1000)
-    wt = trapRuleWeights(x)  # trapezoidal rule
+        wt = trapRuleWeights(x)  # trapezoidal rule
 
-    return computeLikelihoodPdf(kde.pdf, gauge.inundation_dist.pdf, x, wt, offShoreHeights)
+    return computeLikelihoodPdf(kde.pdf, gaugePdf, x, wt, offShoreHeights)
 
 
 def computeLikelihoodPdf(kdePdf, gaugePdf, x, wt, offShoreHeights):
@@ -120,6 +135,7 @@ def computeLikelihoodPdf(kdePdf, gaugePdf, x, wt, offShoreHeights):
     gPdf = gaugePdf(x)
     # test quadrature rule:
     intGaugePdf = sum(wt * gPdf)
+    #print("intGaugePdf = ",intGaugePdf)
     if np.abs(intGaugePdf - 1.0) > 0.05:
         print("WARNING: Integration rule may not be accurate enough. Integration of gauge PDF yielded: {:.6f}".format(
             intGaugePdf))
@@ -198,7 +214,7 @@ def heightToInundation(onHeights,gauge):
     return np.power(np.maximum(onHeights,0),4/3) * 0.06 * np.cos(np.pi*gauge.beta/180.0) / (gauge.n**2)
 
 
-def plotGaugeLikelihoods(inputFile=height_llh_path,outputFile='gauge_llh_ht.png'):
+def plotGaugeLikelihoods(inputFile=height_llh_path,outputFile=gauge_output):
     """
 
     :param inputFile:
@@ -230,5 +246,23 @@ def trapRuleWeights(x):
     wt[:-1] += 0.5*(x[1:]-x[:-1])
     return wt
 
+#rescaled/recentered gauss-hermite quadrature points for 
+#normal rv with mean mu and std sig
+def gaussHermite(numPoints, mu=0, sig=1):
+    #this version uses "physicists" hermite polynomials and is maybe a little trickier
+    # x,w = np.polynomial.hermite.hermgauss( numPoints );
+    # #normalize (makes sum(w)=1)
+    # w /= np.sqrt(np.pi)
+    # #recenter
+    # x =  mu + np.sqrt(2)*sig*x
+
+    #use "probabilists" hermite polynomials
+    x,w = np.polynomial.hermite_e.hermegauss( numPoints );
+    #normalize (makes sum(w)=1)
+    w /= np.sqrt(2)*np.sqrt(np.pi)
+    #recenter
+    x =  mu + sig*x
+
+    return x,w
 
 #buildGaugeLikelihoods()
