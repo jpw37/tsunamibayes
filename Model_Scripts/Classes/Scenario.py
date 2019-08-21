@@ -27,7 +27,7 @@ class Scenario:
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
 
-    def __init__(self, title="Default_Title", use_custom=True, init='manual', rw_covariance=1.0, method="random_walk", iterations=1):
+    def __init__(self, title="Default_Title", use_custom=True, init='manual', adjoint=False, rw_covariance=1.0, method="random_walk", iterations=1):
         """
         Initialize all the correct variables for Running this Scenario
         :param title: Title for Scinerio (ex: 1852)
@@ -36,6 +36,7 @@ class Scenario:
         :param rw_covariance: float: covariance for the random walk method
         :param method: String: MCMC Method to use
         :param iterations: Int: Number of Times to run the model
+        :param adjoint: Boolean: run the adjoint solver first or not
         """
 
         # Clean geoclaw files
@@ -72,8 +73,11 @@ class Scenario:
         self.init_guesses = self.samples.get_sample()
 
         # JW: Create the adjoint object here...right now is given as a separate class
-        self.adjoint = Adjoint()
-        self.adjoint.run_geo_claw()
+        if adjoint:
+            print("Starting adjoint computation")
+            self.adjoint = Adjoint()
+            self.adjoint.run_geo_claw()
+            print("Finished adjoint computation")
 
         # Make sure Pre-Run files have been generated
         if(os.path.isfile(gauges_file_path)):

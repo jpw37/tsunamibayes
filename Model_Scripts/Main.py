@@ -21,6 +21,8 @@ parser.add_argument('--mcmc', dest='mcmc', default='random_walk',
                    help='mcmc method to use (default: random_walk)')
 #parser.add_argument('--nburn', dest='nburn', default=0,
 #                   help='number of burn in samples (default: 0)')
+parser.add_argument('--adjoint', dest='adjoint', action='store_true',
+                    help='run adjoint solve or not (default: False)')
 parser.add_argument('--nsamp', dest='nsamp', default=1,
                    help='number of samples (default: 1)')
 parser.add_argument('--rwcov', dest='rwcov', default=0.5,
@@ -77,7 +79,7 @@ from Scenario import Scenario
 
 #run the scenario (this needs to be finished)
 ##old version: scenario = Scenario(inputs['title'], inputs['custom'], inputs['init'], inputs['rw_covariance'], inputs['method'], inputs['iterations'])
-scenario = Scenario(title=args.scenario, init=args.init, rw_covariance=args.rwcov, method=args.mcmc, iterations=int(args.nsamp))
+scenario = Scenario(title=args.scenario, init=args.init, rw_covariance=args.rwcov, adjoint=args.adjoint, method=args.mcmc, iterations=int(args.nsamp))
 scenario.run()
 
 print("Scenario run complete. Results are in the run directory: "+args.rundir)
