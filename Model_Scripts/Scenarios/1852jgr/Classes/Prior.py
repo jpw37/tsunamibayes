@@ -66,16 +66,17 @@ class Prior:
         lon    = sample["Longitude"]
         lat    = sample["Latitude"]
         strike = sample["Strike"]
-        length = sample["Length"]
-        width  = sample["Width"]
-        slip   = sample["Slip"]
+        mag = sample["Magnitude"]
+#        length = sample["Length"]
+#        width  = sample["Width"]
+#        slip   = sample["Slip"]
         #lon    = sample[4]
         #lat    = sample[5]
         #strike = sample[0]
         #length = sample[1]
         #width  = sample[2]
         #slip   = sample[3]
-        if length < 0 or width < 0 or slip < 0:
+        if mag < 0:
             lpdf = np.NINF
         else:
             #prior for longitude, latitude, strike
@@ -86,7 +87,8 @@ class Prior:
             #prior for length, width, slip
             #this is a lognormal so the logpdf is a little more complicated
             #justin sent an email to jared on 01/04/2019 documenting the formula below
-            lpdf += self.priors[1].logpdf( np.log(np.array([length,width,slip])) )[0] - np.log( length ) - np.log(width) - np.log(slip)
+#            lpdf += self.priors[1].logpdf( np.log(np.array([length,width,slip])) )[0] - np.log( length ) - np.log(width) - np.log(slip)
+            lpdf += self.priors[1].logpdf( np.array([mag]) )[0]
 
             #print("lpdf is:")
             #print(lpdf)
@@ -101,6 +103,6 @@ class Prior:
         # CHECK ORDER OF PRODUCED RESULTS
         samples = np.vstack((self.priors[0].resample(size),
                              np.exp(self.priors[1].resample(size)))).T
-        samples = pd.DataFrame(samples,columns=["Longitude","Latitude","Strike","Length","Width","Slip"])
+        samples = pd.DataFrame(samples,columns=["Longitude","Latitude","Strike","Magnitude"])
         return samples
 

@@ -174,8 +174,8 @@ class Custom(MCMC):
 
         #stub for magnitude sampling
         self.mw = draws["Magnitude"]
-        length = self.get_length(self.mw) * 1e-3
-        width = self.get_width(self.mw) * 1e-3
+        length = self.get_length(self.mw) * 1e-2
+        width = self.get_width(self.mw) * 1e-2
         slip = self.get_slip(length, width, self.mw)
 
         #deterministic okada parameters

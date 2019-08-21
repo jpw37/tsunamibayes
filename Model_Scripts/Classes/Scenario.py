@@ -84,11 +84,11 @@ class Scenario:
         else:
             raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
-        #test shake gauge input
-        if(os.path.isfile(shake_gauges_file_path)):
-            self.shake_gauges = read_pickle(shake_gauges_file_path)
-        else:
-            raise ValueError("Shake gauge file does not exist")
+#        #test shake gauge input
+#        if(os.path.isfile(shake_gauges_file_path)):
+#            self.shake_gauges = read_pickle(shake_gauges_file_path)
+#        else:
+#            raise ValueError("Shake gauge file does not exist")
 
         # If using the custom methods map the initial guesses to okada parameters to save as initial sample
         if (self.use_custom):
@@ -178,13 +178,13 @@ class Scenario:
             BEGIN SHAKE MODEL
             """
             #To speed up shake model calculation set this False
-            shake_option = True
+#            shake_option = True
 
-            print("init_guesses:")
-            print(self.init_guesses)
-            print(type(self.init_guesses))
-            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
-            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
+#            print("init_guesses:")
+#            print(self.init_guesses)
+#            print(type(self.init_guesses))
+#            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
+#            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
             """
             END SHAKE MODEL
             """
@@ -195,7 +195,7 @@ class Scenario:
 
             # Save SHAKE STUFF
             print("_____proposal_llh_____", proposal_llh)
-            proposal_llh += self.proposal_shake_llh
+#            proposal_llh += self.proposal_shake_llh
             print("_____proposal_llh_____", proposal_llh)
 
             self.samples.save_sample_llh(sample_llh)

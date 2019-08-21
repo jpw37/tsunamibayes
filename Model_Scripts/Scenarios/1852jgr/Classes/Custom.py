@@ -20,15 +20,14 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        #self.sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
-        #self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude', 'P-Latitude']
-        self.sample_cols = ['Strike', 'Length', 'Width', 'Slip', 'Longitude', 'Latitude']
-        self.proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Slip', 'P-Logitude', 'P-Latitude']
+        self.sample_cols = ['Strike','Longitude', 'Latitude', 'Magnitude']
+        self.proposal_cols = ['P-Strike','P-Logitude', 'P-Latitude', 'P-Magnitude']
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
+        self.mw = 0
 
     def get_length(self, mag):
         """ Length is sampled from a truncated normal distribution that
-		is centered at the linear regression of log10(length_meters) and magnitude.
+		is centered at the linear regression of log10(length_cm) and magnitude.
         Linear regression was calculated from wellscoppersmith data.
 
 		Parameters:
@@ -37,40 +36,48 @@ class Custom(MCMC):
 		Returns:
 		length (float): a sample from the normal distribution centered on the regression
 	    """
+        #m1 = 0.6423327398       # slope
+        #c1 = 0.1357387698       # y intercept
+        #e1 = 0.4073300731874614 # Error bar
+
         m1 = 0.6423327398       # slope
-        c1 = 0.1357387698       # y intercept
+        c1 = 2.1357387698       # y intercept
         e1 = 0.4073300731874614 # Error bar
 
         #Calculate bounds on error distribution
         a = mag * m1 + c1 - e1
         b = mag * m1 + c1 + e1
-        return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length)
+        return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length_cm)
 
     def get_width(self, mag):
-	    """ Width is sampled from a truncated normal distribution that
-		is centered at the linear regression of log10(width_meters) and magnitude
+        """ Width is sampled from a truncated normal distribution that
+        is centered at the linear regression of log10(width_cm) and magnitude
         Linear regression was calculated from wellscoppersmith data.
 
-		Parameters:
-		mag (float): the magnitude of the earthquake
+        Parameters:
+        mag (float): the magnitude of the earthquake
 
-		Returns:
-		width (float): a sample from the normal distribution centered on the regression
-	    """
-	    m2 = 0.4832185193       # slope
-	    c2 = 0.1179508532       # y intercept
-	    e2 = 0.4093407095518345 # error bar
+        Returns:
+        width (float): a sample from the normal distribution centered on the regression
+        """
+        m2 = 0.4832185193       # slope 
+        c2 = 3.1179508532       # y intercept 
+        e2 = 0.4093407095518345 # error bar
+
+        #m2 = 0.4832185193       # slope
+        #c2 = 0.1179508532       # y intercept
+        #e2 = 0.4093407095518345 # error bar  
 
 	    #Calculate bounds on error distribution
-	    a = mag * m2 + c2 - e2
-	    b = mag * m2 + c2 + e2
-	    return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width)
+        a = mag * m2 + c2 - e2
+        b = mag * m2 + c2 + e2
+        return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width_cm)
 
     def get_slip(self, length, width, mag):
         """Calculated from magnitude and rupture area, Ron Harris gave us the equation
             Parameters:
-            Length (float): meters
-            Width (float): meters
+            Length (float): cm
+            Width (float): cm
             mag (float): moment magnitude
             
             Return:
@@ -111,19 +118,16 @@ class Custom(MCMC):
         Returns:
             draws (array): An array of the 9 parameter draws.
         """
-        # Std deviations for each parameter, the mean is the current location
-        strike_std = 5.  # strike_std    = 1.
-        length_std = 5.e3  # length_std    = 2.e4
-        width_std = 2.e3  # width_std     = 1.e4
-        slip_std = 0.5  # slip_std      = 0.5
-        longitude_std = 0.15  # longitude_std = .025
-        latitude_std = 0.15  # latitude_std  = .025
-        mean = np.zeros(6)
-        # square for std => cov
-        cov = np.diag(np.square([strike_std, length_std, width_std, slip_std, 
-                                 longitude_std, latitude_std]))
 
-        cov *= 0.25;
+        strike_std = 5.
+        longitude_std = 0.15
+        latitude_std = 0.15
+        magnitude_std = 0.1 #garret arbitraily chose this
+
+        # square for std => cov
+        cov = np.diag(np.square([strike_std, longitude_std, latitude_std, magnitude_std]))
+        mean = np.zeros(4)
+        cov *= 0.25
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
@@ -135,36 +139,8 @@ class Custom(MCMC):
         print("Random walk difference:", e)
         print("New draw:", new_draw)
 
-        # return new draw (pandas series)
+
         return new_draw.loc[0]
-
-        #stub for magnitude sampling
-        #strike_std = 5.
-        #longitude_std = 0.15
-        #latitude_std = 0.15
-        #magnitude_std = 0.1 #garret arbitraily chose this
-
-        ## square for std => cov
-        #cov = np.diag(np.square([strike_std, longitude_std, latitude_std, magnitude_std]))
-        #mean = np.zeros(4)
-        #cov *= 0.25
-
-        ## random draw from normal distribution
-        #e = stats.multivariate_normal(mean, cov).rvs()
-
-        ## does sample update normally
-        #print("Random walk difference:", e)
-        #print("New draw:", prev_draw.values + e)
-
-        ##prev_draw should be a pandas but we will change to arrays until we get it all worked out
-        #temp = prev_draw.values + e
-
-        #length = self.get_length(temp['Magnitude']) #these are floats so the hstack below will break
-        #width = self.get_width(temp['Magnitude'])
-
-        #return np.hstack((temp,length,width))
-
-
 
     def build_priors(self):
         """
@@ -178,19 +154,11 @@ class Custom(MCMC):
         data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
         distrb0 = gaussian_kde(data.T)
 
-        # build dip, rake, depth, length, width, and slip prior
-        vals = np.load('./InputData/6_param_bootstrapped_data.npy')
-        vals_1852=vals[:,3:]
-        vals_1852 = np.log(vals_1852)
-        distrb1 = gaussian_kde(vals_1852.T)
-        distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
+        #Garret and spencer chose this 18 June 2019
+        data2 = stats.norm.rvs(size = 1000,loc = np.log(8), scale = 0.05)
+        distrb1 = gaussian_kde(data2)
 
         dists = [distrb0, distrb1]
-
-        # DEPRICATED?
-        # dists = {}
-        # dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
-        # dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip'] # 'Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip'
 
         return Prior(dists)
 
@@ -200,20 +168,15 @@ class Custom(MCMC):
         :param draws:
         :return: okada_params
         """
-        #GRL-style 6-parameter sampling
         lon    = draws["Longitude"]
         lat    = draws["Latitude"]
         strike = draws["Strike"]
-        length = draws["Length"]
-        width  = draws["Width"]
-        slip   = draws["Slip"]
 
-        ##stub for magnitude sampling
-        ##mw = draw["Magnitude"]
-        #mw = 8.0 #PLACEHOLDER
-        #length = self.get_length(mw)
-        #width = self.get_width(mw)
-        #slip = self.get_slip(length, width, mw)
+        #stub for magnitude sampling
+        self.mw = draws["Magnitude"]
+        length = self.get_length(self.mw) * 1e-2
+        width = self.get_width(self.mw) * 1e-2
+        slip = self.get_slip(length, width, self.mw)
 
         #deterministic okada parameters
         rake = 90
@@ -238,7 +201,8 @@ class Custom(MCMC):
         """
         obvs = []
         #obvs[0] = self.compute_mw(params[1], params[2], params[4]) #first the magnitude
-        obvs.append(self.compute_mw(params["Length"], params["Width"], params["Slip"])) #first the magnitude
+        #obvs.append(self.compute_mw(params["Length"], params["Width"], params["Slip"])) #first the magnitude
+        obvs.append(self.mw)
         for ii in range(len(arrivals)): #alternate arrival times with wave heights
             obvs.append(arrivals[ii])
             obvs.append(heights[ii])
