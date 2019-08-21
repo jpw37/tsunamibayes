@@ -7,8 +7,15 @@ Property of BYU Mathematics Dept.
 import numpy as np
 from maketopo import get_topo, make_dtopo
 from scipy import stats
+from scipy.integrate import quad
+
 import os
 from scipy.interpolate import interp1d
+
+#Modelscripts/classes
+from abrahamson import abrahamson
+from distance import distance
+from atkinson_kaka import convert_to_MMI
 
 
 class FeedForward:
@@ -19,6 +26,22 @@ class FeedForward:
 
     def __init__(self):
         pass
+
+    def run_abrahamson(self, gauges, mag, okada_params):
+        """
+        Runs Abrahamson for all observation sites and returns MMI
+        :
+        :return: List of MMIs from all observation points
+        """
+        MMI_list = []
+        for gauge in gauges:
+            # Strike, Length, width, depth, slip, rake, dip, long, lat
+            D = distance(gauge.latitude, gauge.longitude, okada_params[1], okada_params[2], okada_params[0], okada_params[6], okada_params[3], okada_params[8], okada_params[7])
+            logSA_g = abrahamson(mag,D,gauge.VS30)[0]
+            logSA = np.log(980.665)+logSA_g
+            mu_MMI = convert_to_MMI(logSA,mag,D)[0]
+            MMI_list.append(mu_MMI)
+        return MMI_list
 
     def run_geo_claw(self, okada_params):
         """
@@ -144,3 +167,39 @@ class FeedForward:
                 llh += p_i
                 print("GAUGE LOG: gauge", i, " (inundation): logpdf +=", p_i)
         return llh, arrivals, heights
+
+    def shake_llh(self, MMI, gauges, integrate=False, sigma_MMI = .73):
+        """
+        Calculate the log-likelihood of a sample earthquake
+        based on our chosen distributions for MMI at each location.
+
+        Parameters:
+            MMI (list): A list of the MMI for each gauge location
+            gauges (list): A list of gauge objects
+            integrate (bool): True to calculate likelihood using
+                integration of the observation distribution and the
+                MMI distribution, False to calculate without MMI
+                uncertainty
+            sigma_MMI (float): standard deviation for MMI estimates
+                (default of .73 from Atkinson-Kaka model)
+
+        Returns:
+            llh (float): The combined log-likelihood of the sample
+                earthquake.
+        """
+
+        llh = 0
+
+        if integrate:
+            for i, gauge in enumerate(gauges):
+                MMI_distribution = stats.norm(loc=MMI[i], scale=sigma_MMI)
+                f = lambda x: gauge.distribution.pdf(x) * \
+                    MMI_distribution.pdf(x)
+                L = quad(f, 0, 12)[0]
+                llh += np.log(L)
+
+        else:
+            for i, gauge in enumerate(gauges):
+                llh += gauge.distribution.logpdf(MMI[i])
+
+        return llh

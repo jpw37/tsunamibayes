@@ -15,8 +15,8 @@ print(sys.argv)
 
 #set up command line arguments
 parser = argparse.ArgumentParser(description='Run a tsunamibayes scenario.')
-parser.add_argument('--scen', dest='scenario', default='1852',
-                   help='scenario to run (default: 1852)')
+parser.add_argument('--scen', dest='scenario', default='1852mag',
+                   help='scenario to run (default: 1852mag)')
 parser.add_argument('--mcmc', dest='mcmc', default='random_walk',
                    help='mcmc method to use (default: random_walk)')
 #parser.add_argument('--nburn', dest='nburn', default=0,
