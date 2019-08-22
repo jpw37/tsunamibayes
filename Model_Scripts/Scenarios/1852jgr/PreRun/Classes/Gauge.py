@@ -4,6 +4,8 @@ Created 10/19/2018
 Property of BYU Mathematics Dept.
 """
 
+import matplotlib.pyplot as plt
+import numpy as np
 from scipy import stats
 
 class Gauge:
@@ -117,6 +119,33 @@ class Gauge:
         d['n'] = self.n
         d['city_name'] = self.city_name
         return d
+
+    def plot(self):
+        if self.name is not None: # Allows for None initialized object
+            # Kind[0] is for Wave Arrival Times
+            # kind[1] is for Wave Height
+            # kind[2] is for Inundation
+            if self.kind[0] != None:
+                f = plt.figure()
+                domain = np.linspace(0,120,1000)
+                plt.plot(domain,self.arrival_dist.pdf(domain))
+                plt.xlabel("Arrival time (minutes)")
+                plt.title("Arrival time")
+                #plt.close()
+            if self.kind[1] != None:
+                f = plt.figure()
+                domain = np.linspace(0,25,1000)
+                plt.plot(domain,self.height_dist.pdf(domain))
+                plt.xlabel("Wave height (meters)")
+                plt.title("Wave height")
+                #plt.close()
+            if self.kind[2] != None:
+                f = plt.figure()
+                domain = np.linspace(0,1000,1000)
+                plt.plot(domain,self.inundation_dist.pdf(domain))
+                plt.xlabel("Inundation length (meters)")
+                plt.title("Inundation length")
+                #plt.close()
 
 def from_json(d):
     """

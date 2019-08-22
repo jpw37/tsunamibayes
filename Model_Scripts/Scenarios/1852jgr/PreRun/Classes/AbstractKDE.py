@@ -56,9 +56,14 @@ class AbstractKDE:
         #else:
         #  lpdf = self.kde.logpdf( samples )
         if self.transformType == 'log':
-          lpdf = self.kde.logpdf( self.transform(samples) ) - np.sum( self.transform(samples), axis=0 )
+            #lpdf = self.kde.logpdf( self.transform(samples) ) - np.sum( np.log(samples), axis=0 )
+            #this should avoid cases where the sample includes zeros (which otherwise would produce -infs or divide by zero warnings)
+            lpdf = np.zeros(samples.shape[-1])
+            p = np.prod( samples, axis=0 )
+            lpdf[p>0.]  = self.kde.logpdf( self.transform( samples[:,p>0.] ) ) - np.log(p[p>0.])
+            lpdf[p<=0.] = np.ninf
         else:
-          lpdf = self.kde.logpdf( samples )
+            lpdf = self.kde.logpdf( samples )
 
         #print("lpdf is:")
         #print(lpdf)
@@ -72,8 +77,20 @@ class AbstractKDE:
         :param samples:
         :return:
         """
-        if self.transform == 'log':
-            pdf = np.exp( self.logpdf( samples ) )
+        if self.transformType == 'log':
+            #pdf = np.exp( self.logpdf( samples ) )
+            #pdf = self.kde.pdf( self.transform( samples ) ) / np.prod( samples, axis=0 )
+            #pdf = self.kde.pdf( self.transform( samples ) ) 
+            #pdf[pdf > 0.] /= np.prod( samples[:,pdf>0.], axis=0 )
+            
+            #this should avoid cases where the sample includes zeros (which otherwise would produce -infs or divide by zero warnings)
+            if self.d == 1:
+              pdf = np.zeros(len(samples))
+              pdf[samples>0.] = self.kde.pdf( self.transform( samples[samples>0.] ) ) / samples[samples>0.] 
+            else:
+              pdf = np.zeros(samples.shape[-1])
+              p = np.prod( samples, axis=0 )
+              pdf[p>0.] = self.kde.pdf( self.transform( samples[:,p>0.] ) ) / p[p>0.] 
         else:
             pdf = self.kde.pdf( samples )
 
@@ -98,11 +115,11 @@ class AbstractKDE:
         return samples
 
     #plot the kde
-    def plot(self):
+    def plot(self, plotRange=None):
         #in 1d, plot kde vs. histogram
         if self.d == 1:
-            xmin =  self.dataset.min()
-            xmax =  self.dataset.max()
+            xmin = self.dataset.min() if plotRange is None else plotRange[0]
+            xmax = self.dataset.max() if plotRange is None else plotRange[1]
             x = np.linspace(xmin,xmax,num=100)
             
             #plt.hist(self.dataset,20,density=True,histtype='bar',label="dataset");
@@ -124,10 +141,10 @@ class AbstractKDE:
             fig, (ax1,ax2) = plt.subplots(1,2,figsize=(12,6))
 
             #plot untransformed
-            xmin =  self.dataset[0,:].min()
-            xmax =  self.dataset[0,:].max()
-            ymin =  self.dataset[1,:].min()
-            ymax =  self.dataset[1,:].max()
+            xmin =  self.dataset[0,:].min() if plotRange is None else plotRange[0]
+            xmax =  self.dataset[0,:].max() if plotRange is None else plotRange[1]
+            ymin =  self.dataset[1,:].min() if plotRange is None else plotRange[2]
+            ymax =  self.dataset[1,:].max() if plotRange is None else plotRange[3]
             X, Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
             xy = np.vstack([X.ravel(), Y.ravel()])
             Z = np.reshape(self.pdf(xy).T, X.shape)

@@ -13,8 +13,7 @@ inun_llh_path = "../InputData/gaugeInundationLikelihood.npy"
 gauge_output = 'InputData/gauge_llh_ht.png'
 
 
-def buildGaugeLikelihoods(gaugeFile=gauges_path, tohokuFile=amp_data_path, heightFile=height_llh_path,
-                          inundationFile=inun_llh_path, offshorePoints=500, gaugeIds=-1):
+def buildGaugeLikelihoods(gaugeFile=gauges_path, tohokuFile=amp_data_path, heightFile=height_llh_path, inundationFile=inun_llh_path, offshorePoints=500, gaugeIds=-1, **kwargs):
     """
 
     :param gaugeFile:
@@ -33,7 +32,8 @@ def buildGaugeLikelihoods(gaugeFile=gauges_path, tohokuFile=amp_data_path, heigh
     if gaugeIds != -1:
         gauges = [gauges[i] for i in gaugeIds]
 
-    heightKdes, inundationKdes = makeGaugeKDEs(gauges, tohokuFile);
+    print("Making KDEs...")
+    heightKdes, inundationKdes = makeGaugeKDEs(gauges, tohokuFile, **kwargs);
 
     # These are the values that we will fill in
     maxOffShoreHeight = max(
@@ -43,6 +43,7 @@ def buildGaugeLikelihoods(gaugeFile=gauges_path, tohokuFile=amp_data_path, heigh
     heightLikelihood = np.zeros((len(offShoreHeights), len(gauges)))
     inundationLikelihood = np.zeros((len(offShoreHeights), len(gauges)))
 
+    print("Building gauge likelihoods...")
     for gid, gauge in enumerate(gauges):
         print("starting gauge " + str(gid) + "...")
         if (gauge.kind[1]):
@@ -75,19 +76,23 @@ def computeHeightLikelihoodPdf(kde, gauge, offShoreHeights):
     :param offShoreHeights:
     :return:
     """
-    # quadrature rule (long-term it would be better to use a gaussian quadrature
-    # rule with points/weights picked by the gauge distribution)
     maxOnShoreHeight = kde.dataset[0, :].max()
     gaugePdf = gauge.height_dist.pdf
-    if gauge.kind[1] == "norm":  
-        # use optimal quadrature for normal distributions
-        # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
-        x,wt = gaussHermite(50, mu=gauge.height_params[0], sig=gauge.height_params[1]);
-        gaugePdf = lambda x:1
-    elif gauge.kind[1] == "chi2" and gauge.height_params[0] < 2.0:  # chi2 can have infinite pdf
+    if gauge.kind[1] == "chi2" and gauge.height_params[0] < 2.0:  # chi2 can have infinite pdf
         print("chi2: x is from ",gauge.height_params[1],"to",maxOnShoreHeight)
         x = np.linspace(gauge.height_params[1] + 0.001, maxOnShoreHeight, num=1000)
         wt = trapRuleWeights(x);  # trapezoidal rule
+
+    # #Gauss-Hermite quadrature for normal distributions didn't work - when there is very little overlap
+    # #between a Gauge distribution and the Tohoku KDE, computing the conditional distribution rapidly 
+    # #became numerically unstable. It seems that we need an integration rule that covers the whole 
+    # #region of possible values.
+    # elif gauge.kind[1] == "norm":  
+    #     # use optimal quadrature for normal distributions
+    #     # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
+    #     x,wt = gaussHermite(100, mu=gauge.height_params[0], sig=gauge.height_params[1]);
+    #     gaugePdf = lambda x:1
+
     else:
         x = np.linspace(0.0, maxOnShoreHeight, num=1000)
         wt = trapRuleWeights(x);  # trapezoidal rule
@@ -107,14 +112,17 @@ def computeInundationLikelihoodPdf(kde, gauge, offShoreHeights):
     """
     maxInundation = kde.dataset[0, :].max()
     gaugePdf = gauge.inundation_dist.pdf
-    if gauge.kind[2] == "norm":  
-        # use optimal quadrature for normal distributions
-        # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
-        x,wt = gaussHermite(50, mu=gauge.inundation_params[0], sig=gauge.inundation_params[1]);
-        gaugePdf = lambda x:1
-    elif gauge.kind[2] == "chi2" and gauge.inundation_params[0] < 2.0:  # chi2 can have infinite pdf
+    if gauge.kind[2] == "chi2" and gauge.inundation_params[0] < 2.0:  # chi2 can have infinite pdf
         x = np.linspace(gauge.inundation_params[1] + 0.001, maxInundation, num=1000)
         wt = trapRuleWeights(x)  # trapezoidal rule
+
+    #removed Gauss-Hermite quadrature for normal distributions per comment in computeHieghtLikelihoodPdf
+    #elif gauge.kind[2] == "norm":  
+    #    # use optimal quadrature for normal distributions
+    #    # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
+    #    x,wt = gaussHermite(100, mu=gauge.inundation_params[0], sig=gauge.inundation_params[1]);
+    #    gaugePdf = lambda x:1
+
     else:
         x = np.linspace(0.0, maxInundation, num=1000)
         wt = trapRuleWeights(x)  # trapezoidal rule
@@ -149,7 +157,12 @@ def computeLikelihoodPdf(kdePdf, gaugePdf, x, wt, offShoreHeights):
     for yidx, y in enumerate(offShoreHeights):
         xy[1, :] = y
         kdeXY = kdePdf(xy)
-        kdeXY /= sum(wt * kdeXY)  # conditional distribution
+        #print("integral across row is",sum(wt*kdeXY))
+        nrm = sum(wt * kdeXY)     # normalization factor
+        if nrm > 0.:
+          kdeXY /= sum(wt * kdeXY)  # conditional distribution
+        else:
+          print("Warning: Conditional distribution is zero for off-shore height =",y)
         likelihood[yidx] = sum(wt * kdeXY * gPdf)
         condDist[yidx + 1, 1:] = kdeXY
 
@@ -168,19 +181,20 @@ def computeLikelihoodPdf(kdePdf, gaugePdf, x, wt, offShoreHeights):
     return likelihood, condDist
 
 
+
 # makeGaugeKDEs() builds a height and inundation KDE for
 # each gauge
-def makeGaugeKDEs(gauges, flNm='amplification_data.npy'):
+def makeGaugeKDEs(gauges, tohokuFile='amplification_data.npy', **kwargs):
     """
 
     :param gauges:
-    :param flNm:
+    :param tohokuFile:
     :return:
     """
     heightKdes = []
     inundationKdes = []
 
-    amplification_data = np.load(flNm)
+    amplification_data = np.load(tohokuFile)
 
     for gid, gauge in enumerate(gauges):
         print("starting gauge " + str(gid) + "...")
@@ -192,7 +206,7 @@ def makeGaugeKDEs(gauges, flNm='amplification_data.npy'):
         # height kdes
         onHeights = amplification_data[:, 0]
         offHeights = amplification_data[:, d_idx]
-        kernel = tohokuKDE(onHeights, offHeights)
+        kernel = tohokuKDE(onHeights, offHeights, **kwargs)
         heightKdes.append(kernel)
 
         # inundation kdes
