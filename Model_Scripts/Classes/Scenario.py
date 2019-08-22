@@ -18,6 +18,7 @@ from FeedForward import FeedForward
 from Custom import Custom
 from Gauge import from_json
 from Adjoint import Adjoint
+from pandas import read_pickle
 
 class Scenario:
     """
@@ -26,7 +27,7 @@ class Scenario:
     READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
     """
 
-    def __init__(self, title="Default_Title", use_custom=True, init='manual', rw_covariance=1.0, method="random_walk", iterations=1):
+    def __init__(self, title="Default_Title", use_custom=True, init='manual', adjoint=False, rw_covariance=1.0, method="random_walk", iterations=1):
         """
         Initialize all the correct variables for Running this Scenario
         :param title: Title for Scinerio (ex: 1852)
@@ -35,6 +36,7 @@ class Scenario:
         :param rw_covariance: float: covariance for the random walk method
         :param method: String: MCMC Method to use
         :param iterations: Int: Number of Times to run the model
+        :param adjoint: Boolean: run the adjoint solver first or not
         """
 
         # Clean geoclaw files
@@ -44,6 +46,7 @@ class Scenario:
         # Clear previous files
         os.system('rm ./InputData/dtopo.tt3')
         gauges_file_path = './PreRun/InputData/gauges.npy'
+        shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
 
         self.title = title
         self.iterations = iterations
@@ -70,8 +73,11 @@ class Scenario:
         self.init_guesses = self.samples.get_sample()
 
         # JW: Create the adjoint object here...right now is given as a separate class
-        self.adjoint = Adjoint()
-        self.adjoint.run_geo_claw()
+        if adjoint:
+            print("Starting adjoint computation")
+            self.adjoint = Adjoint()
+            self.adjoint.run_geo_claw()
+            print("Finished adjoint computation")
 
         # Make sure Pre-Run files have been generated
         if(os.path.isfile(gauges_file_path)):
@@ -82,11 +88,17 @@ class Scenario:
         else:
             raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
+#        #test shake gauge input
+#        if(os.path.isfile(shake_gauges_file_path)):
+#            self.shake_gauges = read_pickle(shake_gauges_file_path)
+#        else:
+#            raise ValueError("Shake gauge file does not exist")
+
         # If using the custom methods map the initial guesses to okada parameters to save as initial sample
         if (self.use_custom):
-            self.init_guesses = self.mcmc.map_to_okada(self.init_guesses)
+            self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
         # Save
-        self.samples.save_sample_okada(self.init_guesses)
+        self.samples.save_sample_okada(self.init_okada_params)
 
         # Build the prior for the model, based on the choice of MCMC
         self.prior = self.mcmc.build_priors()
@@ -109,6 +121,7 @@ class Scenario:
         okada_params = self.mcmc.map_to_okada(self.init_guesses)
         print("init_guesses:")
         print(self.init_guesses)
+        print(type(self.init_guesses))
         print("okada_params:")
         print(okada_params)
         # Run Geoclaw
@@ -164,11 +177,31 @@ class Scenario:
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params_okada)
 
+
+            """
+            BEGIN SHAKE MODEL
+            """
+            #To speed up shake model calculation set this False
+#            shake_option = True
+
+#            print("init_guesses:")
+#            print(self.init_guesses)
+#            print(type(self.init_guesses))
+#            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
+#            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
+            """
+            END SHAKE MODEL
+            """
+
             # Calculate the Log Likelihood for the new draw
             proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
             sample_llh = self.samples.get_sample_llh()
-            # Save
+
+            # Save SHAKE STUFF
             print("_____proposal_llh_____", proposal_llh)
+#            proposal_llh += self.proposal_shake_llh
+            print("_____proposal_llh_____", proposal_llh)
+
             self.samples.save_sample_llh(sample_llh)
             self.samples.save_proposal_llh(proposal_llh)
             proposal_obvs = self.mcmc.make_observations(proposal_params, proposal_arr, proposal_heights)

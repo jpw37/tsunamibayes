@@ -85,25 +85,3 @@ class MCMC:
     def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
         pass
 
-#    def build_priors(self):
-#        samplingMult = 50
-#        bandwidthScalar = 2
-#        # build longitude, latitude and strike prior
-#        data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xls')
-#        data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
-#        distrb0 = gaussian_kde(data.T)
-#
-#        # build dip, rake, depth, length, width, and slip prior
-#        vals = np.load('./InputData/6_param_bootstrapped_data.npy')
-#        vals_1852=vals[:,3:]
-#        vals_1852 = np.log(vals_1852)
-#        distrb1 = gaussian_kde(vals_1852.T)
-#        distrb1.set_bandwidth(bw_method=distrb1.factor * bandwidthScalar)
-#
-#        dists = [distrb0, distrb1]
-#
-#        # DEPRECATED?
-#        # dists[distrb0] = ['Longitude', 'Latitude', 'Strike']
-#        # dists[distrb1] = ['Dip', 'Rake', 'Depth', 'Length', 'Width', 'Slip']
-#
-#        return Prior(dists)
