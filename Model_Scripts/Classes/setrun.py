@@ -341,7 +341,7 @@ def setrun(claw_pkg='geoclaw'):
     maxlevel = len(model_bounds["AMR_levels"])+1
     regions_bounds = model_bounds["regions_bounds"]
     for i in range(len(regions_bounds)):
-        rundata.regiondata.regions.append([maxlevel,maxlevel,0., 1.e10]+regions_bounds[i])
+        rundata.regiondata.regions.append([maxlevel,maxlevel]+regions_bounds[i])
  
  #   rundata.regiondata.regions.append([3, 3, 0., 10000., -85,-72,-38,-25])
     #rundata.regiondata.regions.append([3, 3, 8000., 26000., -90,-80,-30,-15])
