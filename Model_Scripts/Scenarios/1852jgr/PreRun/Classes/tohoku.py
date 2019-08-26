@@ -38,22 +38,46 @@ def tohokuKDE(onHeights, offHeights, transformType='none', bw_method=0.25):
   return kernel;
 
 
-#makeTohokuKDEs() builds a height KDE for
+# #makeTohokuKDEs() builds a height KDE for
+# #each column of the amplification data
+# def makeTohokuKDEs(tohokuFile='amplification_data.npy', **kwargs):
+#   heightKdes     = []
+#   inundationKdes = []
+# 
+#   amplification_data = np.load(tohokuFile);
+#   
+#   for d_idx in range(1,amplification_data.shape[1]):
+#     #height kdes
+#     onHeights   = amplification_data[:,0];
+#     offHeights  = amplification_data[:,d_idx]
+#     kernel      = tohokuKDE(onHeights, offHeights, **kwargs)
+#     heightKdes.append(kernel)
+# 
+#   return heightKdes
+
+
+#makeTohokuKDEs() builds a KDE for
 #each column of the amplification data
-def makeTohokuKDEs(tohokuFile='amplification_data.npy', **kwargs):
-  heightKdes     = []
-  inundationKdes = []
+#if beta and n are None, then it's assumed that we're doing height KDEs and the data is not transformed
+#if beta and n are not None, then it's assumed that we're doing inundation KDEs and the onShoreHeights are converted to inundation lengths
+def makeTohokuKDEs(tohokuFile='amplification_data.npy', beta=None, n=None, **kwargs):
+    kdes = []
 
-  amplification_data = np.load(tohokuFile);
-  
-  for d_idx in range(1,amplification_data.shape[1]):
-    #height kdes
+    amplification_data = np.load(tohokuFile);
     onHeights   = amplification_data[:,0];
-    offHeights  = amplification_data[:,d_idx]
-    kernel      = tohokuKDE(onHeights, offHeights, **kwargs)
-    heightKdes.append(kernel)
 
-  return heightKdes
+    #if beta and n are defined, convert to inundations
+    if beta is not None and n is not None:
+        onHeights = heightToInundation(onHeights, beta, n)
+    elif beta is not None or n is not None:
+        print("Warning: makeTohokuKDEs() called with only one of beta or n defined.")
+
+    for d_idx in range(1,amplification_data.shape[1]):
+        offHeights  = amplification_data[:,d_idx]
+        kernel      = tohokuKDE(onHeights, offHeights, **kwargs)
+        kdes.append(kernel)
+
+    return kdes
 
 
 #plotTohokuKDEs() plots the height KDEs
@@ -129,7 +153,7 @@ def computeConditionalDistribution(kde,nOff=500,nOn=1000):
 
     return condDist, onShoreHeights, offShoreHeights
 
-def plotConditionalDistribution(condDist,x,y,xmax=25.,ymax=25.,**kwargs):
+def plotConditionalDistribution(condDist,x,y,xmax=25.,ymax=25.,outputFile=None,**kwargs):
     condDist = condDist[y <= ymax, :]
     condDist = condDist[:, x <= xmax]
     x = x[x <= xmax]
@@ -144,12 +168,56 @@ def plotConditionalDistribution(condDist,x,y,xmax=25.,ymax=25.,**kwargs):
     plt.ylabel('Off shore')
     #plt.xlim(0.,xmax)
     #plt.ylim(0.,ymax)
-    plt.gca().set_aspect("equal")
+    #plt.gca().set_aspect("equal")
     plt.colorbar()
+
+    #print to file if one is specified
+    if outputFile is not None:
+        plt.savefig(outputFile)
+        print("Wrote:",outputFile)
+
+def makeTohokuConditionalDistributions(kdes,filePrefix="condDist_",distanceInterval=0.25,nOff=500,nOn=1000):
+    """
+    compute conditional distributions from kdes
+    :param kdes: list of kde objects
+    :return:
+    """
+  
+    cdList    = []
+    onHtList  = []
+    offHtList = []
+
+    #kernels are assumed to represent distances in intervals given by distanceInterval
+    kdeDistances = np.arange(len(kdes)) * distanceInterval
+    #loop over kernels
+    for d_idx, kernel in enumerate(kdes):
+        distance = kdeDistances[d_idx]
+        print('Computing conditional distribution for kernel',d_idx)
+        condDist, onShoreHeights, offShoreHeights = computeConditionalDistribution(kernel,nOff=nOff,nOn=nOn)
+        fileName=filePrefix+str(d_idx)+'.npz'
+        saveConditionalDistribution(fileName, condDist, onShoreHeights, offShoreHeights, distance, kernel)
+
+        #append values to lists so we can return them
+        cdList.append(condDist)
+        onHtList.append(onShoreHeights)
+        offHtList.append(offShoreHeights)
+
+    return cdList, onHtList, offHtList, kdeDistances
+
+
+#save a conditional distribution to an .npz file
+def saveConditionalDistribution(fileName, condDist, onShoreHeights, offShoreHeights, distance, kde):
+    np.savez(fileName, condDist=condDist, onShoreHeights=onShoreHeights, offShoreHeights=offShoreHeights, distance=distance, bw_method=kde.bw_method, transformType=kde.transformType)
+    print('Saved:',fileName)
+
+#read a conditional distribution from an .npz file written with makeTohokuConditionalDistributions()
+def readConditionalDistribution(fileName):
+    data = np.load(fileName)
+    return data['condDist'], data['onShoreHeights'], data['offShoreHeights'], data['distance'], data['bw_method'].item(), data['transformType'].item()
+
 
 def trapRuleWeights(x):
     """
-
     :param x:
     :return:
     """
@@ -176,5 +244,36 @@ def gaussHermite(numPoints, mu=0, sig=1):
     x =  mu + sig*x
 
     return x,w
+
+
+def condDistFileName(prefix="",id=None,beta=None,n=None):
+    #if beta and n are defined, do inundation
+    if beta is not None and n is not None:
+        fileName = "condDist_inun_b{:4.3f}_n{:4.3f}_".format(beta,n)
+    #otherwise do height
+    else:
+        if beta is not None or n is not None:
+            print("Warning: condDistFileName() called with only one of beta or n defined.")
+        fileName = "condDist_ht_"
+
+    fileName = prefix+fileName
+    
+    #if we have the id, assume that we want the full filename
+    if id is not None:
+        fileName = fileName+str(id)+".npz"
+
+    return fileName
+   
+
+def heightToInundation(onHeights,beta,n):
+    """
+
+    :param onHeights:
+    :param beta:
+    :param n:
+    :return:
+    """
+    #return np.power(onHeights,4/3) * 0.06 * np.cos(beta) / (n**2)
+    return np.power(np.maximum(onHeights,0),4/3) * 0.06 * np.cos(np.pi*beta/180.0) / (n**2)
 
 

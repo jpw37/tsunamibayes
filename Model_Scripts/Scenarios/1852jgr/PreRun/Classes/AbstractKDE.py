@@ -21,6 +21,7 @@ class AbstractKDE:
         self.values = values
         self.dataset = np.atleast_2d(values)
         self.transformType = transformType
+        self.bw_method = bw_method
 
         #dimensions
         self.d, self.n = self.dataset.shape
@@ -115,7 +116,7 @@ class AbstractKDE:
         return samples
 
     #plot the kde
-    def plot(self, plotRange=None):
+    def plot(self, plotRange=None, outputFile=None):
         #in 1d, plot kde vs. histogram
         if self.d == 1:
             xmin = self.dataset.min() if plotRange is None else plotRange[0]
@@ -135,6 +136,11 @@ class AbstractKDE:
             ax2.plot(self.transform(x),self.kde.pdf(self.transform(x)),label="KDE pdf");
             ax2.legend();
             ax2.title.set_text("Transformed space");
+
+            #print to file if one is specified
+            if outputFile is not None:
+                plt.savefig(outputFile)
+                print("Wrote:",outputFile)
 
         #in 2d, plot kde vs. scatterplot of datapoints
         elif self.d == 2:
@@ -168,6 +174,11 @@ class AbstractKDE:
             ax2.set_ylim([ymin, ymax]);
             ax2.set_aspect('auto')
             ax2.title.set_text("Transformed space");
+
+            #print to file if one is specified
+            if outputFile is not None:
+                plt.savefig(outputFile)
+                print("Wrote:",outputFile)
 
         else:
             print("No method for plotting KDE of dimension",self.d,".")
