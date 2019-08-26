@@ -93,7 +93,6 @@ class Scenario:
 
         # Build the prior for the model, based on the choice of MCMC
         self.prior = self.mcmc.build_priors()
-
     def setGeoClaw(self):
         """
         Runs an initial set up of GeoClaw
@@ -171,7 +170,7 @@ class Scenario:
 
             """
             BEGIN SHAKE MODEL
-            """
+            
             #To speed up shake model calculation set this False
             shake_option = True
 
@@ -180,7 +179,7 @@ class Scenario:
             print(type(self.init_guesses))
             self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
             self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
-            """
+            
             END SHAKE MODEL
             """
 
@@ -190,7 +189,7 @@ class Scenario:
 
             # Save SHAKE STUFF
             print("_____proposal_llh_____", proposal_llh)
-            proposal_llh += self.proposal_shake_llh
+            #proposal_llh += self.proposal_shake_llh
             print("_____proposal_llh_____", proposal_llh)
 
             self.samples.save_sample_llh(sample_llh)
