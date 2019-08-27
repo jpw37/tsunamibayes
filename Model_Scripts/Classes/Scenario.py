@@ -45,6 +45,8 @@ class Scenario:
 
         # Clear previous files
         os.system('rm ./InputData/dtopo.tt3')
+
+        #Set up necessary prerun file paths
         gauges_file_path = './PreRun/InputData/gauges.npy'
         shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
 
@@ -64,9 +66,9 @@ class Scenario:
 
         # Get initial draw for the initial run of geoclaw
         self.init_guesses = self.mcmc.init_guesses(self.init)
+
         # Initialize the Samples Class
         self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols)
-
         self.mcmc.set_samples(self.samples)
 
         # Load the samples
@@ -108,28 +110,14 @@ class Scenario:
         Runs an initial set up of GeoClaw
         :return:
         """
-        # # Set things up
-        # get_topo()
-        # make_dtopo(self.mcmc.map_to_okada(self.init_guesses))
-
-        # # Run Geoclaw
-        # os.system('rm .output')
-        # # If you change the output directory for geoclaw in the mainfile, change this _output="" location to same one
-        # os.system('make .output')
-
-        # Get Okada parameters for initial guesses
+        # Get Okada parameters for initial guesses pandas data frame
         okada_params = self.mcmc.map_to_okada(self.init_guesses)
-        print("init_guesses:")
-        print(self.init_guesses)
-        print(type(self.init_guesses))
-        print("okada_params:")
-        print(okada_params)
+        
         # Run Geoclaw
         self.feedForward.run_geo_claw(okada_params)
 
-        # Calculate the inital log likelihood
+        # Calculate the inital log likelihood and save result
         sample_llh, sample_arr, sample_heights = self.feedForward.calculate_llh(self.gauges)
-        # Save
         self.samples.save_sample_llh(sample_llh)
 
         # Now Save the observations based off the sample and the arrival times & wave heights
@@ -167,12 +155,6 @@ class Scenario:
 
             # Save Proposal
             self.samples.save_proposal_okada(proposal_params_okada)
-            #proposal_params = self.samples.get_proposal_okada()
-
-            print("proposal_params:")
-            print(proposal_params)
-            print("proposal_params_okada:")
-            print(proposal_params_okada)
 
             # Run Geo Claw on the new proposal
             self.feedForward.run_geo_claw(proposal_params_okada)
@@ -180,7 +162,7 @@ class Scenario:
 
             """
             BEGIN SHAKE MODEL
-            """
+            
             #To speed up shake model calculation set this False
 #            shake_option = True
 
@@ -208,23 +190,12 @@ class Scenario:
             self.samples.save_obvs(proposal_obvs)
 
             # Calculate prior probability for the current sample and proposed sample
-            #sample_prior_lpdf = 0.0
-            #proposal_prior_lpdf = 0.0
             sample_prior_lpdf = self.prior.logpdf(sample_params)
             proposal_prior_lpdf = self.prior.logpdf(proposal_params)
-            #print("proposal_prior_lpdf is:")
-            #print(proposal_prior_lpdf)
-            #print("sample_prior_lpdf is:")
-            #print(sample_prior_lpdf)
 
             # Save
             self.samples.save_sample_prior_lpdf(sample_prior_lpdf)
             self.samples.save_proposal_prior_lpdf(proposal_prior_lpdf)
-
-            #print("proposal_prior_lpdf is:")
-            #print(proposal_prior_lpdf)
-            #print("sample_prior_lpdf is:")
-            #print(sample_prior_lpdf)
 
             # Calculate the sample and proposal posterior log likelihood
             sample_post_lpdf = sample_prior_lpdf + sample_llh
