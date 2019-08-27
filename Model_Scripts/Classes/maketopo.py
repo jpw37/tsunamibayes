@@ -56,22 +56,22 @@ def make_dtopo(params, makeplots=False):
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
 
-    assert len(params) == 9, "Incorrect number of parameters!"
-
-    usgs_subfault = dtopotools.SubFault()
-    usgs_subfault.strike = params[0]
-    usgs_subfault.length = params[1]
-    usgs_subfault.width = params[2]
-    usgs_subfault.depth = params[3]
-    usgs_subfault.slip = params[4]
-    usgs_subfault.rake = params[5]
-    usgs_subfault.dip = params[6]
-    usgs_subfault.longitude = params[7]
-    usgs_subfault.latitude = params[8]
-    usgs_subfault.coordinate_specification = "centroid"
+    subfaults = []
+    for _, row in params.iterrows():
+        usgs_subfault = dtopotools.SubFault()
+        usgs_subfault.strike = params['Strike']
+        usgs_subfault.length = params['Length']
+        usgs_subfault.width = params['Width']
+        usgs_subfault.depth = params['Depth']
+        usgs_subfault.slip = params['Slip']
+        usgs_subfault.rake = params['Rake']
+        usgs_subfault.dip = params['Dip']
+        usgs_subfault.longitude = params['Longitude']
+        usgs_subfault.latitude = params['Latitude']
+        usgs_subfault.coordinate_specification = "centroid"
 
     fault = dtopotools.Fault()
-    fault.subfaults = [usgs_subfault]
+    fault.subfaults = subfaults
 
     print("Mw = ",fault.Mw())
 

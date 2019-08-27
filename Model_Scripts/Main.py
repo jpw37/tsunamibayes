@@ -48,7 +48,7 @@ if not os.path.exists(scenDir):
 
 #set the run directory
 if args.rundir == 'default':
-    args.rundir = args.runbase+'/'+args.scenario+'_'+datetime.now().strftime("%Y%m%d_%H%M%S")
+    args.rundir = args.runbase+'/'+args.scenario+'_'+datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
 
     #if rundir already exists, add numbers at the end
     dirName = args.rundir

@@ -112,8 +112,8 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        #self.okada.loc[len(self.okada)] = saves.values.tolist()[0] #pandas DataFrame
-        self.okada.loc[len(self.okada)] = saves #not a pandas DataFrame :-)
+        self.okada.loc[len(self.okada)] = saves.values.tolist()[0] #pandas DataFrame
+        #self.okada.loc[len(self.okada)] = saves #not a pandas DataFrame :-)
 
     def get_sample_okada(self):
         """
@@ -134,7 +134,7 @@ class Samples:
         #print(saves)
         #print("proposals are:")
         #print(self.proposals)
-        self.proposal_okada.loc[0] = saves
+        self.proposal_okada.loc[0] = saves.values.tolist()[0] #pandas DataFrame
 
     def get_proposal_okada(self):
         """
