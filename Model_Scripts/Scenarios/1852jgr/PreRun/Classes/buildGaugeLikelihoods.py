@@ -413,6 +413,51 @@ def plotGaugeLikelihoods(inputFile,outputFile=None,xlabel="Offshore wave height 
         print("Wrote:",outputFile)
 
 
+def plotGaugeCompare(lhFile,gauges,gtype=1,outputFolder=None,xlabel="Offshore wave height (Geoclaw output)",xlim=None):
+    """ 
+    Plot a comparison between the gauge PDF (from Wichmann) and the likelihood
+    :param lhFile: Holds likelihood associated with the gauges
+    :param gauges: List of gauges
+    :param gtype:  Type of gauge pdf to use (1 for height, 2 for inundation)
+    :param outputFolder: Save figures in this folder (if None, figures not saved to file)
+    :return:
+    """
+    heightLikelihood = np.load(lhFile)
+    offShoreHeights = heightLikelihood[:,0]
+    heightLikelihood = heightLikelihood[:,1:]
+    
+    #IDs of gauges that have this kind of observation (e.g., height or inundation)
+    gids = [i for i, gauge in enumerate(gauges) if gauge.kind[gtype] is not None]
+
+    for i,gid in enumerate(gids):
+        fig, ax = plt.subplots()
+        
+        if gtype == 1:
+            gpdf = gauges[gid].height_dist.pdf
+        if gtype == 2:
+            gpdf = gauges[gid].inundation_dist.pdf
+
+        ax.plot(offShoreHeights,heightLikelihood[:,i], label="Gauge "+str(gid)+" (Likelihood)")
+        ax.plot(offShoreHeights,gpdf(offShoreHeights), label="Gauge "+str(gid)+" (Wichmann)")
+        
+        if xlim is not None:
+            ax.set_xlim(xlim)
+        plt.xlabel(xlabel)
+        plt.ylabel("Likelihood")
+        plt.legend()
+
+        #print to file if output folder is specified
+        if outputFolder is not None:
+            if gtype == 1:
+                typeStr = "ht"
+            if gtype == 2:
+                typeStr = "inun"
+            outputFile = outputFolder+"/gauge_compare_"+typeStr+"_"+str(gid)+".png"
+            plt.savefig(outputFile)
+            #plt.close()
+            print("Wrote:",outputFile)
+
+
 def trapRuleWeights(x):
     """
 
