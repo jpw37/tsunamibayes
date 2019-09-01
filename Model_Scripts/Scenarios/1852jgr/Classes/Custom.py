@@ -183,10 +183,15 @@ class Custom(MCMC):
         dip = 13
         depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
 
-        #vals = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
-        #okada_params = pd.DataFrame(columns=self.sample_cols)
-        #okada_params.loc[0] = vals
-        okada_params = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
+        rectangles = self.split_rect(lat, lon, strike, length)
+        okada_params = pd.DataFrame(columns=['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude'])
+        for i, rect in enumerate(rectangles):
+            temp_lat = rect[0]
+            temp_lon = rect[1]
+            temp_strike = rect[2]
+            temp_length = rect[3]
+            okada_params.loc[i] = np.array([temp_strike, temp_length, width, depth, slip, rake, dip,temp_lon, temp_lat ])
+
         return okada_params
 
     def make_observations(self, params, arrivals, heights):
