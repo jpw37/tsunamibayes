@@ -25,6 +25,149 @@ class Custom(MCMC):
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
 
+
+    def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
+        """Split a given rectangle into 3 of equal length that more closely follow the
+        curve of the fault.
+        
+        Parameters:
+        lat (float): latitude of center
+        lon (float): longitude of center
+        strike (float): orientation of the long edge, measured in degrees
+        clockwise from north
+        leng (float): length of the long edge (km)
+        
+        Return:
+        list rectangles represented by a list of parameters: [lat,long,strike,leng]
+        """
+        if num < 3 or num % 2!=1:
+            raise ValueError("'num' must be an odd integer of at least 3!")
+
+        #Pulling prior of lon/lat information to contruct best fit approximaiton of strike 
+        prior_lat = self.latlongstrikeprior[:,0]
+        prior_lon = self.latlongstrikeprior[:,1]
+        prior_strike = self.latlongstrikeprior[:,2]
+
+        #Constructing best fit
+        A = np.vstack([np.ones(len(prior_lat)), prior_lat, prior_lon, prior_lat*prior_lon, prior_lat**2, prior_lon**2, prior_lat**2*prior_lon, prior_lon**2*prior_lat, prior_lat**3, prior_lon**3]).T
+        lat_long_bestfit = np.linalg.lstsq(A, prior_strike, rcond=None)[0]
+
+#strike/latitude linear regression 
+        def strike_from_lat_long(lat, lon):
+            return [1, lat, lon, lat*lon, lat**2, lon**2, lat**2*lon, lon**2*lat, lat**3, lon**3]@lat_long_bestfit
+        nleng= leng/num
+        rects = []
+        rects.append([lat, lon, strike, nleng])
+        
+        if method == "Avg":
+            lat_temp=lat
+            long_temp=lon
+            for i in range((num - 1)//2):
+                #Find the edge of the center rect and the strike at that point
+                edge1_lat = lat_temp + nleng/222*np.cos(np.radians(strike))
+                edge1_long = long_temp + nleng/222*np.sin(np.radians(strike))
+                strike1 = strike_from_lat_long(edge1_lat,edge1_long)
+            #Find the far egde of the adjacent rectangle 
+                end1_lat = edge1_lat + nleng/111*np.cos(np.radians(strike1))
+                end1_long = edge1_long + nleng/111*np.sin(np.radians(strike1))
+            #average the strike of the two points
+                strike1 = (strike1 + strike_from_lat_long(end1_lat, end1_long))/2
+            #find the coordinates of the rectangle using the new strike
+                rect1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
+                rect1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
+            
+                rects.append([rect1_lat, rect1_long, strike1, nleng])
+                lat_temp=rect1_lat
+                long_temp=rect1_long
+            
+            lat_temp=lat
+            long_temp=lon
+            for i in range((num - 1)//2):
+                #Find the edge of the center rect and the strike at that point
+                edge2_lat = lat_temp - nleng/222*np.cos(np.radians(strike))
+                edge2_long = long_temp - nleng/222*np.sin(np.radians(strike))
+                strike2 = strike_from_lat_long(edge2_lat,edge1_long)
+            #Find the far egde of the adjacent rectangle 
+                end2_lat = edge1_lat - nleng/111*np.cos(np.radians(strike2))
+                end2_long = edge1_long - nleng/111*np.sin(np.radians(strike2))
+            #average the strike of the two points
+                strike2 = (strike2 + strike_from_lat_long(end2_lat, end2_long))/2
+            #find the coordinates of the rectangle using the new strike
+                rect2_lat = edge2_lat - nleng/222*np.cos(np.radians(strike2))
+                rect2_long = edge2_long - nleng/222*np.sin(np.radians(strike2))
+            
+                rects.append([rect2_lat, rect2_long, strike2, nleng])
+                lat_temp=rect2_lat
+                long_temp=rect2_long
+
+        elif method == "Center":
+            lat_temp=lat
+            long_temp=lon
+            for i in range((num - 1)//2):
+                edge1_lat = lat_temp + nleng/222*np.cos(np.radians(strike))
+                edge1_long = long_temp + nleng/222*np.sin(np.radians(strike))
+                strike1 = strike_from_lat_long(edge1_lat,edge1_long)
+                mid1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
+                mid1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
+                strike1 = strike_from_lat_long(mid1_lat, mid1_long)
+                rect1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
+                rect1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
+
+                rects.append([rect1_lat, rect1_long, strike1, nleng])
+                lat_temp=rect1_lat
+                long_temp=rect1_long
+            
+            lat_temp=lat
+            long_temp=lon
+            for i in range((num - 1)//2):
+                edge2_lat = lat_temp - nleng/222*np.cos(np.radians(strike))
+                edge2_long = long_temp - nleng/222*np.sin(np.radians(strike))
+                strike2 = strike_from_lat_long(edge2_lat,edge1_long)
+                mid2_lat = edge1_lat - nleng/222*np.cos(np.radians(strike2))
+                mid2_long = edge1_long - nleng/222*np.sin(np.radians(strike2))
+                strike2 = strike_from_lat_long(mid2_lat, mid2_long)
+                rect2_lat = edge2_lat - nleng/222*np.cos(np.radians(strike2))
+                rect2_long = edge2_long - nleng/222*np.sin(np.radians(strike2))
+
+                rects.append([rect2_lat, rect2_long, strike2, nleng])
+                lat_temp=rect2_lat
+                long_temp=rect2_long
+
+
+        elif method == "Step":
+            num_steps = 8
+            step_len = nleng/num_steps/111 #convert from kilometers to degrees
+
+            step_strike = strike
+            step_lat = lat
+            step_long = lon
+            for i in range((num - 1)//2):
+                for i in range(num_steps):
+                    step_lat += step_len*np.cos(np.radians(step_strike))
+                    step_long += step_len*np.sin(np.radians(step_strike))
+                    step_strike = strike_from_lat_long(step_lat, step_long)
+                rects.append([step_lat, step_long, step_strike, nleng])
+            
+            step_strike = strike
+            step_lat = lat
+            step_long = lon
+            for i in range((num - 1)//2):
+                for i in range(num_steps):
+                    step_lat -= step_len*np.cos(np.radians(step_strike))
+                    step_long -= step_len*np.sin(np.radians(step_strike))
+                    step_strike = strike_from_lat_long(step_lat, step_long)
+                rects.append([step_lat, step_long, step_strike, nleng])
+        
+            return rects
+        
+        else:
+            raise ValueError("'method' must be either 'Avg', 'Center', or 'Step'")
+
+        rects.append([rect1_lat, rect1_long, strike1, nleng])
+        rects.append([rect2_lat, rect2_long, strike2, nleng])
+
+        return rects
+
     def get_length(self, mag):
         """ Length is sampled from a truncated normal distribution that
 		is centered at the linear regression of log10(length_cm) and magnitude.
@@ -143,18 +286,18 @@ class Custom(MCMC):
         return new_draw.loc[0]
 
     def build_priors(self):
-        """
-        Builds the priors
-        :return:
+        """                                                                                                                               
+        Builds the priors                                                                                                                 
+        :return:                                                                                                                          
         """
         samplingMult = 50
         bandwidthScalar = 2.0
-        # build longitude, latitude and strike prior
-        data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xlsx')
-        data = np.array(data[['POINT_X', 'POINT_Y', 'Strike']])
-        distrb0 = gaussian_kde(data.T)
+        # build longitude, latitude and strike prior                                                                                      
+        raw_data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xlsx')
+        self.latlongstrikeprior = np.array(raw_data[['POINT_X', 'POINT_Y', 'Strike']])
+        distrb0 = gaussian_kde(self.latlongstrikeprior.T)
 
-        #Garret and spencer chose this 18 June 2019
+        #Garret and spencer chose this 18 June 2019                                                                                       
         data2 = stats.norm.rvs(size = 1000,loc = np.log(8), scale = 0.05)
         distrb1 = gaussian_kde(data2)
 
