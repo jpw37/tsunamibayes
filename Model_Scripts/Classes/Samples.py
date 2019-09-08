@@ -40,7 +40,9 @@ class Samples:
         if (not observation_cols):
             observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height',
                                 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival','gauge 4 height',
-                                'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
+                                'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height',
+                                'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height',
+                                'gauge 9 arrival', 'gauge 9 height']
 
         okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude',
                       'O-Latitude']
@@ -289,6 +291,11 @@ class Samples:
         """
         Saves the data for the observation files
         """
+        print("trying to save observations")
+        print("These are the observations")
+        print(obvs)
+        print("This should be the pd dataframe")
+        print(self.observations)
         self.observations.loc[len(self.observations)] = obvs
 
     def save_to_csv(self):

@@ -56,7 +56,7 @@ def make_dtopo(params, makeplots=False):
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
 
-    subfaults = []
+    subfaults = numpy.zeros(0)
     for _, row in params.iterrows():
         usgs_subfault = dtopotools.SubFault()
         usgs_subfault.strike = params['Strike']
@@ -69,6 +69,10 @@ def make_dtopo(params, makeplots=False):
         usgs_subfault.longitude = params['Longitude']
         usgs_subfault.latitude = params['Latitude']
         usgs_subfault.coordinate_specification = "centroid"
+        subfaults = numpy.append(subfaults, usgs_subfault)
+
+    print("printing subfauls")
+    print(subfaults)
 
     fault = dtopotools.Fault()
     fault.subfaults = subfaults

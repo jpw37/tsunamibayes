@@ -376,7 +376,8 @@ def setrun(claw_pkg='geoclaw'):
     adjointdata.use_adjoint = True
 
     # location of adjoint solution, must first be created:                                                                                      
-    adjointdata.adjoint_outdir = os.path.abspath('./InputData/adjoint/_output')
+    #adjointdata.adjoint_outdir = os.path.abspath('./InputData/adjoint/_output')
+    adjointdata.adjoint_outdir = '/fslgroup/fslg_tsunami/compute/runs/1852jgr_2019-09-03_12.57.53/InputData/adjoint/_output'
 
     # time period of interest:                                                                                                                  
     adjointdata.t1 = rundata.clawdata.t0

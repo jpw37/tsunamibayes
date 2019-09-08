@@ -22,7 +22,7 @@ class Custom(MCMC):
         MCMC.__init__(self)
         self.sample_cols = ['Strike','Longitude', 'Latitude', 'Magnitude']
         self.proposal_cols = ['P-Strike','P-Logitude', 'P-Latitude', 'P-Magnitude']
-        self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
+        self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height', 'gauge 9 arrival', 'gauge 9 height']
         self.mw = 0
 
 
@@ -190,6 +190,8 @@ class Custom(MCMC):
         #Calculate bounds on error distribution
         a = mag * m1 + c1 - e1
         b = mag * m1 + c1 + e1
+        print("calculated length")
+        print(10**truncnorm.rvs(a,b,size=1)[0])
         return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length_cm)
 
     def get_width(self, mag):
@@ -214,6 +216,8 @@ class Custom(MCMC):
 	    #Calculate bounds on error distribution
         a = mag * m2 + c2 - e2
         b = mag * m2 + c2 + e2
+        print("calculated width")
+        print(10**truncnorm.rvs(a,b,size=1)[0])
         return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width_cm)
 
     def get_slip(self, length, width, mag):
@@ -229,6 +233,8 @@ class Custom(MCMC):
         #Dr. Harris' rigidity constant : 32e11 dynes/cm^2 
         mu = 3.2e15 # changing cm^2 to m^2
         slip = 10**(3/2 * ( mag + 6.06 )) / (mu * length * width)
+        print("this is calculated slip")
+        print(slip)
         return slip
 
     def acceptance_prob(self, cur_prior_lpdf, prop_prior_lpdf):
@@ -320,6 +326,12 @@ class Custom(MCMC):
         length = self.get_length(self.mw) * 1e-2
         width = self.get_width(self.mw) * 1e-2
         slip = self.get_slip(length, width, self.mw)
+        print("length")
+        print(length)
+        print("width")
+        print(width)
+        print("slip")
+        print(slip)
 
         #deterministic okada parameters
         rake = 90
@@ -354,6 +366,7 @@ class Custom(MCMC):
         for ii in range(len(arrivals)): #alternate arrival times with wave heights
             obvs.append(arrivals[ii])
             obvs.append(heights[ii])
+        print(obvs)
 
         return obvs
 
@@ -472,18 +485,22 @@ class Custom(MCMC):
         if init == "manual":
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
+            prior = self.build_priors()
             strike =  1.90000013e+02
 #            length =  1.33325981e+05
 #            width  =  8.45009646e+04
 #            slip   =  2.18309283e+01
-            mag    = 8.5
+            mag    = 9.1
             lon    =  1.30850829e+02
             lat    = -5.45571375e+00
   
             #guesses = np.array([strike, length, width, slip, long, lat])
-            vals = np.array([strike, length, width, slip, lon, lat])
+            #vals = np.array([strike, length, width, slip, lon, lat])
+            vals = np.array([strike, lon, lat, mag])
             guesses = pd.DataFrame(columns=self.sample_cols)
             guesses.loc[0] = vals
+            print("initial sample is:")
+            print(guesses)
 
         elif init == "random":
             prior = self.build_priors()
