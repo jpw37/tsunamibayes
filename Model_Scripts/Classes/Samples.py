@@ -291,11 +291,9 @@ class Samples:
         """
         Saves the data for the observation files
         """
-        print("trying to save observations")
-        print("These are the observations")
+        print("printing observations now")
         print(obvs)
-        print("This should be the pd dataframe")
-        print(self.observations)
+        print("trying to save observations now")
         self.observations.loc[len(self.observations)] = obvs
 
     def save_to_csv(self):
