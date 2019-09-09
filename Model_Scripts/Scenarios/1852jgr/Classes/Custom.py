@@ -177,7 +177,7 @@ class Custom(MCMC):
 		mag (float): the magnitude of the earthquake
 
 		Returns:
-		length (float): a sample from the normal distribution centered on the regression
+		length (float): Length in meters. a sample from the normal distribution centered on the regression
 	    """
         #m1 = 0.6423327398       # slope
         #c1 = 0.1357387698       # y intercept
@@ -190,9 +190,13 @@ class Custom(MCMC):
         #Calculate bounds on error distribution
         a = mag * m1 + c1 - e1
         b = mag * m1 + c1 + e1
-        print("calculated length")
-        print(10**truncnorm.rvs(a,b,size=1)[0])
-        return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length_cm)
+        #print("calculated length")
+        #print(10**truncnorm.rvs(a,b,size=1)[0])
+        #return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length_cm)
+        l  = 10**truncnorm.rvs(a,b,size=1)[0] 
+        l /= 100. #convert to m
+        print("calculated length:",l,"m")
+        return l
 
     def get_width(self, mag):
         """ Width is sampled from a truncated normal distribution that
@@ -203,7 +207,7 @@ class Custom(MCMC):
         mag (float): the magnitude of the earthquake
 
         Returns:
-        width (float): a sample from the normal distribution centered on the regression
+        width (float): width in meters. a sample from the normal distribution centered on the regression
         """
         m2 = 0.4832185193       # slope 
         c2 = 3.1179508532       # y intercept 
@@ -213,28 +217,33 @@ class Custom(MCMC):
         #c2 = 0.1179508532       # y intercept
         #e2 = 0.4093407095518345 # error bar  
 
-	    #Calculate bounds on error distribution
+	      #Calculate bounds on error distribution
         a = mag * m2 + c2 - e2
         b = mag * m2 + c2 + e2
-        print("calculated width")
-        print(10**truncnorm.rvs(a,b,size=1)[0])
-        return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width_cm)
+        #print("calculated width")
+        #print(10**truncnorm.rvs(a,b,size=1)[0])
+        #return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width_cm)
+        w  = 10**truncnorm.rvs(a,b,size=1)[0] 
+        w /= 100. #convert to m
+        print("calculated width:",w,"m")
+        return w #regression was done on log10(width_cm)
 
     def get_slip(self, length, width, mag):
         """Calculated from magnitude and rupture area, Ron Harris gave us the equation
             Parameters:
-            Length (float): cm
-            Width (float): cm
+            Length (float): m
+            Width (float): m
             mag (float): moment magnitude
             
             Return:
             slip (float): meters
             """
-        #Dr. Harris' rigidity constant : 32e11 dynes/cm^2 
-        mu = 3.2e15 # changing cm^2 to m^2
+        #Dr. Harris' rigidity constant : 3.2e11 dynes/cm^2 
+        mu_dyn_cm2 = 3.2e11
+        mu = mu_dyn_cm2 * 1e-5 * 1e4 #convert to N/m^2
         slip = 10**(3/2 * ( mag + 6.06 )) / (mu * length * width)
-        print("this is calculated slip")
-        print(slip)
+        print("this is calculated slip:",slip,"m")
+        #print(slip)
         return slip
 
     def acceptance_prob(self, cur_prior_lpdf, prop_prior_lpdf):
@@ -323,8 +332,8 @@ class Custom(MCMC):
 
         #stub for magnitude sampling
         self.mw = draws["Magnitude"]
-        length = self.get_length(self.mw) * 1e-2
-        width = self.get_width(self.mw) * 1e-2
+        length = self.get_length(self.mw) #* 1e-2
+        width  = self.get_width(self.mw)  #* 1e-2
         slip = self.get_slip(length, width, self.mw)
         print("length")
         print(length)
