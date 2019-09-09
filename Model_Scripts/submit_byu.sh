@@ -2,12 +2,11 @@
 
 
 ## Submission flags (Customize for VT/BYU) ##
-#SBATCH --nodes=1
+#SBATCH --nodes=1-3
 #SBATCH --ntasks=24
-#SBATCH --time=24:00:00
-#SBATCH --mem-per-cpu=1024M #memory requirement
-#SBATCH --mail-user=giddens2spencer@gmail.com   # email address
-#SBATCH --mail-type=BEGIN
+#SBATCH --time=0:30:00
+#SBATCH --mem-per-cpu=8192M #memory requirement
+#SBATCH --mail-user=whitehead@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
 ##SBATCH --qos=test
 #SBATCH -A jpw37
@@ -25,6 +24,7 @@ export PATH="/fslgroup/fslg_tsunami/justin/apps/anaconda-5.2.0/bin:$PATH"
 #define the TMPFS environment variable if it isn't already defined (e.g., at BYU)
 #[[ -z $TMPFS ]] && export TMPFS=$TMPDIR
 export TMPFS="/tmp/$SLURM_JOB_ID"; mkdir -p $TMPFS
+#export TMPFS="/fslgroup/fslg_tsunami/compute/runs/new_try"; mkdir -p $TMPFS
 
 #e.g., "520404_br"
 jobid="$( echo $SLURM_JOB_ID | sed 's/\..*$//' )_$( hostname | grep -o ^.. )"
@@ -33,7 +33,10 @@ jobid="$( echo $SLURM_JOB_ID | sed 's/\..*$//' )_$( hostname | grep -o ^.. )"
 [[ -z $workdir ]]  && workdir=$( pwd )
 [[ -z $rundir ]]   && rundir="$TMPFS/run"
 [[ -z $finaldir ]] && finaldir="$workdir/../../runs/$jobid"
+#[[ -z $finaldir ]] && finaldir="$workdir/../../runs/newer_stuff"
+
 logfile="$TMPFS/run.log"
+#logfile="$finaldir/run.log"
 
 #if being run with gnu parallel, create a subdirectory of finaldir for each
 [[ ! -z $PARALLEL_SEQ ]] && finaldir="$finaldir/$( printf %03d $PARALLEL_SEQ )"
@@ -41,7 +44,7 @@ logfile="$TMPFS/run.log"
 
 #### INSTALL CLAWPACK IN TMPFS ####
 
-clawver=5.4.1
+clawver=v5.6.0
 #Location of clawpack source (Customize for VT/BYU)
 src=/fslgroup/fslg_tsunami/justin/src/clawpack-$clawver.tar.gz
 export CLAW="$TMPFS/clawpack-$clawver"
@@ -68,14 +71,15 @@ echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 
 #Customize: Set run parameters
 python Main.py             \
-    --scen    1852grl      \
+    --scen    1852jgr      \
     --mcmc    random_walk  \
-    --nsamp   1000         \
-    --init    manual       \
+    --nsamp   2         \
     --rundir  $rundir      \
+    --init manual          \
     | tee -a $logfile
 
 echo "LOG: $( date ): MCMC run complete" | tee -a $logfile
+
 
 
 #### PLOT ####

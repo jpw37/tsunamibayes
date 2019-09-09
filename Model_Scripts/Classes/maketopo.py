@@ -56,28 +56,28 @@ def make_dtopo(params, makeplots=False):
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
 
-    subfaults = numpy.zeros(0)
+    fault_list = numpy.zeros(0)
     for _, row in params.iterrows():
         usgs_subfault = dtopotools.SubFault()
-        usgs_subfault.strike = params['Strike']
-        usgs_subfault.length = params['Length']
-        usgs_subfault.width = params['Width']
-        usgs_subfault.depth = params['Depth']
-        usgs_subfault.slip = params['Slip']
-        usgs_subfault.rake = params['Rake']
-        usgs_subfault.dip = params['Dip']
-        usgs_subfault.longitude = params['Longitude']
-        usgs_subfault.latitude = params['Latitude']
+        usgs_subfault.strike = row['Strike']
+        usgs_subfault.length = row['Length']
+        usgs_subfault.width = row['Width']
+        usgs_subfault.depth = row['Depth']
+        usgs_subfault.slip = row['Slip']
+        usgs_subfault.rake = row['Rake']
+        usgs_subfault.dip = row['Dip']
+        usgs_subfault.longitude = row['Longitude']
+        usgs_subfault.latitude = row['Latitude']
         usgs_subfault.coordinate_specification = "centroid"
-        subfaults = numpy.append(subfaults, usgs_subfault)
+        fault_list = numpy.append(fault_list, usgs_subfault)
 
-    print("printing subfauls")
-    print(subfaults)
 
     fault = dtopotools.Fault()
-    fault.subfaults = subfaults
+    fault.subfaults = fault_list
+    print(fault.subfaults)
 
     print("Mw = ",fault.Mw())
+    print("Mo = ",fault.Mo())
 
     if os.path.exists(dtopo_fname):
         print("*** Not regenerating dtopo file (already exists): %s" \
@@ -108,7 +108,7 @@ def make_dtopo(params, makeplots=False):
         x = numpy.linspace(xlower, xupper, mx)
         y = numpy.linspace(ylower, yupper, my)
 
-        fault.create_dtopography(x,y,times)
+        fault.create_dtopography(x,y,times,verbose=True)
         dtopo = fault.dtopo
         dtopo.write(dtopo_fname, dtopo_type=3)
 
