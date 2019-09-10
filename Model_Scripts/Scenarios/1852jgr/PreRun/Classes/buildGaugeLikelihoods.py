@@ -62,6 +62,8 @@ def buildGaugeLikelihoods(gaugeFile=gauges_path, condDistFilePrefix=cond_dist_pa
 
             wt = trapRuleWeights(onShoreHeights);  # trapezoidal rule
             heightLikelihood.append( computeLikelihoodPdf(condDist, gauge.height_dist.pdf, onShoreHeights, wt, offShoreHeights) )
+        else:
+            heightLikelihood.append( np.zeros( offShoreHeights.shape ) )
 
         # #inundation is different: the conditional distribution has to be computed using gauge information
         #compute inundation likelihood
@@ -89,6 +91,8 @@ def buildGaugeLikelihoods(gaugeFile=gauges_path, condDistFilePrefix=cond_dist_pa
             #now compute likelihood
             wt = trapRuleWeights(inundations);  # trapezoidal rule
             inundationLikelihood.append( computeLikelihoodPdf(condDist, gauge.inundation_dist.pdf, inundations, wt, offShoreHeights) )
+        else:
+            inundationLikelihood.append(np.zeros( offShoreHeights.shape ) )  #appending zeros for gauges without inundation
 
     outputData = np.insert(np.asarray(heightLikelihood).T, 0, offShoreHeights, axis=1)
     np.save(heightFile, outputData)

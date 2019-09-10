@@ -499,8 +499,8 @@ class Custom(MCMC):
 #            length =  1.33325981e+05
 #            width  =  8.45009646e+04
 #            slip   =  2.18309283e+01
-            mag    = 9.1
-            lon    =  1.30850829e+02
+            mag    = 9.3
+            lon    =  1.31850829e+02
             lat    = -5.45571375e+00
   
             #guesses = np.array([strike, length, width, slip, long, lat])

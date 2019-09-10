@@ -2,13 +2,13 @@
 
 
 ## Submission flags (Customize for VT/BYU) ##
-#SBATCH --nodes=1-3
+#SBATCH --nodes=1
 #SBATCH --ntasks=24
-#SBATCH --time=0:30:00
-#SBATCH --mem-per-cpu=8192M #memory requirement
+#SBATCH --time=18:00:00
+#SBATCH --mem-per-cpu=2048M #memory requirement
 #SBATCH --mail-user=whitehead@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
-##SBATCH --qos=test
+###SBATCH --qos=test
 #SBATCH -A jpw37
 #SBATCH -C rhel7
 
@@ -73,7 +73,7 @@ echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 python Main.py             \
     --scen    1852jgr      \
     --mcmc    random_walk  \
-    --nsamp   2         \
+    --nsamp   100         \
     --rundir  $rundir      \
     --init manual          \
     | tee -a $logfile
