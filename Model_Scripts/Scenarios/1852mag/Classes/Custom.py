@@ -499,8 +499,6 @@ class Custom(MCMC):
             guesses = prior.rvs(1)
             #guesses = pd.DataFrame(columns=self.sample_cols)
             #guesses.loc[0] = vals
-            print("initial sample is:")
-            print(guesses)
             #raise Exception('random initialization not currently tested')
 
         elif init == "restart":
@@ -509,7 +507,8 @@ class Custom(MCMC):
             ## np.save("guesses.npy", self.guesses)
             #print("initial sample is:")
             #print(guesses)
-            raise Exception('restart initialization not currently implemented')
+            #raise Exception('restart initialization not currently implemented')
+            guesses = None
 
         print("initial sample:")
         print(guesses)

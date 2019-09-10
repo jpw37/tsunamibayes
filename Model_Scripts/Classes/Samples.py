@@ -61,8 +61,12 @@ class Samples:
         self.observations = pd.DataFrame(columns=observation_cols)
 
         #self.samples.loc[len(self.samples)] = init_guesses.values.tolist()[0]
-        self.samples.loc[len(self.samples)] = init_guesses.loc[0]
+        if init_guesses is not None:
+            self.samples.loc[len(self.samples)] = init_guesses.loc[0]
+        else:
+            self.load_csv()
 
+        #TODO: should this always run, even during a restart?
         self.wins = 1
         self.trials = 1
         self.total_sample_wins = 0
@@ -74,6 +78,11 @@ class Samples:
         self.proposal_llh = None
         self.proposal_prior_lpdf = None
         self.proposal_posterior_lpdf = None
+
+    def load_csv(self):
+        #TODO: finish me
+        """For restart functionality"""
+        pass
 
     def save_sample(self, saves):
         """
