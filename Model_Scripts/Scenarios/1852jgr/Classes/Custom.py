@@ -22,7 +22,7 @@ class Custom(MCMC):
         MCMC.__init__(self)
         self.sample_cols = ['Strike','Longitude', 'Latitude', 'Magnitude']
         self.proposal_cols = ['P-Strike','P-Logitude', 'P-Latitude', 'P-Magnitude']
-        self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height', 'gauge 9 arrival', 'gauge 9 height']
+        self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height']
         self.mw = 0
 
 
@@ -499,7 +499,7 @@ class Custom(MCMC):
 #            length =  1.33325981e+05
 #            width  =  8.45009646e+04
 #            slip   =  2.18309283e+01
-            mag    = 9.3
+            mag    = 9.4
             lon    =  1.31850829e+02
             lat    = -5.45571375e+00
   
