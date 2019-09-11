@@ -54,7 +54,8 @@ class Custom(MCMC):
 
 #strike/latitude linear regression 
         def strike_from_lat_long(lat, lon):
-            return [1, lat, lon, lat*lon, lat**2, lon**2, lat**2*lon, lon**2*lat, lat**3, lon**3]@lat_long_bestfit
+            temp_array = np.array([1, lat, lon, lat*lon, lat**2, lon**2, lat**2*lon, lon**2*lat, lat**3, lon**3])
+            return temp_array @ lat_long_bestfit
         nleng= leng/num
         rects = []
         rects.append([lat, lon, strike, nleng])
@@ -326,15 +327,15 @@ class Custom(MCMC):
         :param draws:
         :return: okada_params
         """
-        lon    = draws["Longitude"]
-        lat    = draws["Latitude"]
-        strike = draws["Strike"]
+        lon    = draws["Longitude"].values.tolist()[0] #Need to be scalars
+        lat    = draws["Latitude"].values.tolist()[0]
+        strike = draws["Strike"].values.tolist()[0]
+        self.mw = draws["Magnitude"].values.tolist()[0]
 
-        #stub for magnitude sampling
-        self.mw = draws["Magnitude"]
         length = self.get_length(self.mw) #* 1e-2
         width  = self.get_width(self.mw)  #* 1e-2
         slip = self.get_slip(length, width, self.mw)
+
         print("length")
         print(length)
         print("width")
@@ -347,6 +348,7 @@ class Custom(MCMC):
         dip = 13
         depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
 
+        #Rectangle spitting
         rectangles = self.split_rect(lat, lon, strike, length)
         okada_params = pd.DataFrame(columns=['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude'])
         for i, rect in enumerate(rectangles):

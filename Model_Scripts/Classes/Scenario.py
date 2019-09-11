@@ -71,24 +71,15 @@ class Scenario:
         self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols)
         self.mcmc.set_samples(self.samples)
 
-        # Load the samples
-        self.init_guesses = self.samples.get_sample()
-
-        # JW: Create the adjoint object here...right now is given as a separate class
-        if adjoint:
-            print("Starting adjoint computation")
-            self.adjoint = Adjoint()
-            self.adjoint.run_geo_claw()
-            print("Finished adjoint computation")
-
         # Make sure Pre-Run files have been generated
         if(os.path.isfile(gauges_file_path)):
             gauges = np.load(gauges_file_path)
             self.gauges = [from_json(gauge) for gauge in gauges]
-            # Do initial run of GeoClaw using the initial guesses.
-            self.setGeoClaw()
         else:
             raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
+
+        # Build the prior for the model, based on the choice of MCMC
+        self.prior = self.mcmc.build_priors()
 
 #        #test shake gauge input
 #        if(os.path.isfile(shake_gauges_file_path)):
@@ -99,11 +90,24 @@ class Scenario:
         # If using the custom methods map the initial guesses to okada parameters to save as initial sample
         if (self.use_custom):
             self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
+        else:
+            self.init_okada_params = self.init_guesses
         # Save
         self.samples.save_sample_okada(self.init_okada_params)
 
-        # Build the prior for the model, based on the choice of MCMC
-        self.prior = self.mcmc.build_priors()
+        if self.init != 'restart':
+            # Load the samples
+            self.init_guesses = self.samples.get_sample()
+
+            # JW: Create the adjoint object here...right now is given as a separate class
+            if adjoint:
+                print("Starting adjoint computation")
+                self.adjoint = Adjoint()
+                self.adjoint.run_geo_claw()
+                print("Finished adjoint computation")
+            
+            # Do initial run of GeoClaw using the initial guesses.
+            self.setGeoClaw()
 
     def setGeoClaw(self):
         """
@@ -111,7 +115,7 @@ class Scenario:
         :return:
         """
         # Get Okada parameters for initial guesses pandas data frame
-        okada_params = self.mcmc.map_to_okada(self.init_guesses)
+        okada_params = self.init_okada_params
         
         # Run Geoclaw
         self.feedForward.run_geo_claw(okada_params)
