@@ -87,6 +87,14 @@ class Scenario:
 #        else:
 #            raise ValueError("Shake gauge file does not exist")
 
+        # If using the custom methods map the initial guesses to okada parameters to save as initial sample
+        if (self.use_custom):
+            self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
+        else:
+            self.init_okada_params = self.init_guesses
+        # Save
+        self.samples.save_sample_okada(self.init_okada_params)
+
         if self.init != 'restart':
             # Load the samples
             self.init_guesses = self.samples.get_sample()
@@ -100,14 +108,6 @@ class Scenario:
             
             # Do initial run of GeoClaw using the initial guesses.
             self.setGeoClaw()
-
-            # If using the custom methods map the initial guesses to okada parameters to save as initial sample
-            if (self.use_custom):
-                self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
-            else:
-                self.init_okada_params = self.init_guesses
-            # Save
-            self.samples.save_sample_okada(self.init_okada_params)
 
     def setGeoClaw(self):
         """
