@@ -67,9 +67,11 @@ class MCMC:
             ar = True
             self.samples.reset_wins()
             self.samples.increment_wins()
+            print("Accepted new proposal")
         else:
             # Reject Proposal and Save current winner to sample list
             ar = False
+            print("Rejected new proposal")
             if(self.samples.wins == 1):
                 self.samples.win_counter()
 

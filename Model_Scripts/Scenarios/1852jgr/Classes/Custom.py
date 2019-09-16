@@ -22,7 +22,7 @@ class Custom(MCMC):
         MCMC.__init__(self)
         self.sample_cols = ['Strike','Longitude', 'Latitude', 'Magnitude']
         self.proposal_cols = ['P-Strike','P-Logitude', 'P-Latitude', 'P-Magnitude']
-        self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height']
+        self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height']
         self.mw = 0
 
 
@@ -44,7 +44,7 @@ class Custom(MCMC):
             raise ValueError("'num' must be an odd integer of at least 3!")
 
         #Pulling prior of lon/lat information to contruct best fit approximaiton of strike 
-        prior_lat = self.latlongstrikeprior[:,0]
+        prior_lat = self.latlongstrikeprior[:,0] #JPW: I think this is the wrong order...isn't this set up as lon,lat,strike?
         prior_lon = self.latlongstrikeprior[:,1]
         prior_strike = self.latlongstrikeprior[:,2]
 
@@ -239,7 +239,7 @@ class Custom(MCMC):
             slip (float): meters
             """
         #Dr. Harris' rigidity constant : 3.2e11 dynes/cm^2 
-        mu_dyn_cm2 = 3.2e11
+        mu_dyn_cm2 = 3.e11
         mu = mu_dyn_cm2 * 1e-5 * 1e4 #convert to N/m^2
         slip = 10**(3/2 * ( mag + 6.06 )) / (mu * length * width)
         print("this is calculated slip:",slip,"m")
@@ -306,6 +306,7 @@ class Custom(MCMC):
         :return:                                                                                                                          
         """
         samplingMult = 50
+#        samplingMult = 500
         bandwidthScalar = 2.0
         # build longitude, latitude and strike prior                                                                                      
         raw_data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xlsx')
@@ -313,7 +314,7 @@ class Custom(MCMC):
         distrb0 = gaussian_kde(self.latlongstrikeprior.T)
 
         #Garret and spencer chose this 18 June 2019                                                                                       
-        data2 = stats.norm.rvs(size = 1000,loc = np.log(8), scale = 0.05)
+        data2 = stats.norm.rvs(size = 1000,loc = 8, scale = 0.4)
         distrb1 = gaussian_kde(data2)
 
         dists = [distrb0, distrb1]
@@ -495,13 +496,17 @@ class Custom(MCMC):
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
             prior = self.build_priors()
-            strike =  1.90000013e+02
+#            strike =  1.90000013e+02
 #            length =  1.33325981e+05
 #            width  =  8.45009646e+04
 #            slip   =  2.18309283e+01
-            mag    = 9.4
-            lon    =  1.31850829e+02
-            lat    = -5.45571375e+00
+#            mag    = 9.4
+#            lon    =  1.31850829e+02
+#            lat    = -5.45571375e+00
+            strike = 174
+            mag = 8.0
+            lon = 132.120669474
+            lat = -5.21569808799995
   
             #guesses = np.array([strike, length, width, slip, long, lat])
             #vals = np.array([strike, length, width, slip, lon, lat])

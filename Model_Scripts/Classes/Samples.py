@@ -38,11 +38,10 @@ class Samples:
             proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude',
                              'P-Latitude']
         if (not observation_cols):
-            observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height',
-                                'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival','gauge 4 height',
-                                'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height',
-                                'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height',
-                                'gauge 9 arrival', 'gauge 9 height']
+            observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height',
+                                'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival','gauge 3 height',
+                                'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height',
+                                'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height']
 
         okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude',
                       'O-Latitude']
