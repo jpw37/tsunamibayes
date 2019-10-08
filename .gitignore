@@ -1,1 +1,7 @@
+# System Files
+.DS_Store
+
+# Python Files
+.ipynb_checkpoints
+
 .idea/
