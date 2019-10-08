@@ -43,7 +43,7 @@ def get_topo(makeplots=False):
 
 
 
-def make_dtopo(params, makeplots=False):
+def make_dtopo(params, makeplots=True):
     """
     Create dtopo data file for deformation of sea floor due to earthquake.
     Uses the Okada model with fault parameters and mesh specified below.
