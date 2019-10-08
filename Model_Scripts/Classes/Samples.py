@@ -22,7 +22,7 @@ class Samples:
     This class handles the saving and loading for generated, samples, priors, and observations
     """
 
-    def __init__(self, scenario_title, init_guesses, sample_cols=None, proposal_cols=None, observation_cols=None):
+    def __init__(self, scenario_title, init_guesses, sample_cols=None, proposal_cols=None, observation_cols=None, num_rectangles = 3):
         """
 
         :param scenario_title:
@@ -42,22 +42,37 @@ class Samples:
                                 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival','gauge 3 height',
                                 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height',
                                 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height']
-
-        okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude',
-                      'O-Latitude']
-        proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip',
-                               'OP-Logitude', 'OP-Latitude']
+        cols = []
+        for i in range(num_rectangles):
+            cols += ['O-Strike' + str(i+1)]
+            cols += ['O-Length' + str(i+1)]
+            cols += ['O-Longitude' + str(i+1)]
+            cols += ['O-Latitude' + str(i+1)]
+        cols += [ 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip']
+        okada_cols = cols
+        #okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude','O-Latitude']
+        
+        cols = []
+        for i in range(num_rectangles):
+            cols += ['OP-Strike' + str(i+1)]
+            cols += ['OP-Length' + str(i+1)]
+            cols += ['OP-Longitude' + str(i+1)]
+            cols += ['OP-Latitude' + str(i+1)]
+        cols += [ 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip']
+        proposal_okada_cols = cols
+        #proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip','OP-Logitude', 'OP-Latitude']
+        
         mcmc_cols = sample_cols + proposal_cols + okada_cols + proposal_okada_cols + \
                     ["Sample Prior", "Sample LLH", "Sample Posterior"] + \
                     ["Proposal Prior", "Proposal LLH", "Proposal Posterior"] + \
                     ["Wins", "Proposal Accept/Reject", "Acceptance ratio"]
 
-        self.samples = pd.DataFrame(columns=sample_cols)
-        self.proposals = pd.DataFrame(columns=sample_cols)
-        self.okada = pd.DataFrame(columns=okada_cols)
-        self.proposal_okada = pd.DataFrame(columns=okada_cols)
-        self.mcmc = pd.DataFrame(columns=mcmc_cols)
-        self.observations = pd.DataFrame(columns=observation_cols)
+        self.samples        = pd.DataFrame(columns=sample_cols)
+        self.proposals      = pd.DataFrame(columns=proposal_cols)
+        self.okada          = pd.DataFrame(columns=okada_cols)
+        self.proposal_okada = pd.DataFrame(columns=proposal_okada_cols)
+        self.mcmc           = pd.DataFrame(columns=mcmc_cols)
+        self.observations   = pd.DataFrame(columns=observation_cols)
 
         #self.samples.loc[len(self.samples)] = init_guesses.values.tolist()[0]
         if init_guesses is not None:
@@ -122,10 +137,10 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        temp = saves.values.tolist()
-        for rect in temp:
-            self.okada.loc[len(self.okada)] = rect  #pandas DataFrame save each
-        #self.okada.loc[len(self.okada)] = saves #not a pandas DataFrame :-)
+        #temp = saves.values.tolist()
+        #for rect in temp:
+            #self.okada.loc[len(self.okada)] = rect  #pandas DataFrame save each
+        self.okada.loc[len(self.okada)] = saves #not a pandas DataFrame :-)
 
     def get_sample_okada(self):
         """
@@ -146,7 +161,7 @@ class Samples:
         #print(saves)
         #print("proposals are:")
         #print(self.proposals)
-        self.proposal_okada.loc[0] = saves.values.tolist()[0] #pandas DataFrame
+        self.proposal_okada.loc[0] = saves.values #pandas Series
 
     def get_proposal_okada(self):
         """

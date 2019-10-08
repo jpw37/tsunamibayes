@@ -24,7 +24,15 @@ class Custom(MCMC):
         self.proposal_cols = ['P-Strike','P-Logitude', 'P-Latitude', 'P-Magnitude']
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
-
+        self.num_rectangles = 3
+        cols = []
+        for i in range(self.num_rectangles):
+            cols += ['Strike' + str(i+1)]
+            cols += ['Length' + str(i+1)]
+            cols += ['Longitude' + str(i+1)]
+            cols += ['Latitude' + str(i+1)]
+        cols += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
+        self.okada_cols = cols
     def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
         """Split a given rectangle into 3 of equal length that more closely follow the
 		curve of the fault.
@@ -310,7 +318,6 @@ class Custom(MCMC):
         :param draws:
         :return: okada_params
         """
-        num_rectangles = 3
         lon    = draws["Longitude"] #These need to be scalars
         lat    = draws["Latitude"]
         strike = draws["Strike"]
@@ -335,15 +342,11 @@ class Custom(MCMC):
         depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
 
-        rectangles = self.split_rect(lat, lon, strike, length, num = num_rectangles)
+        rectangles = self.split_rect(lat, lon, strike, length, num = self.num_rectangles)
         okada_params = pd.DataFrame()
         cols = []
         temp = []
         for i, rect in enumerate(rectangles):
-            columns += ['Strike' + str(i+1)]
-            columns += ['Length' + str(i+1)]
-            columns += ['Longitude' + str(i+1)]
-            columns += ['Latitude' + str(i+1)]
             temp_lat = rect[0]
             temp_lon = rect[1]
             temp_strike = rect[2]
@@ -353,8 +356,7 @@ class Custom(MCMC):
             temp.append( temp_lon)
             temp.append( temp_lat )
         temp += [width, depth, slip, rake, dip]
-        columns += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
-        return pd.Series(temp, columns)
+        return pd.Series(temp, cols)
 
     def make_observations(self, params, arrivals, heights):
         """

@@ -68,7 +68,7 @@ class Scenario:
         self.init_guesses = self.mcmc.init_guesses(self.init)
 
         # Initialize the Samples Class
-        self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols)
+        self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols,self.mcmc.num_rectangles)
         self.mcmc.set_samples(self.samples)
 
         # Make sure Pre-Run files have been generated

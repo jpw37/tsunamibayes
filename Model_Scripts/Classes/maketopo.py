@@ -43,7 +43,7 @@ def get_topo(makeplots=False):
 
 
 
-def make_dtopo(params, makeplots=True):
+def make_dtopo(params, makeplots=False):
     """
     Create dtopo data file for deformation of sea floor due to earthquake.
     Uses the Okada model with fault parameters and mesh specified below.
@@ -53,21 +53,24 @@ def make_dtopo(params, makeplots=True):
 
     dtopo_fname = os.path.join('./InputData/', "dtopo.tt3")
 
+    # number of cols = number of rectangles * number of changing params + number of constant params
+    n = (len(params) - 5) // 4
+
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
-
+    
     fault_list = numpy.zeros(0)
-    for _, row in params.iterrows():
+    for i in range(n):
         usgs_subfault = dtopotools.SubFault()
-        usgs_subfault.strike = row['Strike']
-        usgs_subfault.length = row['Length']
-        usgs_subfault.width = row['Width']
-        usgs_subfault.depth = row['Depth']
-        usgs_subfault.slip = row['Slip']
-        usgs_subfault.rake = row['Rake']
-        usgs_subfault.dip = row['Dip']
-        usgs_subfault.longitude = row['Longitude']
-        usgs_subfault.latitude = row['Latitude']
+        usgs_subfault.strike = params['Strike' + str(i+1)]
+        usgs_subfault.length = params['Length' + str(i+1)]
+        usgs_subfault.width = params['Width']
+        usgs_subfault.depth = params['Depth']
+        usgs_subfault.slip = params['Slip']
+        usgs_subfault.rake = params['Rake']
+        usgs_subfault.dip = params['Dip']
+        usgs_subfault.longitude = params['Longitude' + str(i+1)]
+        usgs_subfault.latitude = params['Latitude' + str(i+1)]
         usgs_subfault.coordinate_specification = "centroid"
         fault_list = numpy.append(fault_list, usgs_subfault)
 
