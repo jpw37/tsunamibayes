@@ -310,10 +310,11 @@ class Custom(MCMC):
         :param draws:
         :return: okada_params
         """
-        lon    = draws["Longitude"].values.tolist()[0] #These need to be scalars
-        lat    = draws["Latitude"].values.tolist()[0]
-        strike = draws["Strike"].values.tolist()[0]
-        self.mw = draws["Magnitude"].values.tolist()[0]
+        num_rectangles = 3
+        lon    = draws["Longitude"] #These need to be scalars
+        lat    = draws["Latitude"]
+        strike = draws["Strike"]
+        self.mw = draws["Magnitude"]
 
         #get Length,Width,Slip from fitted line
         length = self.get_length(self.mw) * 1e-2
@@ -334,16 +335,26 @@ class Custom(MCMC):
         depth = self.doctored_depth_1852_adhoc(lon, lat, dip)
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
 
-        rectangles = self.split_rect(lat, lon, strike, length)
-        okada_params = pd.DataFrame(columns=['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude'])
+        rectangles = self.split_rect(lat, lon, strike, length, num = num_rectangles)
+        okada_params = pd.DataFrame()
+        cols = []
+        temp = []
         for i, rect in enumerate(rectangles):
+            columns += ['Strike' + str(i+1)]
+            columns += ['Length' + str(i+1)]
+            columns += ['Longitude' + str(i+1)]
+            columns += ['Latitude' + str(i+1)]
             temp_lat = rect[0]
             temp_lon = rect[1]
             temp_strike = rect[2]
             temp_length = rect[3]
-            okada_params.loc[i] = np.array([temp_strike, temp_length, width, depth, slip, rake, dip,temp_lon, temp_lat ])
-
-        return okada_params
+            temp.append(temp_strike)
+            temp.append( temp_length)
+            temp.append( temp_lon)
+            temp.append( temp_lat )
+        temp += [width, depth, slip, rake, dip]
+        columns += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
+        return pd.Series(temp, columns)
 
     def make_observations(self, params, arrivals, heights):
         """
@@ -500,8 +511,7 @@ class Custom(MCMC):
   
             #guesses = np.array([strike, length, width, slip, long, lat])
             vals = np.array([strike, length, width, slip, lon, lat])
-            guesses = pd.DataFrame(columns=self.sample_cols)
-            guesses.loc[0] = vals
+            guesses = pd.Series(vals, self.sample_cols)
 
         elif init == "random":
             prior = self.build_priors()
@@ -518,8 +528,5 @@ class Custom(MCMC):
             #print(guesses)
             #raise Exception('restart initialization not currently implemented')
             guesses = None
-
-        print("initial sample:")
-        print(guesses)
 
         return guesses

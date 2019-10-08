@@ -107,7 +107,7 @@ class Scenario:
                 print("Finished adjoint computation")
             
             # Do initial run of GeoClaw using the initial guesses.
-            self.setGeoClaw()
+            #self.setGeoClaw()
 
     def setGeoClaw(self):
         """

@@ -62,7 +62,7 @@ class Samples:
 
         #self.samples.loc[len(self.samples)] = init_guesses.values.tolist()[0]
         if init_guesses is not None:
-            self.samples.loc[len(self.samples)] = init_guesses.loc[0]
+            self.samples.loc[len(self.samples)] = init_guesses
         else:
             self.load_csv()
 
@@ -123,7 +123,9 @@ class Samples:
         Saves the accepted samples okada parameters to the dataframe
         :param saves: list: samples okada parameters
         """
-        self.okada.loc[len(self.okada)] = saves.values.tolist()[0] #pandas DataFrame
+        temp = saves.values.tolist()
+        for rect in temp:
+            self.okada.loc[len(self.okada)] = rect  #pandas DataFrame save each
         #self.okada.loc[len(self.okada)] = saves #not a pandas DataFrame :-)
 
     def get_sample_okada(self):

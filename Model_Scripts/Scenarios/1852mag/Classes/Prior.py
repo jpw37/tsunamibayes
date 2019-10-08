@@ -51,6 +51,7 @@ class Prior:
 
         samples = np.vstack((self.priors[0].resample(size),
                              np.exp(self.priors[1].resample(size)))).T
-        samples = pd.DataFrame(samples,columns=["Longitude","Latitude","Strike", "Magnitude"])
+        samples = samples[0]
+        samples = pd.Series(samples,["Longitude","Latitude","Strike", "Magnitude"])
         return samples
 
