@@ -29,6 +29,8 @@ parser.add_argument('--rwcov', dest='rwcov', default=0.5,
                    help='random walk covariance (default: 0.5)')
 parser.add_argument('--init', dest='init', default='random',
                    help='initial sample: random, manual, restart (default: rand)')
+parser.add_argument('--resdir', dest='resdir', default=None,
+		   help='directory from which to pull files for the restart (default: None)')
 parser.add_argument('--rundir', dest='rundir', default='default',
                    help='directory to run from (default: create unique directory with scenario name)')
 parser.add_argument('--runbase', dest='runbase', default='../../runs',
@@ -62,10 +64,16 @@ if args.rundir == 'default':
 #create, set up, and move to the run directory
 print("Running from directory ", args.rundir)
 os.makedirs(args.rundir) #make directory
+
+#handle restart if necessary TODO: Debug this
+if args.init == 'restart':
+    os.system("cp -r args.resdir args.rundir")
+
 os.system("cp Makefile "+args.rundir+"/")         #copy makefile
 os.system("cp -r Classes "+args.rundir+"/")       #copy classes
 os.system("cp -r "+scenDir+"/* "+args.rundir+"/") #copy scenario
-os.system("mkdir "+args.rundir+"/ModelOutput") #make output directory
+os.system("mkdir -p "+args.rundir+"/ModelOutput") #make output directory
+
 os.chdir(args.rundir)
 
 

@@ -94,9 +94,12 @@ class Samples:
         self.proposal_posterior_lpdf = None
 
     def load_csv(self):
-        #TODO: finish me
+        #TODO: test me
         """For restart functionality"""
-        pass
+        self.samples = pd.read_csv(self.save_path + "samples.csv")
+        self.okada = pd.read_csv((self.save_path + "okada.csv")
+        self.mcmc = pd.read_csv(self.save_path + "mcmc.csv")
+        self.observations = pd.read_csv(self.save_path + "observations.csv")
 
     def save_sample(self, saves):
         """

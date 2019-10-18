@@ -344,7 +344,6 @@ class Custom(MCMC):
 
         rectangles = self.split_rect(lat, lon, strike, length, num = self.num_rectangles)
         okada_params = pd.DataFrame()
-        cols = []
         temp = []
         for i, rect in enumerate(rectangles):
             temp_lat = rect[0]
@@ -356,7 +355,7 @@ class Custom(MCMC):
             temp.append( temp_lon)
             temp.append( temp_lat )
         temp += [width, depth, slip, rake, dip]
-        return pd.Series(temp, cols)
+        return pd.Series(temp, self.okada_cols)
 
     def make_observations(self, params, arrivals, heights):
         """

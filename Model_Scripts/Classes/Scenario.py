@@ -69,6 +69,11 @@ class Scenario:
 
         # Initialize the Samples Class
         self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols,self.mcmc.num_rectangles)
+        
+	# Load csv files if restart
+	if self.init == 'restart':
+	    self.samples.load_csv()
+
         self.mcmc.set_samples(self.samples)
 
         # Make sure Pre-Run files have been generated
@@ -87,15 +92,14 @@ class Scenario:
 #        else:
 #            raise ValueError("Shake gauge file does not exist")
 
-        # If using the custom methods map the initial guesses to okada parameters to save as initial sample
-        if (self.use_custom):
-            self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
-        else:
-            self.init_okada_params = self.init_guesses
-        # Save
-        self.samples.save_sample_okada(self.init_okada_params)
-
         if self.init != 'restart':
+            # If using the custom methods map the initial guesses to okada parameters to save as initial sample
+            if (self.use_custom):
+                self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
+            else:
+                self.init_okada_params = self.init_guesses
+            # Save
+            self.samples.save_sample_okada(self.init_okada_params)
             # Load the samples
             self.init_guesses = self.samples.get_sample()
 
@@ -107,7 +111,7 @@ class Scenario:
                 print("Finished adjoint computation")
             
             # Do initial run of GeoClaw using the initial guesses.
-            #self.setGeoClaw()
+            self.setGeoClaw()
 
     def setGeoClaw(self):
         """
