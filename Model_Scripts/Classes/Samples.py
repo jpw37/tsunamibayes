@@ -97,7 +97,7 @@ class Samples:
         #TODO: test me
         """For restart functionality"""
         self.samples = pd.read_csv(self.save_path + "samples.csv")
-        self.okada = pd.read_csv((self.save_path + "okada.csv")
+        self.okada = pd.read_csv(self.save_path + "okada.csv")
         self.mcmc = pd.read_csv(self.save_path + "mcmc.csv")
         self.observations = pd.read_csv(self.save_path + "observations.csv")
 

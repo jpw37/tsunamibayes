@@ -21,70 +21,68 @@ from Adjoint import Adjoint
 from pandas import read_pickle
 
 class Scenario:
-    """
-    Main Class for Running the MCMC Method for ...
+	"""
+	Main Class for Running the MCMC Method for ...
 
-    READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
-    """
+	READ: Make sure you run the python notebook in the PreRun folder to generate necessary run files
+	"""
 
-    def __init__(self, title="Default_Title", use_custom=True, init='manual', adjoint=False, rw_covariance=1.0, method="random_walk", iterations=1):
-        """
-        Initialize all the correct variables for Running this Scenario
-        :param title: Title for Scinerio (ex: 1852)
-        :param use_custom: Bool: To use the custom methods for MCMC or not
-        :param init: String: (manual, random or restart) How to initialize the parameters
-        :param rw_covariance: float: covariance for the random walk method
-        :param method: String: MCMC Method to use
-        :param iterations: Int: Number of Times to run the model
-        :param adjoint: Boolean: run the adjoint solver first or not
-        """
+	def __init__(self, title="Default_Title", use_custom=True, init='manual', adjoint=False, rw_covariance=1.0, method="random_walk", iterations=1):
+		"""
+		Initialize all the correct variables for Running this Scenario
+		:param title: Title for Scinerio (ex: 1852)
+		:param use_custom: Bool: To use the custom methods for MCMC or not
+		:param init: String: (manual, random or restart) How to initialize the parameters
+		:param rw_covariance: float: covariance for the random walk method
+		:param method: String: MCMC Method to use
+		:param iterations: Int: Number of Times to run the model
+		:param adjoint: Boolean: run the adjoint solver first or not
+		"""
 
-        # Clean geoclaw files
-        os.system('make clean')
-        os.system('make clobber')
+		# Clean geoclaw files
+		os.system('make clean')
+		os.system('make clobber')
 
-        # Clear previous files
-        os.system('rm ./InputData/dtopo.tt3')
+		# Clear previous files
+		os.system('rm ./InputData/dtopo.tt3')
 
-        #Set up necessary prerun file paths
-        gauges_file_path = './PreRun/InputData/gauges.npy'
-        shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
+		#Set up necessary prerun file paths
+		gauges_file_path = './PreRun/InputData/gauges.npy'
+		shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
 
-        self.title = title
-        self.iterations = iterations
-        self.use_custom = use_custom
-        self.init = init
-        self.feedForward = FeedForward()
+		self.title = title
+		self.iterations = iterations
+		self.use_custom = use_custom
+		self.init = init
+		self.feedForward = FeedForward()
 
-        # Set the MCMC class based on input
-        if(use_custom):
-            self.mcmc = Custom()
-        elif(method == "independent_sampler"):
-            self.mcmc = IndependentSampler()
-        else:
-            self.mcmc = RandomWalk(rw_covariance)
+		# Set the MCMC class based on input
+		if(use_custom):
+			self.mcmc = Custom()
+		elif(method == "independent_sampler"):
+			self.mcmc = IndependentSampler()
+		else:
+			self.mcmc = RandomWalk(rw_covariance)
 
-        # Get initial draw for the initial run of geoclaw
-        self.init_guesses = self.mcmc.init_guesses(self.init)
+		# Get initial draw for the initial run of geoclaw
+		self.init_guesses = self.mcmc.init_guesses(self.init)
 
-        # Initialize the Samples Class
-        self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols,self.mcmc.num_rectangles)
-        
-	# Load csv files if restart
-	if self.init == 'restart':
-	    self.samples.load_csv()
+		# Initialize the Samples Class
+		self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols,self.mcmc.num_rectangles) 
+		# Load csv files if restart
+		if self.init == 'restart':
+			self.samples.load_csv()
+			self.mcmc.set_samples(self.samples)
 
-        self.mcmc.set_samples(self.samples)
+		# Make sure Pre-Run files have been generated
+		if(os.path.isfile(gauges_file_path)):
+			gauges = np.load(gauges_file_path)
+			self.gauges = [from_json(gauge) for gauge in gauges]
+		else:
+			raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
-        # Make sure Pre-Run files have been generated
-        if(os.path.isfile(gauges_file_path)):
-            gauges = np.load(gauges_file_path)
-            self.gauges = [from_json(gauge) for gauge in gauges]
-        else:
-            raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
-
-        # Build the prior for the model, based on the choice of MCMC
-        self.prior = self.mcmc.build_priors()
+		# Build the prior for the model, based on the choice of MCMC
+		self.prior = self.mcmc.build_priors()
 
 #        #test shake gauge input
 #        if(os.path.isfile(shake_gauges_file_path)):
@@ -92,146 +90,146 @@ class Scenario:
 #        else:
 #            raise ValueError("Shake gauge file does not exist")
 
-        if self.init != 'restart':
-            # If using the custom methods map the initial guesses to okada parameters to save as initial sample
-            if (self.use_custom):
-                self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
-            else:
-                self.init_okada_params = self.init_guesses
-            # Save
-            self.samples.save_sample_okada(self.init_okada_params)
-            # Load the samples
-            self.init_guesses = self.samples.get_sample()
+		if self.init != 'restart':
+			# If using the custom methods map the initial guesses to okada parameters to save as initial sample
+			if (self.use_custom):
+				self.init_okada_params = self.mcmc.map_to_okada(self.init_guesses)
+			else:
+				self.init_okada_params = self.init_guesses
+			# Save
+			self.samples.save_sample_okada(self.init_okada_params)
+			# Load the samples
+			self.init_guesses = self.samples.get_sample()
 
-            # JW: Create the adjoint object here...right now is given as a separate class
-            if adjoint:
-                print("Starting adjoint computation")
-                self.adjoint = Adjoint()
-                self.adjoint.run_geo_claw()
-                print("Finished adjoint computation")
+			# JW: Create the adjoint object here...right now is given as a separate class
+			if adjoint:
+				print("Starting adjoint computation")
+				self.adjoint = Adjoint()
+				self.adjoint.run_geo_claw()
+				print("Finished adjoint computation")
             
-            # Do initial run of GeoClaw using the initial guesses.
-            self.setGeoClaw()
+			# Do initial run of GeoClaw using the initial guesses.
+			self.setGeoClaw()
 
-    def setGeoClaw(self):
-        """
-        Runs an initial set up of GeoClaw
-        :return:
-        """
-        # Get Okada parameters for initial guesses pandas data frame
-        okada_params = self.init_okada_params
-        
-        # Run Geoclaw
-        self.feedForward.run_geo_claw(okada_params)
+	def setGeoClaw(self):
+		"""
+		Runs an initial set up of GeoClaw
+		:return:
+		"""
+		# Get Okada parameters for initial guesses pandas data frame
+		okada_params = self.init_okada_params
 
-        # Calculate the inital log likelihood and save result
-        sample_llh, sample_arr, sample_heights = self.feedForward.calculate_llh(self.gauges)
-        self.samples.save_sample_llh(sample_llh)
+		# Run Geoclaw
+		self.feedForward.run_geo_claw(okada_params)
 
-        # Now Save the observations based off the sample and the arrival times & wave heights
-        obvs = self.mcmc.make_observations(self.init_guesses, sample_arr, sample_heights)
-        self.samples.save_obvs(obvs)
+		# Calculate the inital log likelihood and save result
+		sample_llh, sample_arr, sample_heights = self.feedForward.calculate_llh(self.gauges)
+		self.samples.save_sample_llh(sample_llh)
 
-    def clean_up(self):
-        """
-        Cleans up the unnecessary clutter geoclaw outputs
-        :return: None
-        """
-        os.system('rm ModelOutput/geoclaw/*.data')
+		# Now Save the observations based off the sample and the arrival times & wave heights
+		obvs = self.mcmc.make_observations(self.init_guesses, sample_arr, sample_heights)
+		self.samples.save_obvs(obvs)
 
-    def run(self):
-        """
-        Runs the Scenario For the given amount of iterations
-        """
-        for i in range(self.iterations):
+	def clean_up(self):
+		"""
+		Cleans up the unnecessary clutter geoclaw outputs
+		:return: None
+		"""
+		os.system('rm ModelOutput/geoclaw/*.data')
 
-            # Remove dtopo file for each run to generate a new one
-            os.system('rm ./InputData/dtopo.tt3')
+	def run(self):
+		"""
+		Runs the Scenario For the given amount of iterations
+		"""
+		for i in range(self.iterations):
 
-            # Get current Sample and draw a proposal sample from it
-            sample_params = self.samples.get_sample()
-            proposal_params = self.mcmc.draw(sample_params)
+			# Remove dtopo file for each run to generate a new one
+			os.system('rm ./InputData/dtopo.tt3')
 
-            # Save the proposal draw for debugging purposes
-            self.samples.save_proposal(proposal_params)
+			# Get current Sample and draw a proposal sample from it
+			sample_params = self.samples.get_sample()
+			proposal_params = self.mcmc.draw(sample_params)
 
-            # If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
-            if(self.use_custom):
-                proposal_params_okada = self.mcmc.map_to_okada(proposal_params)
-            else:
-                proposal_params_okada = proposal_params
+			# Save the proposal draw for debugging purposes
+			self.samples.save_proposal(proposal_params)
 
-            # Save Proposal
-            self.samples.save_proposal_okada(proposal_params_okada)
+			# If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
+			if(self.use_custom):
+				proposal_params_okada = self.mcmc.map_to_okada(proposal_params)
+			else:
+				proposal_params_okada = proposal_params
 
-            # Run Geo Claw on the new proposal
-            self.feedForward.run_geo_claw(proposal_params_okada)
+			# Save Proposal
+			self.samples.save_proposal_okada(proposal_params_okada)
+
+			# Run Geo Claw on the new proposal
+			self.feedForward.run_geo_claw(proposal_params_okada)
 
 
-            """
-            BEGIN SHAKE MODEL
-            
-            #To speed up shake model calculation set this False
-#            shake_option = True
+			"""
+			BEGIN SHAKE MODEL
 
-#            print("init_guesses:")
-#            print(self.init_guesses)
-#            print(type(self.init_guesses))
-#            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
-#            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
-            END SHAKE MODEL
-            """
+			#To speed up shake model calculation set this False
+			#            shake_option = True
 
-            # Calculate the Log Likelihood for the new draw
-            proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
-            sample_llh = self.samples.get_sample_llh()
+			#            print("init_guesses:")
+			#            print(self.init_guesses)
+			#            print(type(self.init_guesses))
+			#            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
+			#            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
+			END SHAKE MODEL
+			"""
 
-            # Save SHAKE STUFF
-            print("_____proposal_llh_____", proposal_llh)
-#            proposal_llh += self.proposal_shake_llh
-            print("_____proposal_llh_____", proposal_llh)
+			# Calculate the Log Likelihood for the new draw
+			proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
+			sample_llh = self.samples.get_sample_llh()
 
-            self.samples.save_sample_llh(sample_llh)
-            self.samples.save_proposal_llh(proposal_llh)
-            proposal_obvs = self.mcmc.make_observations(proposal_params, proposal_arr, proposal_heights)
-            self.samples.save_obvs(proposal_obvs)
+			# Save SHAKE STUFF
+			print("_____proposal_llh_____", proposal_llh)
+			#            proposal_llh += self.proposal_shake_llh
+			print("_____proposal_llh_____", proposal_llh)
 
-            # Calculate prior probability for the current sample and proposed sample
-            sample_prior_lpdf = self.prior.logpdf(sample_params)
-            proposal_prior_lpdf = self.prior.logpdf(proposal_params)
+			self.samples.save_sample_llh(sample_llh)
+			self.samples.save_proposal_llh(proposal_llh)
+			proposal_obvs = self.mcmc.make_observations(proposal_params, proposal_arr, proposal_heights)
+			self.samples.save_obvs(proposal_obvs)
 
-            # Save
-            self.samples.save_sample_prior_lpdf(sample_prior_lpdf)
-            self.samples.save_proposal_prior_lpdf(proposal_prior_lpdf)
+			# Calculate prior probability for the current sample and proposed sample
+			sample_prior_lpdf = self.prior.logpdf(sample_params)
+			proposal_prior_lpdf = self.prior.logpdf(proposal_params)
 
-            # Calculate the sample and proposal posterior log likelihood
-            sample_post_lpdf = sample_prior_lpdf + sample_llh
-            proposal_post_lpdf = proposal_prior_lpdf + proposal_llh
-            # Save
-            self.samples.save_sample_posterior_lpdf(sample_post_lpdf)
-            self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
+			# Save
+			self.samples.save_sample_prior_lpdf(sample_prior_lpdf)
+			self.samples.save_proposal_prior_lpdf(proposal_prior_lpdf)
 
-            # Calculate the acceptance probability of the given proposal
-            accept_prob = self.mcmc.acceptance_prob(sample_prior_lpdf, proposal_prior_lpdf)
+			# Calculate the sample and proposal posterior log likelihood
+			sample_post_lpdf = sample_prior_lpdf + sample_llh
+			proposal_post_lpdf = proposal_prior_lpdf + proposal_llh
+			# Save
+			self.samples.save_sample_posterior_lpdf(sample_post_lpdf)
+			self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
 
-            # Decide to accept or reject the proposal and save
-            ar = self.mcmc.accept_reject(accept_prob)
+			# Calculate the acceptance probability of the given proposal
+			accept_prob = self.mcmc.acceptance_prob(sample_prior_lpdf, proposal_prior_lpdf)
 
-            # Saves the stored data for debugging purposes
-            self.samples.save_debug()
+			# Decide to accept or reject the proposal and save
+			ar = self.mcmc.accept_reject(accept_prob)
 
-            # Save to csv
-            if i % 50 == 0:
-                self.samples.save_to_csv()
+			# Saves the stored data for debugging purposes
+			self.samples.save_debug()
 
-            if ar:
-                self.samples.save_sample(self.samples.get_proposal())
-                self.samples.save_sample_okada(self.samples.get_proposal_okada())
-                self.samples.save_sample_llh(self.samples.get_proposal_llh())
-            else:
-                self.samples.increment_wins()
-                self.samples.save_sample(self.samples.get_sample())
-                self.samples.save_sample_okada(self.samples.get_sample_okada())
+			# Save to csv
+			if i % 50 == 0:
+				self.samples.save_to_csv()
 
-        self.samples.save_to_csv()
-        return
+			if ar:
+				self.samples.save_sample(self.samples.get_proposal())
+				self.samples.save_sample_okada(self.samples.get_proposal_okada())
+				self.samples.save_sample_llh(self.samples.get_proposal_llh())
+			else:
+				self.samples.increment_wins()
+				self.samples.save_sample(self.samples.get_sample())
+				self.samples.save_sample_okada(self.samples.get_sample_okada())
+
+		self.samples.save_to_csv()
+		return
