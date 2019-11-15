@@ -33,40 +33,45 @@ class Custom(MCMC):
             cols += ['Latitude' + str(i+1)]
         cols += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
         self.okada_cols = cols
+
     def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
         """Split a given rectangle into 3 of equal length that more closely follow the
 		curve of the fault.
-		
+
 		Parameters:
 			lat (float): latitude of center
 			lon (float): longitude of center
 			strike (float): orientation of the long edge, measured in degrees
 					clockwise from north
 			leng (float): length of the long edge (km)
-			
+
 		Return:
 			list rectangles represented by a list of parameters: [lat,long,strike,leng]
 		"""
         if num < 3 or num % 2!=1:
             raise ValueError("'num' must be an odd integer of at least 3!")
 
-        #Pulling prior of lon/lat information to contruct best fit approximaiton of strike 
-        prior_lat = self.latlongstrikeprior[:,0]
-        prior_lon = self.latlongstrikeprior[:,1]
-        prior_strike = self.latlongstrikeprior[:,2]
-
-        #Constructing best fit
-        A = np.vstack([np.ones(len(prior_lat)), prior_lat, prior_lon, prior_lat*prior_lon, prior_lat**2, prior_lon**2, prior_lat**2*prior_lon, prior_lon**2*prior_lat, prior_lat**3, prior_lon**3]).T
-        lat_long_bestfit = np.linalg.lstsq(A, prior_strike, rcond=None)[0]
-
-		#strike/latitude linear regression 
-        def strike_from_lat_long(lat, lon):
-            temp_array = np.array([1, lat, lon, lat*lon, lat**2, lon**2, lat**2*lon, lon**2*lat, lat**3, lon**3])
-            return temp_array @ lat_long_bestfit
+        # DEPRICATED
+        # #Pulling prior of lon/lat information to contruct best fit approximaiton of strike
+        # prior_lat = self.latlongstrikeprior[:,0]
+        # prior_lon = self.latlongstrikeprior[:,1]
+        # prior_strike = self.latlongstrikeprior[:,2]
+        #
+        # #Constructing best fit
+        # A = np.vstack([np.ones(len(prior_lat)), prior_lat, prior_lon, prior_lat*prior_lon, prior_lat**2, prior_lon**2, prior_lat**2*prior_lon, prior_lon**2*prior_lat, prior_lat**3, prior_lon**3]).T
+        # lat_long_bestfit = np.linalg.lstsq(A, prior_strike, rcond=None)[0]
+        #
+		# #strike/latitude linear regression
+        # def strike_from_lat_long(lat, lon):
+        #     temp_array = np.array([1, lat, lon, lat*lon, lat**2, lon**2, lat**2*lon, lon**2*lat, lat**3, lon**3])
+        #     return temp_array @ lat_long_bestfit
+            #line of best fit for strike given latitude
+        strike_from_lat = np.poly1d([-4.69107194e-01, -1.31232324e+01, -1.44327025e+02,
+                                    -7.82503768e+02, -2.13007839e+03, -2.40708004e+03])
         nleng= leng/num
         rects = []
         rects.append([lat, lon, strike, nleng])
-	
+
         if method == "Avg":
             lat_temp=lat
             long_temp=lon
@@ -75,7 +80,7 @@ class Custom(MCMC):
                 edge1_lat = lat_temp + nleng/222*np.cos(np.radians(strike))
                 edge1_long = long_temp + nleng/222*np.sin(np.radians(strike))
                 strike1 = strike_from_lat_long(edge1_lat,edge1_long)
-				#Find the far egde of the adjacent rectangle 
+				#Find the far egde of the adjacent rectangle
                 end1_lat = edge1_lat + nleng/111*np.cos(np.radians(strike1))
                 end1_long = edge1_long + nleng/111*np.sin(np.radians(strike1))
 				#average the strike of the two points
@@ -83,11 +88,11 @@ class Custom(MCMC):
 				#find the coordinates of the rectangle using the new strike
                 rect1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
                 rect1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
-				
+
                 rects.append([rect1_lat, rect1_long, strike1, nleng])
                 lat_temp=rect1_lat
                 long_temp=rect1_long
-				
+
             lat_temp=lat
             long_temp=lon
             for i in range((num - 1)//2):
@@ -95,7 +100,7 @@ class Custom(MCMC):
                 edge2_lat = lat_temp - nleng/222*np.cos(np.radians(strike))
                 edge2_long = long_temp - nleng/222*np.sin(np.radians(strike))
                 strike2 = strike_from_lat_long(edge2_lat,edge1_long)
-				#Find the far egde of the adjacent rectangle 
+				#Find the far egde of the adjacent rectangle
                 end2_lat = edge1_lat - nleng/111*np.cos(np.radians(strike2))
                 end2_long = edge1_long - nleng/111*np.sin(np.radians(strike2))
 				#average the strike of the two points
@@ -103,11 +108,11 @@ class Custom(MCMC):
 				#find the coordinates of the rectangle using the new strike
                 rect2_lat = edge2_lat - nleng/222*np.cos(np.radians(strike2))
                 rect2_long = edge2_long - nleng/222*np.sin(np.radians(strike2))
-				
+
                 rects.append([rect2_lat, rect2_long, strike2, nleng])
                 lat_temp=rect2_lat
                 long_temp=rect2_long
-		
+
         elif method == "Center":
             lat_temp=lat
             long_temp=lon
@@ -124,7 +129,7 @@ class Custom(MCMC):
                 rects.append([rect1_lat, rect1_long, strike1, nleng])
                 lat_temp=rect1_lat
                 long_temp=rect1_long
-				
+
             lat_temp=lat
             long_temp=lon
             for i in range((num - 1)//2):
@@ -140,40 +145,43 @@ class Custom(MCMC):
                 rects.append([rect2_lat, rect2_long, strike2, nleng])
                 lat_temp=rect2_lat
                 long_temp=rect2_long
-		
-		
-        elif method == "Step":
-            num_steps = 8
-            step_len = nleng/num_steps/111 #convert from kilometers to degrees
 
+
+        elif method == "Step":
+            #define step length
+            num_steps = 8
+            step_len = nleng/num_steps/111 #convert from kilometers to degrees (only good near equator)
+
+            #add rectangles in direction of positive strike
             step_strike = strike
             step_lat = lat
-            step_long = lon
+            step_lon = lon
             for i in range((num - 1)//2):
                 for i in range(num_steps):
                     step_lat += step_len*np.cos(np.radians(step_strike))
-                    step_long += step_len*np.sin(np.radians(step_strike))
-                    step_strike = strike_from_lat_long(step_lat, step_long)
-                rects.append([step_lat, step_long, step_strike, nleng])
-				
+                    step_lon += step_len*np.sin(np.radians(step_strike))
+                    step_strike = strike_from_lat(step_lat)
+                rects.append([step_lat, step_lon, step_strike, nleng])
+
+            #add rectangles in direction of negative strike
             step_strike = strike
             step_lat = lat
-            step_long = lon
+            step_lon = lon
             for i in range((num - 1)//2):
                 for i in range(num_steps):
                     step_lat -= step_len*np.cos(np.radians(step_strike))
-                    step_long -= step_len*np.sin(np.radians(step_strike))
-                    step_strike = strike_from_lat_long(step_lat, step_long)
-                rects.append([step_lat, step_long, step_strike, nleng])
-			
+                    step_lon -= step_len*np.sin(np.radians(step_strike))
+                    step_strike = strike_from_lat(step_lat)
+                rects.append([step_lat, step_lon, step_strike, nleng])
+
             return rects
-			
+
         else:
             raise ValueError("'method' must be either 'Avg', 'Center', or 'Step'")
-		
+
         rects.append([rect1_lat, rect1_long, strike1, nleng])
         rects.append([rect2_lat, rect2_long, strike2, nleng])
-		
+
         return rects
 
     def get_length(self, mag):
@@ -185,7 +193,7 @@ class Custom(MCMC):
 		mag (float): the magnitude of the earthquake
 
 		Returns:
-		length (float): a sample from the normal distribution centered on the regression
+		length (float): Length in meters. a sample from the normal distribution centered on the regression
 	    """
         #m1 = 0.6423327398       # slope
         #c1 = 0.1357387698       # y intercept
@@ -198,7 +206,13 @@ class Custom(MCMC):
         #Calculate bounds on error distribution
         a = mag * m1 + c1 - e1
         b = mag * m1 + c1 + e1
-        return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length_cm)
+        #print("calculated length")
+        #print(10**truncnorm.rvs(a,b,size=1)[0])
+        #return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length_cm)
+        l  = 10**truncnorm.rvs(a,b,size=1)[0]
+        l /= 100. #convert to m
+        print("calculated length:",l,"m")
+        return l
 
     def get_width(self, mag):
         """ Width is sampled from a truncated normal distribution that
@@ -209,34 +223,43 @@ class Custom(MCMC):
         mag (float): the magnitude of the earthquake
 
         Returns:
-        width (float): a sample from the normal distribution centered on the regression
+        width (float): width in meters. a sample from the normal distribution centered on the regression
         """
-        m2 = 0.4832185193       # slope 
-        c2 = 3.1179508532       # y intercept 
+        m2 = 0.4832185193       # slope
+        c2 = 3.1179508532       # y intercept
         e2 = 0.4093407095518345 # error bar
 
         #m2 = 0.4832185193       # slope
         #c2 = 0.1179508532       # y intercept
-        #e2 = 0.4093407095518345 # error bar  
+        #e2 = 0.4093407095518345 # error bar
 
-	    #Calculate bounds on error distribution
+	      #Calculate bounds on error distribution
         a = mag * m2 + c2 - e2
         b = mag * m2 + c2 + e2
-        return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width_cm)
+        #print("calculated width")
+        #print(10**truncnorm.rvs(a,b,size=1)[0])
+        #return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width_cm)
+        w  = 10**truncnorm.rvs(a,b,size=1)[0]
+        w /= 100. #convert to m
+        print("calculated width:",w,"m")
+        return w #regression was done on log10(width_cm)
 
     def get_slip(self, length, width, mag):
         """Calculated from magnitude and rupture area, Ron Harris gave us the equation
             Parameters:
-            Length (float): cm
-            Width (float): cm
+            Length (float): m
+            Width (float): m
             mag (float): moment magnitude
-            
+
             Return:
             slip (float): meters
             """
-        #Dr. Harris' rigidity constant : 32e11 dynes/cm^2 
-        mu = 3.2e15 # changing cm^2 to m^2
+        #Dr. Harris' rigidity constant : 3.2e11 dynes/cm^2
+        mu_dyn_cm2 = 3.e11
+        mu = mu_dyn_cm2 * 1e-5 * 1e4 #convert to N/m^2
         slip = 10**(3/2 * ( mag + 6.06 )) / (mu * length * width)
+        print("this is calculated slip:",slip,"m")
+        #print(slip)
         return slip
 
     def acceptance_prob(self, cur_prior_lpdf, prop_prior_lpdf):
@@ -324,8 +347,8 @@ class Custom(MCMC):
         self.mw = draws["Magnitude"]
 
         #get Length,Width,Slip from fitted line
-        length = self.get_length(self.mw) * 1e-2
-        width = self.get_width(self.mw) * 1e-2
+        length = self.get_length(self.mw) #* 1e-2
+        width = self.get_width(self.mw) #* 1e-2
         slip = self.get_slip(length, width, self.mw)
 
         print("length")
@@ -465,7 +488,7 @@ class Custom(MCMC):
         #    p2 = np.array([x,y])
         #    dist_array[i] = self.haversine_distance(arcmidpt, p2)
         #midptdist = np.amin(dist_array)
-        
+
         #midpoint of prior arc
         arcmidpt = np.array([129.,-6.])
         #distance between midpoint and point
@@ -499,7 +522,7 @@ class Custom(MCMC):
             #dip    =  1.30000000e+01
             #long   =  1.30850829e+02
             #lat    = -5.45571375e+00
-  
+
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
             strike =  1.90000013e+02
@@ -508,8 +531,12 @@ class Custom(MCMC):
 #            slip   =  2.18309283e+01
             lon    =  1.30850829e+02
             lat    = -5.45571375e+00
+<<<<<<< HEAD
             mag = 9.0
   
+=======
+
+>>>>>>> 0018b79433826ba4963cdd54aefadde008216c3a
             #guesses = np.array([strike, length, width, slip, long, lat])
             vals = np.array([strike, lon, lat, mag])
             guesses = pd.Series(vals, self.sample_cols)
