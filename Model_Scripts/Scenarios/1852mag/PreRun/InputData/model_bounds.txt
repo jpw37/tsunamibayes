@@ -3,7 +3,7 @@
 "xupper": 134.5, 
 "ylower": -9.5, 
 "yupper": -2.5, 
-"run_time": 150.0, 
+"run_time": 1.0, 
 "xcoarse_grid": 95, 
 "ycoarse_grid": 70, 
 "gauge_topo": ["banda_map_merged.tt3", "gauge10002_merged3.tt3", "gauge10004_merged3.tt3", "gauge10005_merged3.tt3", "gauge10006_merged3.tt3"], 

@@ -343,7 +343,6 @@ class Custom(MCMC):
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
 
         rectangles = self.split_rect(lat, lon, strike, length, num = self.num_rectangles)
-        okada_params = pd.DataFrame()
         temp = []
         for i, rect in enumerate(rectangles):
             temp_lat = rect[0]
@@ -504,14 +503,15 @@ class Custom(MCMC):
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
             strike =  1.90000013e+02
-            length =  1.33325981e+05
-            width  =  8.45009646e+04
-            slip   =  2.18309283e+01
+#            length =  1.33325981e+05
+#            width  =  8.45009646e+04
+#            slip   =  2.18309283e+01
             lon    =  1.30850829e+02
             lat    = -5.45571375e+00
+            mag = 9.0
   
             #guesses = np.array([strike, length, width, slip, long, lat])
-            vals = np.array([strike, length, width, slip, lon, lat])
+            vals = np.array([strike, lon, lat, mag])
             guesses = pd.Series(vals, self.sample_cols)
 
         elif init == "random":

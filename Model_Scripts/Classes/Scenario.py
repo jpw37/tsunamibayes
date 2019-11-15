@@ -72,7 +72,7 @@ class Scenario:
 		# Load csv files if restart
 		if self.init == 'restart':
 			self.samples.load_csv()
-			self.mcmc.set_samples(self.samples)
+		self.mcmc.set_samples(self.samples)
 
 		# Make sure Pre-Run files have been generated
 		if(os.path.isfile(gauges_file_path)):

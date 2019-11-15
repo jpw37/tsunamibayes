@@ -143,7 +143,9 @@ class Samples:
         #temp = saves.values.tolist()
         #for rect in temp:
             #self.okada.loc[len(self.okada)] = rect  #pandas DataFrame save each
-        self.okada.loc[len(self.okada)] = saves #not a pandas DataFrame :-)
+        print(self.okada)
+        print(saves)
+        self.okada.loc[len(self.okada)] = saves.values #not a pandas DataFrame :-)
 
     def get_sample_okada(self):
         """
