@@ -31,7 +31,7 @@ class Fault:
         distances = Fault.haversine(lat,lon,self.latpts,self.lonpts)
         weights = np.exp(-distances/50)
         weights /= weights.sum()
-        return circmean(self.strikepts,weights)%360
+        return Fault.circmean(self.strikepts,weights)%360
 
     def distance_strike(self,lat,lon):
         """Computes both the distance from the fault, and the weighted mean strike angle"""
