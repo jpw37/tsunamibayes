@@ -346,7 +346,7 @@ class Custom(MCMC):
         data = pd.read_csv("./InputData/BandaHypoSegments.csv")
         latpts = np.array(data["Lat"])
         lonpts = np.array(data["Long"])
-        strikepts = np.array(data["Strike"])
+        strikepts = np.array(data["Strike"])%360
         latlonstrike = LatLonStrikePrior(latpts,lonpts,strikepts,sigma_d=100,sigma_s=3)
         mag = stats.pareto(b=1,loc=7,scale=0.4)
 
