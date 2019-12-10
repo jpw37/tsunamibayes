@@ -41,7 +41,7 @@ class Custom(MCMC):
         latpts = np.array(data["Lat"])
         lonpts = np.array(data["Long"])
         strikepts = np.array(data["Strike"])%360
-        return Fault(latpts,lonpts,strikepts)
+        return Fault(latpts,lonpts,strikepts,"Banda Arc")
 
     def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
         """Split a given rectangle into 3 of equal length that more closely follow the
