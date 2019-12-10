@@ -15,10 +15,8 @@ class LatLonStrikePrior:
         """
         Parameters
         ----------
-        latpts : (N,) ndarray
-            Array containing the latitude coordinates of the points on the fault
-        lonpts : (N,) ndarray
-            Array containing the longitude coordinates of the points on the fault
+        fault : instance of Fault
+            Fault object
         sigma_d : float
             Standard deviation of the half-normal distribution on distance from
             the fault
