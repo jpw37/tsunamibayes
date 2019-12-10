@@ -10,6 +10,7 @@ from scipy import stats
 
 from MCMC import MCMC
 from Prior import Prior,LatLonStrikePrior
+from Fault import Fault
 
 from scipy.stats import truncnorm
 
@@ -33,7 +34,14 @@ class Custom(MCMC):
             cols += ['Latitude' + str(i+1)]
         cols += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
         self.okada_cols = cols
-        self.prior = build_priors()
+        self.fault = self.build_fault()
+
+    def build_fault(self):
+        data = pd.read_csv("./InputData/BandaHypoSegments.csv")
+        latpts = np.array(data["Lat"])
+        lonpts = np.array(data["Long"])
+        strikepts = np.array(data["Strike"])%360
+        return Fault(latpts,lonpts,strikepts)
 
     def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
         """Split a given rectangle into 3 of equal length that more closely follow the
@@ -54,12 +62,12 @@ class Custom(MCMC):
 
 
         """Spencer & Garret:
-            The prior object (which I create in build_prior(), and call at
-            initialization of this Custom class) has a sub-object
-            prior.priors["latlonstrike"]. This is a LatLonStrikePrior object
-            (a class I just designed). This object has a method, .strike_from_lat_lon(lat,lon)
-            that computes the smoothed strike map. You can use this to fix this
-            function.
+            The code now constructs a Fault object, which is just a container for
+            the fault data, and has methods to compute distance and the strike map.
+            We can also extend the class to manage the other Okada parameter maps.
+            Until then, the important method is Fault.strike_from_lat_lon().
+            Custom now initializes with a Fault instance, self.fault. So you can
+            compute the strike map using self.fault.strike_from_lat_lon(lat,lon)
         """
 
         # DEPRICATED
@@ -343,11 +351,8 @@ class Custom(MCMC):
         # distrb1 = gaussian_kde(data2)
         #
         # dists = [distrb0, distrb1]
-        data = pd.read_csv("./InputData/BandaHypoSegments.csv")
-        latpts = np.array(data["Lat"])
-        lonpts = np.array(data["Long"])
-        strikepts = np.array(data["Strike"])%360
-        latlonstrike = LatLonStrikePrior(latpts,lonpts,strikepts,sigma_d=100,sigma_s=3)
+
+        latlonstrike = LatLonStrikePrior(self.fault,sigma_d=100,sigma_s=3)
         mag = stats.pareto(b=1,loc=7,scale=0.4)
 
         return Prior(latlonstrike,mag)
@@ -559,7 +564,7 @@ class Custom(MCMC):
             guesses = pd.Series(vals, self.sample_cols)
 
         elif init == "random":
-            prior = self.build_priors()
+            prior = self.()
             guesses = prior.rvs(1)
             #guesses = pd.DataFrame(columns=self.sample_cols)
             #guesses.loc[0] = vals
