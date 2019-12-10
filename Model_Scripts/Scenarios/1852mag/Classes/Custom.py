@@ -9,7 +9,7 @@ import numpy as np
 from scipy import stats
 
 from MCMC import MCMC
-from Prior import Prior
+from Prior import Prior,LatLonStrikePrior
 
 from scipy.stats import truncnorm
 
@@ -33,6 +33,7 @@ class Custom(MCMC):
             cols += ['Latitude' + str(i+1)]
         cols += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
         self.okada_cols = cols
+        self.prior = build_priors()
 
     def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
         """Split a given rectangle into 3 of equal length that more closely follow the
@@ -50,6 +51,16 @@ class Custom(MCMC):
 		"""
         if num < 3 or num % 2!=1:
             raise ValueError("'num' must be an odd integer of at least 3!")
+
+
+        """Spencer & Garret:
+            The prior object (which I create in build_prior(), and call at
+            initialization of this Custom class) has a sub-object
+            prior.priors["latlonstrike"]. This is a LatLonStrikePrior object
+            (a class I just designed). This object has a method, .strike_from_lat_lon(lat,lon)
+            that computes the smoothed strike map. You can use this to fix this
+            function.
+        """
 
         # DEPRICATED
         # #Pulling prior of lon/lat information to contruct best fit approximaiton of strike
@@ -320,20 +331,26 @@ class Custom(MCMC):
         Builds the priors
         :return:
         """
-        samplingMult = 50
-        bandwidthScalar = 2.0
-        # build longitude, latitude and strike prior
-        raw_data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xlsx')
-        self.latlongstrikeprior = np.array(raw_data[['POINT_X', 'POINT_Y', 'Strike']])
-        distrb0 = gaussian_kde(self.latlongstrikeprior.T)
+        # samplingMult = 50
+        # bandwidthScalar = 2.0
+        # # build longitude, latitude and strike prior
+        # raw_data = pd.read_excel('./InputData/Fixed92kmFaultOffset50kmgapPts.xlsx')
+        # self.latlongstrikeprior = np.array(raw_data[['POINT_X', 'POINT_Y', 'Strike']])
+        # distrb0 = gaussian_kde(self.latlongstrikeprior.T)
+        #
+        # #Garret and spencer chose this 18 June 2019
+        # data2 = stats.norm.rvs(size = 1000,loc = np.log(8), scale = 0.05)
+        # distrb1 = gaussian_kde(data2)
+        #
+        # dists = [distrb0, distrb1]
+        data = pd.read_csv("./InputData/BandaHypoSegments.csv")
+        latpts = np.array(data["Lat"])
+        lonpts = np.array(data["Long"])
+        strikepts = np.array(data["Strike"])
+        latlonstrike = LatLonStrikePrior(latpts,lonpts,strikepts,sigma_d=20,sigma_s=3)
+        mag = stats.pareto(b=1,loc=7,scale=0.4)
 
-        #Garret and spencer chose this 18 June 2019
-        data2 = stats.norm.rvs(size = 1000,loc = np.log(8), scale = 0.05)
-        distrb1 = gaussian_kde(data2)
-
-        dists = [distrb0, distrb1]
-
-        return Prior(dists)
+        return Prior(latlonstrike,mag)
 
     def map_to_okada(self, draws):
         """
@@ -533,7 +550,7 @@ class Custom(MCMC):
             lat    = -5.45571375e+00
 <<<<<<< HEAD
             mag = 9.0
-  
+
 =======
 
 >>>>>>> 0018b79433826ba4963cdd54aefadde008216c3a
