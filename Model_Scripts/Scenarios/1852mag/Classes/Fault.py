@@ -52,13 +52,13 @@ class Fault:
         Returns -1 if on the hanging block, 1 if on the foot block.
         """
         if 0 <= (strike+45)%360 < 90:
-            return -np.sign(lon-fault_lon)
-        elif 90 <= (strike+45)%360 < 180:
-            return np.sign(lat-fault_lat)
-        elif 180 <= (strike+45)%360 < 270:
             return np.sign(lon-fault_lon)
-        else:
+        elif 90 <= (strike+45)%360 < 180:
             return -np.sign(lat-fault_lat)
+        elif 180 <= (strike+45)%360 < 270:
+            return -np.sign(lon-fault_lon)
+        else:
+            return np.sign(lat-fault_lat)
 
     @staticmethod
     def bearing(lat1,lon1,lat2,lon2):
@@ -67,6 +67,16 @@ class Fault:
         x = np.cos(lat2)*np.sin(lon2-lon1)
         y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
         return np.degrees(np.arctan2(x,y))%360
+
+    @staticmethod
+    def step(lat,lon,bearing,distance,R):
+        """Compute the lat-lon coordinates of a point given another point, a
+        bearing, and a distance. R = radius of the earth."""
+        lat,lon,bearing = np.deg2rad([lat,lon,bearing])
+        delta = distance/R
+        lat2 = np.arcsin(np.sin(lat)*np.cos(delta)+np.cos(lat)*np.sin(delta)*np.cos(bearing))
+        lon2 = lon+np.arctan2(np.sin(bearing)*np.sin(delta)*np.cos(lat),np.cos(delta)-np.sin(lat)*np.sin(lat2))
+        return np.degrees(lat2),np.degrees(lon2)
 
     def distance(self,lat,lon,retclose=False):
         """Computes the distance from a given lat/lon coordinate to the fault.
@@ -99,7 +109,7 @@ class Fault:
         if idx == 0 or idx == len(self.latpts)-1:
             bearing = Fault.bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
             distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
-            side = np.sign(distance)
+            side = -np.sign(distance)
             distance = np.abs(distance)
         depth = self.depth + side*distance*np.tan(np.deg2rad(self.dip))
 

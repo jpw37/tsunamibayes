@@ -40,7 +40,7 @@ class Custom(MCMC):
         data = pd.read_csv("./InputData/BandaHypoSegments.csv")
         latpts = np.array(data["Lat"])
         lonpts = np.array(data["Long"])
-        strikepts = np.array(data["Strike"])%360
+        strikepts = (np.array(data["Strike"])+180)%360
         depth = 21000
         dip = 13
         R = 6377905
@@ -91,6 +91,7 @@ class Custom(MCMC):
         # strike_from_lat = np.poly1d([-4.69107194e-01, -1.31232324e+01, -1.44327025e+02,
         #                            -7.82503768e+02, -2.13007839e+03, -2.40708004e+03])
         strike_from_lat_lon = self.fault.strike_from_lat_lon
+        step = self.fault.step
         nleng= leng/num
         rects = []
         rects.append([lat, lon, strike, nleng])
@@ -173,28 +174,26 @@ class Custom(MCMC):
         elif method == "Step":
             #define step length
             num_steps = 8
-            step_len = nleng/num_steps/111000 #convert from meters to degrees (only good near equator)
+            step_len = nleng/num_steps
 
             #add rectangles in direction of positive strike
-            step_strike = strike
+            bearing = strike
             step_lat = lat
             step_lon = lon
             for i in range((num - 1)//2):
                 for i in range(num_steps):
-                    step_lat += step_len*np.cos(np.radians(step_strike))
-                    step_lon += step_len*np.sin(np.radians(step_strike))
-                    step_strike = strike_from_lat_lon(step_lat, step_lon)
+                    step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
+                    bearing = strike_from_lat_lon(step_lat, step_lon)
                 rects.append([step_lat, step_lon, step_strike, nleng])
 
             #add rectangles in direction of negative strike
-            step_strike = strike
+            bearing = (strike-180)%360
             step_lat = lat
             step_lon = lon
             for i in range((num - 1)//2):
                 for i in range(num_steps):
-                    step_lat -= step_len*np.cos(np.radians(step_strike))
-                    step_lon -= step_len*np.sin(np.radians(step_strike))
-                    step_strike = strike_from_lat_lon(step_lat, step_lon)
+                    step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
+                    bearing = (strike_from_lat_lon(step_lat, step_lon)-180)%360
                 rects.append([step_lat, step_lon, step_strike, nleng])
 
             return rects
