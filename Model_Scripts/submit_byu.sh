@@ -71,7 +71,7 @@ echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 
 #Customize: Set run parameters
 python Main.py             \
-    --scen    1852jgr      \
+    --scen    1852mag      \
     --mcmc    random_walk  \
     --nsamp   5         \
     --rundir  $rundir      \
