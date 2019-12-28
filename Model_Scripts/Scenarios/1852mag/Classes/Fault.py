@@ -29,6 +29,7 @@ class Fault:
         self.dip = dip
         self.R = R
         self.name = name
+        self.smoothing = 50000
 
     @staticmethod
     def haversine(R,lat1,lon1,lat2,lon2):
@@ -72,7 +73,7 @@ class Fault:
     def step(lat,lon,bearing,distance,R):
         """Compute the lat-lon coordinates of a point given another point, a
         bearing, and a distance. R = radius of the earth."""
-        lat,lon,bearing = np.deg2rad([lat,lon,bearing])
+        lat,lon,bearing = np.deg2rad(lat),np.deg2rad(lon),np.deg2rad(bearing)
         delta = distance/R
         lat2 = np.arcsin(np.sin(lat)*np.cos(delta)+np.cos(lat)*np.sin(delta)*np.cos(bearing))
         lon2 = lon+np.arctan2(np.sin(bearing)*np.sin(delta)*np.cos(lat),np.cos(delta)-np.sin(lat)*np.sin(lat2))
@@ -87,17 +88,17 @@ class Fault:
         else:
             return distances.min()
 
-    def strike_from_lat_lon(self,lat,lon,param=50000):
+    def strike_from_lat_lon(self,lat,lon):
         """Computes the weighted mean strike angle"""
         distances = Fault.haversine(self.R,lat,lon,self.latpts,self.lonpts)
-        weights = np.exp(-distances/param)
+        weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
         return Fault.circmean(self.strikepts,weights)%360
 
-    def distance_strike(self,lat,lon,param=50000):
+    def distance_strike(self,lat,lon):
         """Computes both the distance from the fault, and the weighted mean strike angle"""
         distances = Fault.haversine(self.R,lat,lon,self.latpts,self.lonpts)
-        weights = np.exp(-distances/param)
+        weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
         return distances.min(),Fault.circmean(self.strikepts,weights)%360
 
