@@ -23,7 +23,7 @@ class Custom(MCMC):
         MCMC.__init__(self)
         self.sample_cols = ['Strike','Longitude', 'Latitude', 'Magnitude']
         self.proposal_cols = ['P-Strike','P-Logitude', 'P-Latitude', 'P-Magnitude']
-        self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
+        self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
         self.num_rectangles = 3
         cols = []
@@ -91,7 +91,7 @@ class Custom(MCMC):
         # strike_from_lat = np.poly1d([-4.69107194e-01, -1.31232324e+01, -1.44327025e+02,
         #                            -7.82503768e+02, -2.13007839e+03, -2.40708004e+03])
         strike_from_lat_lon = self.fault.strike_from_lat_lon
-        step = self.fault.step
+        step = Fault.step
         nleng= leng/num
         rects = []
         rects.append([lat, lon, strike, nleng])
@@ -184,7 +184,7 @@ class Custom(MCMC):
                 for i in range(num_steps):
                     step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
                     bearing = strike_from_lat_lon(step_lat, step_lon)
-                rects.append([step_lat, step_lon, step_strike, nleng])
+                rects.append([step_lat, step_lon, strike_from_lat_lon(step_lat,step_lon), nleng])
 
             #add rectangles in direction of negative strike
             bearing = (strike-180)%360
@@ -194,7 +194,7 @@ class Custom(MCMC):
                 for i in range(num_steps):
                     step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
                     bearing = (strike_from_lat_lon(step_lat, step_lon)-180)%360
-                rects.append([step_lat, step_lon, step_strike, nleng])
+                rects.append([step_lat, step_lon, strike_from_lat_lon(step_lat,step_lon), nleng])
 
             return rects
 
