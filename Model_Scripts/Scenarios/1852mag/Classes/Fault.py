@@ -53,11 +53,11 @@ class Fault:
         Returns -1 if on the hanging block, 1 if on the foot block.
         """
         if 0 <= (strike+45)%360 < 90:
-            return np.sign(lon-fault_lon)
+            return np.sign((lon-fault_lon+180)%360-180)
         elif 90 <= (strike+45)%360 < 180:
             return -np.sign(lat-fault_lat)
         elif 180 <= (strike+45)%360 < 270:
-            return -np.sign(lon-fault_lon)
+            return -np.sign((lon-fault_lon+180)%360-180)
         else:
             return np.sign(lat-fault_lat)
 

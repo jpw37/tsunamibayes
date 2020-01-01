@@ -32,12 +32,16 @@ class LatLonStrikePrior:
     def logpdf(self,lat,lon,strike):
         """Evaluates the logpdf of the prior"""
         distance,mean_strike = self.fault.distance_strike(lat,lon)
-        return self.latlon.logpdf(distance) + self.strike.logpdf((strike-mean_strike)%360)
+        strikediff = strike - mean_strike
+        strikediff = np.abs((strikediff + 180) % 360 - 180)
+        return self.latlon.logpdf(distance) + self.strike.logpdf(strikediff)
 
     def pdf(self,lat,lon,strike):
         """Evaluates the pdf of the prior"""
         distance,mean_strike = self.fault.distance_strike(lat,lon)
-        return self.latlon.pdf(distance)*self.strike.pdf((strike-mean_strike)%360)
+        strikediff = strike - mean_strike
+        strikediff = np.abs((strikediff + 180) % 360 - 180)
+        return self.latlon.pdf(distance)*self.strike.pdf(strikediff)
 
     def rvs(self):
         """Return a random point on the fault"""
