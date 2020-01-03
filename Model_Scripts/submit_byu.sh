@@ -75,7 +75,8 @@ python Main.py             \
     --mcmc    random_walk  \
     --nsamp   5         \
     --rundir  $rundir      \
-    --init manual          \
+    --init restart          \
+    --resdir /fslhome/jpw37/fsl_groups/fslg_tsunami/compute/runs/33781881_m8 \
     | tee -a $logfile
 
 echo "LOG: $( date ): MCMC run complete" | tee -a $logfile

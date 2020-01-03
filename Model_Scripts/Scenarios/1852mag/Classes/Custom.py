@@ -329,6 +329,8 @@ class Custom(MCMC):
         e = stats.multivariate_normal(mean, cov).rvs()
 
         # does sample update normally
+        print("printing previous draw values")
+        print(prev_draw.values)
         vals = prev_draw.values + e
         new_draw = pd.DataFrame(columns=self.sample_cols)
         new_draw.loc[0] = vals

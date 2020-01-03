@@ -7,6 +7,7 @@ Property of BYU Mathematics Dept.
 import numpy as np
 import sys
 import matplotlib
+import os
 
 matplotlib.use('agg', warn=False, force=True)
 
@@ -77,8 +78,8 @@ class Samples:
         #self.samples.loc[len(self.samples)] = init_guesses.values.tolist()[0]
         if init_guesses is not None:
             self.samples.loc[len(self.samples)] = init_guesses
-        else:
-            self.load_csv()
+        #else:
+        #    self.load_csv()
 
         #TODO: should this always run, even during a restart?
         self.wins = 1
@@ -96,10 +97,15 @@ class Samples:
     def load_csv(self):
         #TODO: test me
         """For restart functionality"""
+        cols2read = [1,2,3,4]
         self.samples = pd.read_csv(self.save_path + "samples.csv")
+        self.samples = self.samples.drop(['Unnamed: 0'], axis=1)
         self.okada = pd.read_csv(self.save_path + "okada.csv")
+        self.okada = self.okada.drop(['Unnamed: 0'], axis=1)
         self.mcmc = pd.read_csv(self.save_path + "mcmc.csv")
+        self.mcmc = self.mcmc.drop(['Unnamed: 0'], axis=1)
         self.observations = pd.read_csv(self.save_path + "observations.csv")
+        self.observations = self.observations.drop(['Unnamed: 0'], axis=1)
 
     def save_sample(self, saves):
         """

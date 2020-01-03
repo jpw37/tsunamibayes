@@ -67,7 +67,7 @@ os.makedirs(args.rundir) #make directory
 
 #handle restart if necessary TODO: Debug this
 if args.init == 'restart':
-    os.system("cp -r args.resdir args.rundir")
+    os.system("cp -r "+args.resdir+"/. "+args.rundir+"/")
 
 os.system("cp Makefile "+args.rundir+"/")         #copy makefile
 os.system("cp -r Classes "+args.rundir+"/")       #copy classes
