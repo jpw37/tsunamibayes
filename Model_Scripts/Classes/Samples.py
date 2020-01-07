@@ -52,7 +52,7 @@ class Samples:
         cols += [ 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip']
         okada_cols = cols
         #okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude','O-Latitude']
-        
+
         cols = []
         for i in range(num_rectangles):
             cols += ['OP-Strike' + str(i+1)]
@@ -62,7 +62,7 @@ class Samples:
         cols += [ 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip']
         proposal_okada_cols = cols
         #proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip','OP-Logitude', 'OP-Latitude']
-        
+
         mcmc_cols = sample_cols + proposal_cols + okada_cols + proposal_okada_cols + \
                     ["Sample Prior", "Sample LLH", "Sample Posterior"] + \
                     ["Proposal Prior", "Proposal LLH", "Proposal Posterior"] + \
@@ -106,6 +106,10 @@ class Samples:
         self.mcmc = self.mcmc.drop(['Unnamed: 0'], axis=1)
         self.observations = pd.read_csv(self.save_path + "observations.csv")
         self.observations = self.observations.drop(['Unnamed: 0'], axis=1)
+
+        # initialize several class attributes
+        self.sample_llh = self.mcmc["Sample LLH"].iloc[-1]
+        print(self.sample_llh)
 
     def save_sample(self, saves):
         """
@@ -544,6 +548,3 @@ if __name__ == "__main__":
     samples.save_sample(sample)
     print(samples.samples)
     print(type(samples.samples))
-
-
-
