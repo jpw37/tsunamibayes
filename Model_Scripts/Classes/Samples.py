@@ -97,19 +97,13 @@ class Samples:
     def load_csv(self):
         #TODO: test me
         """For restart functionality"""
-        cols2read = [1,2,3,4]
-        self.samples = pd.read_csv(self.save_path + "samples.csv")
-        self.samples = self.samples.drop(['Unnamed: 0'], axis=1)
-        self.okada = pd.read_csv(self.save_path + "okada.csv")
-        self.okada = self.okada.drop(['Unnamed: 0'], axis=1)
-        self.mcmc = pd.read_csv(self.save_path + "mcmc.csv")
-        self.mcmc = self.mcmc.drop(['Unnamed: 0'], axis=1)
-        self.observations = pd.read_csv(self.save_path + "observations.csv")
-        self.observations = self.observations.drop(['Unnamed: 0'], axis=1)
+        self.samples = pd.read_csv(self.save_path + "samples.csv",index_col=0)
+        self.okada = pd.read_csv(self.save_path + "okada.csv",index_col=0)
+        self.mcmc = pd.read_csv(self.save_path + "mcmc.csv",index_col=0)
+        self.observations = pd.read_csv(self.save_path + "observations.csv",index_col=0)
 
         # initialize several class attributes
         self.sample_llh = self.mcmc["Sample LLH"].iloc[-1]
-        print(self.sample_llh)
 
     def save_sample(self, saves):
         """
