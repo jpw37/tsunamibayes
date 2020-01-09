@@ -50,7 +50,7 @@ class Fault:
         """Computes on which side of the fault that a given point lies, given
         the closet point on the fault and the strike angle there. This is done
         by comparing the latitudes/longitudes, depending on the strike angle.
-        Returns -1 if on the hanging block, 1 if on the foot block.
+        Returns 1 if dipward of the fault, -1 if antidipward.
         """
         if 0 <= (strike+45)%360 < 90:
             return np.sign((lon-fault_lon+180)%360-180)
