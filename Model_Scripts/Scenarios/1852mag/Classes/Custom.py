@@ -315,21 +315,21 @@ class Custom(MCMC):
             draws (array): An array of the 9 parameter draws.
         """
 
-        strike_std = 5.
         longitude_std = 0.15
         latitude_std = 0.15
         magnitude_std = 0.1 #garret arbitraily chose this
 
         # square for std => cov
-        cov = np.diag(np.square([strike_std, longitude_std, latitude_std, magnitude_std]))
-        mean = np.zeros(4)
+        cov = np.diag(np.square([longitude_std, latitude_std, magnitude_std]))
+        mean = np.zeros(3)
         cov *= 0.25
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
 
         # does sample update normally
-        vals = prev_draw.values + e
+        vals[1:] = prev_draw.values + e
+        vals[0] = self.fault.strike_from_lat_lon(vals[2],vals[1])
         new_draw = pd.DataFrame(columns=self.sample_cols)
         new_draw.loc[0] = vals
         print("Random walk difference:", e)
