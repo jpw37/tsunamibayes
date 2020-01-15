@@ -21,8 +21,8 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Strike','Longitude', 'Latitude', 'Magnitude']
-        self.proposal_cols = ['P-Strike','P-Logitude', 'P-Latitude', 'P-Magnitude']
+        self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','Length','Width']
+        self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-Length','P-Width']
         self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
         self.num_rectangles = 3
@@ -251,16 +251,9 @@ class Custom(MCMC):
         c2 = 3.1179508532       # y intercept
         e2 = 0.4093407095518345 # error bar
 
-        #m2 = 0.4832185193       # slope
-        #c2 = 0.1179508532       # y intercept
-        #e2 = 0.4093407095518345 # error bar
-
           #Calculate bounds on error distribution
         a = mag * m2 + c2 - e2
         b = mag * m2 + c2 + e2
-        #print("calculated width")
-        #print(10**truncnorm.rvs(a,b,size=1)[0])
-        #return 10**truncnorm.rvs(a, b, size=1)[0] #regression was done on log10(width_cm)
         w  = 10**truncnorm.rvs(a,b,size=1)[0]
         w /= 100. #convert to m
         print("calculated width:",w,"m")
@@ -297,6 +290,8 @@ class Custom(MCMC):
         # Log-Likelihood
         change_prior_lpdf = prop_prior_lpdf - cur_prior_lpdf
 
+        # Proposal kernel
+
         print("prop_prior_lpdf is:")
         print(prop_prior_lpdf)
         print("cur_prior_lpdf is:")
@@ -314,7 +309,10 @@ class Custom(MCMC):
         Returns:
             draws (array): An array of the 9 parameter draws.
         """
+        # deep copy of prev_draw
+        new_draw = prev_draw.copy()
 
+        # Random walk draw lat/lon/strike
         longitude_std = 0.15
         latitude_std = 0.15
         magnitude_std = 0.1 #garret arbitraily chose this
@@ -326,16 +324,14 @@ class Custom(MCMC):
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
+        new_draw[['Longitude','Latitude','Magnitude']] += e
 
-        # does sample update normally
-        vals[1:] = prev_draw.values + e
-        vals[0] = self.fault.strike_from_lat_lon(vals[2],vals[1])
-        new_draw = pd.DataFrame(columns=self.sample_cols)
-        new_draw.loc[0] = vals
-        print("Random walk difference:", e)
-        print("New draw:", new_draw)
+        # conditional proposal on length and width
+        length = self.get_length(new_draw['Magnitude']) #* 1e-2
+        width = self.get_width(new_draw['Magnitude']) #* 1e-2
+        new_draw[['Length','Width']] = [length,width
 
-        return new_draw.loc[0]
+        return new_draw
 
     def build_priors(self):
         """
@@ -368,25 +364,16 @@ class Custom(MCMC):
         """
         lon    = draws["Longitude"] #These need to be scalars
         lat    = draws["Latitude"]
-        strike = draws["Strike"]
         self.mw = draws["Magnitude"]
+        length = draws["Length"]
+        width = draws["Width"]
 
         #get Length,Width,Slip from fitted line
-        length = self.get_length(self.mw) #* 1e-2
-        width = self.get_width(self.mw) #* 1e-2
         slip = self.get_slip(length, width, self.mw)
-
-        print("length")
-        print(length)
-        print("width")
-        print(width)
-        print("slip")
-        print(slip)
-        print('Mw', self.mw)
 
         #deterministic okada parameters
         rake = 90
-        dip = 13
+        dip = self.fault.dip
         depth = self.fault.depth_from_lat_lon(lat,lon)
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
 
@@ -415,119 +402,12 @@ class Custom(MCMC):
         :return: a list that provides the observations in the correct ordering
         """
         obvs = []
-        #obvs[0] = self.compute_mw(params[1], params[2], params[4]) #first the magnitude
-        #obvs.append(self.compute_mw(params["Length"], params["Width"], params["Slip"])) #first the magnitude
         obvs.append(self.mw)
         for ii in range(len(arrivals)): #alternate arrival times with wave heights
             obvs.append(arrivals[ii])
             obvs.append(heights[ii])
 
         return obvs
-
-
-    def compute_mw(self, L, W, slip, mu=30.e9):
-        """
-        Computes the Magnitude for a set of porposal parameters for saving
-        :param L: float: Length of Earthquake
-        :param W: float: Width of Earthquake
-        :param slip: float: Slip of Earthquake
-        :param mu:
-        :return: Magnitude of Earthquake
-        """
-        unitConv = 1e7  # convert from Nm to 1e-7 Nm
-        Mw = (2 / 3) * np.log10(L * W * slip * mu * unitConv) - 10.7
-        return Mw
-
-    def haversine_distance(self, p1, p2):
-        """
-        This function  is set up separately because the haversine distance
-        likely will still be useful after we're done with this adhoc approach.
-
-        Note, this does not account for the oblateness of the Earth. Not sure if
-        this will cause a problem.
-        """
-        r = 6371000
-
-        # Setting up haversine terms of distance expansion
-        hav_1 = np.power(np.sin((p2[1] - p1[1]) / 2 * np.pi / 180), 2.0)
-        hav_2 = np.cos(p2[1] * np.pi / 180) * np.cos(p1[1] * np.pi / 180) * np.power(
-            np.sin((p2[0] - p1[0]) / 2 * np.pi / 180), 2.0)
-
-        # taking the arcsine of the root of the sum of the haversine terms
-        root = np.sqrt(hav_1 + hav_2)
-        arc = np.arcsin(root)
-
-        # return final distance between the two points
-        return 2 * r * arc
-
-    def doctored_depth_1852_adhoc(self, longitude, latitude, dip):
-        """
-        This is a function written specifically for our 1852 depth fix.
-        We make use of the fault points used in generating our prior as
-        jumping off point for fixing the depth of an event. We use a
-        simple trig correction based on a 20degree dip angle and the haversine distance
-        to get the depth of the earthquake in question.
-
-        Note, this will do the dip correction regardless of which side
-        of the trench our sample is on. Recognizing when the sample is
-        on the wrong side seems nontrivial, so we have not implemented
-        a check for this here.
-        """
-        ## set up sample point and fault array
-        #p1 = np.array([longitude, latitude])
-        #fault_file = './InputData/fault_array.npy'
-        #fault_array = np.load(fault_file)
-        ## will store haversine distances for comparison
-        #dist_array = np.zeros(len(fault_array)//2)
-        #for i in range(len(dist_array)):
-        #    x = fault_array[2 * i]
-        #    y = fault_array[2 * i + 1]
-        #    p2 = np.array([x, y])
-        #    dist_array[i] = self.haversine_distance(p1, p2)
-
-        #dist = np.amin(dist_array)
-
-        ## need to add trig correction
-        #return (20000 + dist * np.tan(20 * np.pi / 180))
-        #set up sample point and fault array
-        p1 = np.array([longitude,latitude])
-        fault_file = './InputData/fault_array.npy'
-        fault_array = np.load(fault_file)
-        #will store haversine distances for comparison
-        dist_array = np.zeros(len(fault_array)//2)
-        for i in range(len(dist_array)):
-            x = fault_array[2*i]
-            y = fault_array[2*i + 1]
-            p2 = np.array([x,y])
-            dist_array[i] = self.haversine_distance(p1, p2)
-
-        dist    = np.amin(dist_array)
-        distind = np.argmin(dist_array)
-        arcpt = np.array([fault_array[2*distind],fault_array[2*distind + 1]])
-
-        #arcmidpt = np.array([129.,-6.])
-        #dist_array = np.zeros(len(fault_array)//2)
-        #for i in range(len(dist_array)):
-        #    x = fault_array[2*i]
-        #    y = fault_array[2*i + 1]
-        #    p2 = np.array([x,y])
-        #    dist_array[i] = self.haversine_distance(arcmidpt, p2)
-        #midptdist = np.amin(dist_array)
-
-        #midpoint of prior arc
-        arcmidpt = np.array([129.,-6.])
-        #distance between midpoint and point
-        distpt = self.haversine_distance(p1, arcmidpt)
-        #distance between midpoint and arc
-        distarc = self.haversine_distance(arcpt, arcmidpt)
-        slope = 1. if distpt < distarc else -1.
-        print("distpt is:")
-        print(distpt)
-        print("distarc is:")
-        print(distarc)
-
-        #need to add trig correction
-        return (21316. + slope*dist*np.tan(dip*np.pi/180))
 
     def init_guesses(self, init):
         """
@@ -550,15 +430,15 @@ class Custom(MCMC):
 
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
-            strike =  1.90000013e+02
-#            length =  1.33325981e+05
-#            width  =  8.45009646e+04
+            # strike =  1.90000013e+02
+           length =  1.33325981e+05
+           width  =  8.45009646e+04
 #            slip   =  2.18309283e+01
             lon    =  1.315e+02
             lat    = -5.45571375e+00
             mag = 9.0
             #guesses = np.array([strike, length, width, slip, long, lat])
-            vals = np.array([strike, lon, lat, mag])
+            vals = np.array([lon, lat, mag, length, width])
             guesses = pd.Series(vals, self.sample_cols)
 
         elif init == "random":
