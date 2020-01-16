@@ -17,7 +17,7 @@ class ShoreAngle:
     """
 
     def __init__(self, file_name):
-        self.wb = load_workbook('./PreRunFiles/ShoreProfiles/' + file_name + '.xlsx') # The workbook from the excel sheet
+        self.wb = load_workbook('../PreRunInput/PreRunFiles/ShoreProfiles/' + file_name + '.xlsx') # The workbook from the excel sheet
         self.ws = self.wb.active  # The worksheet from the workbook
         self.regression_angles = list() # list of regression angles for each profile
         self.average_angles = list() # list of average angles for each profile

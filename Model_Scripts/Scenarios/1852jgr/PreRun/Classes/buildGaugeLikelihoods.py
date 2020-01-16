@@ -6,12 +6,13 @@ import numpy as np
 from Gauge import from_json
 from tohoku import tohokuKDE, computeConditionalDistribution, readConditionalDistribution, saveConditionalDistribution, condDistFileName
 
-gauges_path = "InputData/gauges.npy"
-amp_data_path = "../InputData/amplification_data.npy"
+gauges_path = "../../InputData/gauges.npy"
+amp_data_path = "../../InputData/amplification_data.npy"
+height_llh_path = "../../InputData/gaugeHeightLikelihood.npy"
+inun_llh_path = "../../InputData/gaugeInundationLikelihood.npy"
+gauge_output = '../../InputData/gauge_llh_ht.png'
+
 cond_dist_path = "condDist_"
-height_llh_path = "../InputData/gaugeHeightLikelihood.npy"
-inun_llh_path = "../InputData/gaugeInundationLikelihood.npy"
-gauge_output = 'InputData/gauge_llh_ht.png'
 
 
 def buildGaugeLikelihoods(gaugeFile=gauges_path, condDistFilePrefix=cond_dist_path, tohokuFile=amp_data_path, heightFile=height_llh_path, inundationFile=inun_llh_path, gaugeIds=-1, distanceInterval=0.25):
@@ -28,7 +29,7 @@ def buildGaugeLikelihoods(gaugeFile=gauges_path, condDistFilePrefix=cond_dist_pa
 
     #Load gauges
     print("Loading gauges from " + gaugeFile)
-    gauges = list(np.load(gaugeFile))
+    gauges = list(np.load(gaugeFile, allow_pickle=True))
     gauges = [from_json(gauge) for gauge in gauges]
 
     if gaugeIds != -1:
@@ -212,7 +213,7 @@ def makeInundationKDEs(gauges, tohokuFile='amplification_data.npy', distanceInte
 # # function to compute the height likelihood
 # def computeHeightLikelihoodPdf(kde, gauge, offShoreHeights):
 #     """
-# 
+#
 #     :param kde:
 #     :param gauge:
 #     :param offShoreHeights:
@@ -224,24 +225,24 @@ def makeInundationKDEs(gauges, tohokuFile='amplification_data.npy', distanceInte
 #         print("chi2: x is from ",gauge.height_params[1],"to",maxOnShoreHeight)
 #         x = np.linspace(gauge.height_params[1] + 0.001, maxOnShoreHeight, num=1000)
 #         wt = trapRuleWeights(x);  # trapezoidal rule
-# 
+#
 #     # #Gauss-Hermite quadrature for normal distributions didn't work - when there is very little overlap
-#     # #between a Gauge distribution and the Tohoku KDE, computing the conditional distribution rapidly 
-#     # #became numerically unstable. It seems that we need an integration rule that covers the whole 
+#     # #between a Gauge distribution and the Tohoku KDE, computing the conditional distribution rapidly
+#     # #became numerically unstable. It seems that we need an integration rule that covers the whole
 #     # #region of possible values.
-#     # elif gauge.kind[1] == "norm":  
+#     # elif gauge.kind[1] == "norm":
 #     #     # use optimal quadrature for normal distributions
 #     #     # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
 #     #     x,wt = gaussHermite(100, mu=gauge.height_params[0], sig=gauge.height_params[1]);
 #     #     gaugePdf = lambda x:1
-# 
+#
 #     else:
 #         x = np.linspace(0.0, maxOnShoreHeight, num=1000)
 #         wt = trapRuleWeights(x);  # trapezoidal rule
-# 
+#
 #     return computeLikelihoodPdf(kde.pdf, gaugePdf, x, wt, offShoreHeights)
-# 
-# 
+#
+#
 # # function to compute the inundation likelihood
 # def computeInundationLikelihoodPdf(kde, gauge, offShoreHeights):
 #     """
@@ -257,24 +258,24 @@ def makeInundationKDEs(gauges, tohokuFile='amplification_data.npy', distanceInte
 #     if gauge.kind[2] == "chi2" and gauge.inundation_params[0] < 2.0:  # chi2 can have infinite pdf
 #         x = np.linspace(gauge.inundation_params[1] + 0.001, maxInundation, num=1000)
 #         wt = trapRuleWeights(x)  # trapezoidal rule
-# 
+#
 #     #removed Gauss-Hermite quadrature for normal distributions per comment in computeHieghtLikelihoodPdf
-#     #elif gauge.kind[2] == "norm":  
+#     #elif gauge.kind[2] == "norm":
 #     #    # use optimal quadrature for normal distributions
 #     #    # here we build the pdf into the quadrature rule so we set the "pdf" to the constant function
 #     #    x,wt = gaussHermite(100, mu=gauge.inundation_params[0], sig=gauge.inundation_params[1]);
 #     #    gaugePdf = lambda x:1
-# 
+#
 #     else:
 #         x = np.linspace(0.0, maxInundation, num=1000)
 #         wt = trapRuleWeights(x)  # trapezoidal rule
-# 
+#
 #     return computeLikelihoodPdf(kde.pdf, gaugePdf, x, wt, offShoreHeights)
-# 
-# 
+#
+#
 # def computeLikelihoodPdf(kdePdf, gaugePdf, x, wt, offShoreHeights):
 #     """
-# 
+#
 #     :param kdePdf:
 #     :param gaugePdf:
 #     :param x:
@@ -289,7 +290,7 @@ def makeInundationKDEs(gauges, tohokuFile='amplification_data.npy', distanceInte
 #     if np.abs(intGaugePdf - 1.0) > 0.05:
 #         print("WARNING: Integration rule may not be accurate enough. Integration of gauge PDF yielded: {:.6f}".format(
 #             intGaugePdf))
-# 
+#
 #     xy = np.zeros((2, len(x)))
 #     xy[0, :] = x
 #     likelihood = np.zeros(len(offShoreHeights))
@@ -307,19 +308,19 @@ def makeInundationKDEs(gauges, tohokuFile='amplification_data.npy', distanceInte
 #           print("Warning: Conditional distribution is zero for off-shore height =",y)
 #         likelihood[yidx] = sum(wt * kdeXY * gPdf)
 #         condDist[yidx + 1, 1:] = kdeXY
-# 
+#
 #     # NOTE: It would probably be faster to fully vectorize the above with something like
 #     # xx,yy = np.meshgrid(x,y)
 #     # xy=np.vstack([xx.ravel(), yy.ravel()])
 #     # likelihood = {matrix multiply involving kde.pdf(xy)}
 #     # would need to figure out how to map the weights and gauge pdf values to the meshed values though
 #     # And we only need to compute this (roughly) once so I'm skipping this for now.
-# 
+#
 #     intLikelihood = sum(likelihood * trapRuleWeights(offShoreHeights))
-# 
+#
 #     # normalize
 #     likelihood /= intLikelihood
-# 
+#
 #     return likelihood, condDist
 #
 #
@@ -327,34 +328,34 @@ def makeInundationKDEs(gauges, tohokuFile='amplification_data.npy', distanceInte
 # # each gauge
 # def makeGaugeKDEs(gauges, tohokuFile='amplification_data.npy', **kwargs):
 #     """
-# 
+#
 #     :param gauges:
 #     :param tohokuFile:
 #     :return:
 #     """
 #     heightKdes = []
 #     inundationKdes = []
-# 
+#
 #     amplification_data = np.load(tohokuFile)
-# 
+#
 #     for gid, gauge in enumerate(gauges):
 #         print("starting gauge " + str(gid) + "...")
 #         # figure out which kde to use for this gauge
 #         kdeDistances = np.arange(amplification_data.shape[1]) / 4
 #         d_idx = np.argmin(np.abs(kdeDistances - gauge.distance)) + 1
 #         print("using amplification data column " + str(d_idx))
-# 
+#
 #         # height kdes
 #         onHeights = amplification_data[:, 0]
 #         offHeights = amplification_data[:, d_idx]
 #         kernel = tohokuKDE(onHeights, offHeights, **kwargs)
 #         heightKdes.append(kernel)
-# 
+#
 #         # inundation kdes
 #         inundations = heightToInundation(onHeights, gauge)
 #         kernel = tohokuKDE(inundations, offHeights)
 #         inundationKdes.append(kernel)
-# 
+#
 #     return heightKdes, inundationKdes
 
 
@@ -391,7 +392,7 @@ def heightToInundation(onHeights,gauge):
 
 
 def plotGaugeLikelihoods(inputFile,outputFile=None,xlabel="Offshore wave height (Geoclaw output)",xlim=None):
-    """ 
+    """
 
     :param inputFile:
     :param outputFile:
@@ -418,7 +419,7 @@ def plotGaugeLikelihoods(inputFile,outputFile=None,xlabel="Offshore wave height 
 
 
 def plotGaugeCompare(lhFile,gauges,gtype=1,outputFolder=None,xlabel="Offshore wave height (Geoclaw output)",xlim=None):
-    """ 
+    """
     Plot a comparison between the gauge PDF (from Wichmann) and the likelihood
     :param lhFile: Holds likelihood associated with the gauges
     :param gauges: List of gauges
@@ -429,13 +430,13 @@ def plotGaugeCompare(lhFile,gauges,gtype=1,outputFolder=None,xlabel="Offshore wa
     heightLikelihood = np.load(lhFile)
     offShoreHeights = heightLikelihood[:,0]
     heightLikelihood = heightLikelihood[:,1:]
-    
+
     #IDs of gauges that have this kind of observation (e.g., height or inundation)
     gids = [i for i, gauge in enumerate(gauges) if gauge.kind[gtype] is not None]
 
     for i,gid in enumerate(gids):
         fig, ax = plt.subplots()
-        
+
         if gtype == 1:
             gpdf = gauges[gid].height_dist.pdf
         if gtype == 2:
@@ -443,7 +444,7 @@ def plotGaugeCompare(lhFile,gauges,gtype=1,outputFolder=None,xlabel="Offshore wa
 
         ax.plot(offShoreHeights,heightLikelihood[:,i], label="Gauge "+str(gid)+" (Likelihood)")
         ax.plot(offShoreHeights,gpdf(offShoreHeights), label="Gauge "+str(gid)+" (Wichmann)")
-        
+
         if xlim is not None:
             ax.set_xlim(xlim)
         plt.xlabel(xlabel)
@@ -473,7 +474,7 @@ def trapRuleWeights(x):
     wt[:-1] += 0.5*(x[1:]-x[:-1])
     return wt
 
-#rescaled/recentered gauss-hermite quadrature points for 
+#rescaled/recentered gauss-hermite quadrature points for
 #normal rv with mean mu and std sig
 def gaussHermite(numPoints, mu=0, sig=1):
     #this version uses "physicists" hermite polynomials and is maybe a little trickier
