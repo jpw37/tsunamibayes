@@ -431,8 +431,8 @@ class Custom(MCMC):
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
             # strike =  1.90000013e+02
-           length =  1.33325981e+05
-           width  =  8.45009646e+04
+            length =  1.33325981e+05
+            width  =  8.45009646e+04
 #            slip   =  2.18309283e+01
             lon    =  1.315e+02
             lat    = -5.45571375e+00
