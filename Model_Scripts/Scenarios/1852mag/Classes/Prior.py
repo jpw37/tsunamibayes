@@ -43,13 +43,13 @@ class Prior:
     """
     This class handles the logpdf calculation for the priors given from the custom class
     """
-    def __init__(self,latlon,mag,lengthwidth):
+    def __init__(self,latlon,mag):
         """
         Initialize the class with priors
 
         Parameters
         ----------
-        latlonstrike : instance of LatLonPrior
+        latlon : instance of LatLonPrior
             Prior distribution on lat/lon
 
         mag : instance of scipy.stats.pareto

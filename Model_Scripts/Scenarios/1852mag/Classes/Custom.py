@@ -23,7 +23,7 @@ class Custom(MCMC):
         MCMC.__init__(self)
         self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','Length','Width']
         self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-Length','P-Width']
-        self.observation_cols = ['Mw', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
+        self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
         self.num_rectangles = 3
         cols = []
@@ -53,8 +53,6 @@ class Custom(MCMC):
         Parameters:
             lat (float): latitude of center
             lon (float): longitude of center
-            strike (float): orientation of the long edge, measured in degrees
-                    clockwise from north
             leng (float): length of the long edge (km)
 
         Return:
@@ -329,7 +327,7 @@ class Custom(MCMC):
         # conditional proposal on length and width
         length = self.get_length(new_draw['Magnitude']) #* 1e-2
         width = self.get_width(new_draw['Magnitude']) #* 1e-2
-        new_draw[['Length','Width']] = [length,width
+        new_draw[['Length','Width']] = [length,width]
 
         return new_draw
 
@@ -375,6 +373,7 @@ class Custom(MCMC):
         rake = 90
         dip = self.fault.dip
         depth = self.fault.depth_from_lat_lon(lat,lon)
+        strike = self.fault.strike_from_lat_lon(lat,lon)
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
 
         rectangles = self.split_rect(lat, lon, strike, length, num = self.num_rectangles)
@@ -431,9 +430,8 @@ class Custom(MCMC):
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
             # strike =  1.90000013e+02
-           length =  1.33325981e+05
-           width  =  8.45009646e+04
-#            slip   =  2.18309283e+01
+            length =  1.33325981e+05
+            width  =  8.45009646e+04
             lon    =  1.315e+02
             lat    = -5.45571375e+00
             mag = 9.0

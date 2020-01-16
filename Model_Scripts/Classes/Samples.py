@@ -35,8 +35,8 @@ class Samples:
         self.save_path = './ModelOutput/' + self.scenario_title + "_"
 
         if (not sample_cols and not proposal_cols):
-            sample_cols = ['Strike', 'Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
-            proposal_cols = ['P-Strike', 'P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Logitude',
+            sample_cols = ['Length', 'Width', 'Depth', 'Slip', 'Rake', 'Dip', 'Longitude', 'Latitude']
+            proposal_cols = ['P-Length', 'P-Width', 'P-Depth', 'P-Slip', 'P-Rake', 'P-Dip', 'P-Longitude',
                              'P-Latitude']
         if (not observation_cols):
             observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height',
@@ -328,6 +328,7 @@ class Samples:
         print("printing observations now")
         print(obvs)
         print("trying to save observations now")
+        print(self.observations)
         self.observations.loc[len(self.observations)] = obvs
 
     def save_to_csv(self):
