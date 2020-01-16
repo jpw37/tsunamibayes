@@ -329,7 +329,7 @@ class Custom(MCMC):
         # conditional proposal on length and width
         length = self.get_length(new_draw['Magnitude']) #* 1e-2
         width = self.get_width(new_draw['Magnitude']) #* 1e-2
-        new_draw[['Length','Width']] = [length,width
+        new_draw[['Length','Width']] = [length,width]
 
         return new_draw
 
