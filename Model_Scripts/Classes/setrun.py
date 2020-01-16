@@ -75,7 +75,7 @@ def setrun(claw_pkg='geoclaw'):
     clawdata.num_dim = num_dim
 
     # Lower and upper edge of computational domain:
-    with open('./PreRun/InputData/model_bounds.txt') as json_file:
+    with open('./InputData/model_bounds.txt') as json_file:
         model_bounds = json.load(json_file)
 
     clawdata.lower[0] = model_bounds['xlower']      # west longitude
@@ -342,7 +342,7 @@ def setrun(claw_pkg='geoclaw'):
     regions_bounds = model_bounds["regions_bounds"]
     for i in range(len(regions_bounds)):
         rundata.regiondata.regions.append([maxlevel,maxlevel]+regions_bounds[i])
- 
+
  #   rundata.regiondata.regions.append([3, 3, 0., 10000., -85,-72,-38,-25])
     #rundata.regiondata.regions.append([3, 3, 8000., 26000., -90,-80,-30,-15])
 
@@ -364,32 +364,32 @@ def setrun(claw_pkg='geoclaw'):
     # == fgmax.data values ==
     fgmax_files = rundata.fgmax_data.fgmax_files
     # for fixed grids append to this list names of any fgmax input files
-    fgmax_files.append('./PreRun/InputData/fgmax_grid.txt')
+    fgmax_files.append('./InputData/fgmax_grid.txt')
     rundata.fgmax_data.num_fgmax_val = 1  # Save depth only
 
-    #------------------------------------------------------------------                                                                         
-    # Adjoint specific data:                                                                                                                    
-    #------------------------------------------------------------------                                                                         
-    # Also need to set flagging method and appropriate tolerances above                                                                         
+    #------------------------------------------------------------------
+    # Adjoint specific data:
+    #------------------------------------------------------------------
+    # Also need to set flagging method and appropriate tolerances above
 
     adjointdata = rundata.adjointdata
     adjointdata.use_adjoint = True
 
-    # location of adjoint solution, must first be created:                                                                                      
+    # location of adjoint solution, must first be created:
 #    adjointdata.adjoint_outdir = os.path.abspath('./InputData/adjoint/_output')
     adjointdata.adjoint_outdir = '/fslgroup/fslg_tsunami/compute/runs/1852jgr_2019-09-03_12.57.53/InputData/adjoint/_output'
     #adjointdata.adjoint_outdir = '/fslhome/sgiddens/fsl_groups/fslg_tsunami/compute/runs/33053989_m8/InputData/adjoint/_output'
 
-    # time period of interest:                                                                                                                  
+    # time period of interest:
     adjointdata.t1 = rundata.clawdata.t0
     adjointdata.t2 = rundata.clawdata.tfinal
 
-    # or try a shorter time period of interest:                                                                                                 
-    #adjointdata.t1 = 3. * 3600.                                                                                                                
-    #adjointdata.t2 = 4.5 * 3600.                                                                                                               
+    # or try a shorter time period of interest:
+    #adjointdata.t1 = 3. * 3600.
+    #adjointdata.t2 = 4.5 * 3600.
 
     if adjointdata.use_adjoint:
-        # need an additional aux variable for inner product:                                                                                    
+        # need an additional aux variable for inner product:
         rundata.amrdata.aux_type.append('center')
         rundata.clawdata.num_aux = len(rundata.amrdata.aux_type)
         adjointdata.innerprod_index = len(rundata.amrdata.aux_type)
@@ -436,7 +436,7 @@ def setgeo(rundata):
     refinement_data.max_level_deep = 3
 
 
-    with open('./PreRun/InputData/model_bounds.txt') as json_file:
+    with open('./InputData/model_bounds.txt') as json_file:
         model_bounds = json.load(json_file)
 
         print("printing model_bounds")

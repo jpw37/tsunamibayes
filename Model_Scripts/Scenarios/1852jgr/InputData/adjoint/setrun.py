@@ -47,7 +47,7 @@ def setrun(claw_pkg='geoclaw'):
     #------------------------------------------------------------------
     # Problem-specific parameters to be written to setprob.data:
     #------------------------------------------------------------------
-    
+
     #probdata = rundata.new_UserData(name='probdata',fname='setprob.data')
 
 
@@ -63,16 +63,16 @@ def setrun(claw_pkg='geoclaw'):
     clawdata = rundata.clawdata  # initialized when rundata instantiated
 
 
-    with open('../../PreRun/InputData/model_bounds.txt') as json_file:
+    with open('../../InputData/model_bounds.txt') as json_file:
         model_bounds = json.load(json_file)
 
-    clawdata.lower[0] = model_bounds['xlower']      # west longitude                                                                          
-    clawdata.upper[0] = model_bounds['xupper']       # east longitude                                                                         
+    clawdata.lower[0] = model_bounds['xlower']      # west longitude
+    clawdata.upper[0] = model_bounds['xupper']       # east longitude
 
-    clawdata.lower[1] = model_bounds['ylower']       # south latitude                                                                         
-    clawdata.upper[1] = model_bounds['yupper']         # north latitude                                                                       
+    clawdata.lower[1] = model_bounds['ylower']       # south latitude
+    clawdata.upper[1] = model_bounds['yupper']         # north latitude
 
-    # Number of grid cells: For the adjoint solver we need the finest resolution                                                                                                     
+    # Number of grid cells: For the adjoint solver we need the finest resolution
     clawdata.num_cells[0] = model_bounds['xcoarse_grid']*np.prod(model_bounds['AMR_levels'])
     clawdata.num_cells[1] = model_bounds['ycoarse_grid']*np.prod(model_bounds['AMR_levels'])
     # Set single grid parameters first.
@@ -99,8 +99,8 @@ def setrun(claw_pkg='geoclaw'):
     # Index of aux array corresponding to capacity function, if there is one:
     clawdata.capa_index = 2
 
-    
-    
+
+
     # -------------
     # Initial time:
     # -------------
@@ -110,7 +110,7 @@ def setrun(claw_pkg='geoclaw'):
 
     # Restart from checkpoint file of a previous run?
     # If restarting, t0 above should be from original run, and the
-    # restart_file 'fort.chkNNNNN' specified below should be in 
+    # restart_file 'fort.chkNNNNN' specified below should be in
     # the OUTDIR indicated in Makefile.
 
     clawdata.restart = False              # True to restart from prior results
@@ -141,7 +141,7 @@ def setrun(claw_pkg='geoclaw'):
         clawdata.output_step_interval = 1
         clawdata.total_steps = 5
         clawdata.output_t0 = True
-        
+
 
     clawdata.output_format = 'binary'      # 'binary' for adjoint
 
@@ -194,11 +194,11 @@ def setrun(claw_pkg='geoclaw'):
 
     # Order of accuracy:  1 => Godunov,  2 => Lax-Wendroff plus limiters
     clawdata.order = 2
-    
+
     # Use dimensional splitting? (not yet available for AMR)
     clawdata.dimensional_split = 'unsplit'
-    
-    # For unsplit method, transverse_waves can be 
+
+    # For unsplit method, transverse_waves can be
     #  0 or 'none'      ==> donor cell (only normal solver used)
     #  1 or 'increment' ==> corner transport of waves
     #  2 or 'all'       ==> corner transport of 2nd order corrections too
@@ -206,8 +206,8 @@ def setrun(claw_pkg='geoclaw'):
 
     # Number of waves in the Riemann solution:
     clawdata.num_waves = 2   # only 2 in linearized adjoint
-    
-    # List of limiters to use for each wave family:  
+
+    # List of limiters to use for each wave family:
     # Required:  len(limiter) == num_waves
     # Some options:
     #   0 or 'none'     ==> no limiter (Lax-Wendroff)
@@ -218,10 +218,10 @@ def setrun(claw_pkg='geoclaw'):
     clawdata.limiter = ['mc', 'mc']
 
     clawdata.use_fwaves = False    # True ==> use f-wave version of algorithms
-    
+
     # Source terms splitting:
     #   src_split == 0 or 'none'    ==> no source term (src routine never called)
-    #   src_split == 1 or 'godunov' ==> Godunov (1st order) splitting used, 
+    #   src_split == 1 or 'godunov' ==> Godunov (1st order) splitting used,
     #   src_split == 2 or 'strang'  ==> Strang (2nd order) splitting used,  not recommended.
     clawdata.source_split = 'godunov'
 
@@ -265,7 +265,7 @@ def setrun(claw_pkg='geoclaw'):
         pass
 
     elif clawdata.checkpt_style == 2:
-        # Specify a list of checkpoint times.  
+        # Specify a list of checkpoint times.
         clawdata.checkpt_times = np.linspace(0,2*3600,73)
 
     elif clawdata.checkpt_style == 3:
@@ -312,9 +312,9 @@ def setrun(claw_pkg='geoclaw'):
     amrdata.clustering_cutoff = 0.700000
 
     # print info about each regridding up to this level:
-    amrdata.verbosity_regrid = 0  
+    amrdata.verbosity_regrid = 0
 
-    #  ----- For developers ----- 
+    #  ----- For developers -----
     # Toggle debugging print statements:
     amrdata.dprint = False      # print domain flags
     amrdata.eprint = False      # print err est flags
@@ -326,7 +326,7 @@ def setrun(claw_pkg='geoclaw'):
     amrdata.sprint = False      # space/memory output
     amrdata.tprint = True       # time step reporting each level
     amrdata.uprint = False      # update/upbnd reporting
-    
+
     # More AMR parameters can be set -- see the defaults in pyclaw/data.py
 
     # ---------------
@@ -341,7 +341,7 @@ def setrun(claw_pkg='geoclaw'):
     # ---------------
     rundata.gaugedata.gauges = []
     # for gauges append lines of the form  [gaugeno, x, y, t1, t2]
-    
+
 
     return rundata
     # end of function setrun
@@ -361,7 +361,7 @@ def setgeo(rundata):
     except:
         print("*** Error, this rundata has no geo_data attribute")
         raise AttributeError("Missing geo_data attribute")
-       
+
     # == Physics ==
     geo_data.gravity = 9.81
     geo_data.coordinate_system = 2
@@ -384,7 +384,7 @@ def setgeo(rundata):
     refinement_data.deep_depth = 1e2
     refinement_data.max_level_deep = 3
 
-    with open('../../PreRun/InputData/model_bounds.txt') as json_file:
+    with open('../../InputData/model_bounds.txt') as json_file:
         model_bounds = json.load(json_file)
         gauge_topo = model_bounds["gauge_topo"]
 
@@ -430,4 +430,3 @@ if __name__ == '__main__':
     import sys
     rundata = setrun(*sys.argv[1:])
     rundata.write()
-

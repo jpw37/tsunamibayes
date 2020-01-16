@@ -2,7 +2,7 @@ HOW TO RUN THE TSUNAMI BAYES METHOD:
 
 ----------------------- BEFORE RUNNING THE PROGRAM -----------------------
 
-Navigate to the PreRun Folder and open the Guages.ipynb file.
+Navigate to the PreRun/PreRunInput Folder and open the Gauges.ipynb file.
 
 This has all of the necessary functions for generating
 the guages and the FG MAX data files needed to run the program.

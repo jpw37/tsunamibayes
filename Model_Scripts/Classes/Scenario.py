@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-sys.path.append('./PreRun/Classes/')
+sys.path.append('./PreRun/Classes_PreRun/')
 
 from maketopo import get_topo, make_dtopo
 from RandomWalk import RandomWalk
@@ -47,8 +47,8 @@ class Scenario:
 		os.system('rm ./InputData/dtopo.tt3')
 
 		#Set up necessary prerun file paths
-		gauges_file_path = './PreRun/InputData/gauges.npy'
-		shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
+		gauges_file_path = './InputData/gauges.npy'
+		shake_gauges_file_path = './InputData/shake_gauges.pkl'
 
 		self.title = title
 		self.iterations = iterations
@@ -68,7 +68,7 @@ class Scenario:
 		self.init_guesses = self.mcmc.init_guesses(self.init)
 
 		# Initialize the Samples Class
-		self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols,self.mcmc.num_rectangles) 
+		self.samples = Samples(title, self.init_guesses, self.mcmc.sample_cols, self.mcmc.proposal_cols, self.mcmc.observation_cols,self.mcmc.num_rectangles)
 		# Load csv files if restart
 		if self.init == 'restart':
 			self.samples.load_csv()
@@ -107,7 +107,7 @@ class Scenario:
 				self.adjoint = Adjoint()
 				self.adjoint.run_geo_claw()
 				print("Finished adjoint computation")
-            
+
 			# Do initial run of GeoClaw using the initial guesses.
 			self.setGeoClaw()
 
