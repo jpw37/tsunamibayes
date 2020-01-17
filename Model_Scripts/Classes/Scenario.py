@@ -210,7 +210,7 @@ class Scenario:
 			self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
 
 			# Calculate the acceptance probability of the given proposal
-			accept_prob = self.mcmc.acceptance_prob(sample_prior_lpdf, proposal_prior_lpdf)
+			accept_prob = self.mcmc.acceptance_prob(sample_params,proposal_params,sample_prior_lpdf, proposal_prior_lpdf)
 
 			# Decide to accept or reject the proposal and save
 			ar = self.mcmc.accept_reject(accept_prob)

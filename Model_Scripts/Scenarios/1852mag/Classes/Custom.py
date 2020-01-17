@@ -275,7 +275,7 @@ class Custom(MCMC):
         #print(slip)
         return slip
 
-    def acceptance_prob(self, cur_prior_lpdf, prop_prior_lpdf):
+    def acceptance_prob(self, sample_params, proposal_params, cur_prior_lpdf, prop_prior_lpdf):
         """
         Calculate the acceptance probability given the lpdf for the current and proposed parameters
 
@@ -289,14 +289,19 @@ class Custom(MCMC):
         change_prior_lpdf = prop_prior_lpdf - cur_prior_lpdf
 
         # Proposal kernel
+        smag,slength,swidth = sample_params[["Magnitude","Length","Width"]]
+        pmag,plength,pwidth = proposal_params[["Magnitude","Length","Width"]]
+        logqs = self.prior.lwlogpdf(slength,swidth,smag)
+        logqp = self.prior.lwlogpdf(plength,pwidth,pmag)
 
         print("prop_prior_lpdf is:")
         print(prop_prior_lpdf)
         print("cur_prior_lpdf is:")
         print(cur_prior_lpdf)
-
+        print("proposal kernel asymmetry q(sample|proposal)-q(proposalsample):")
+        print(logqs-logqp)
         # Note we use np.exp(new - old) because it's the log-likelihood
-        return min(1, np.exp(change_llh+change_prior_lpdf))
+        return min(1, np.exp(change_llh+change_prior_lpdf+logqs-logqp))
 
     def draw(self, prev_draw):
         """
