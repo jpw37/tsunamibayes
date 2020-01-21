@@ -92,7 +92,7 @@ class Prior:
         # CHECK ORDER OF PRODUCED RESULTS
         latlon = self.priors["latlon"].rvs()
         mag = self.priors["mag"].rvs()
-        params = np.array(latlon+[mag]+self.lwrvs())
+        params = np.array(latlon+[mag]+self.lwrvs(mag))
         return pd.Series(params,["Latitude","Longitude","Magnitude","Length",'Width'])
 
     def lwlogpdf(self,length,width,mag):
@@ -114,7 +114,7 @@ class Prior:
 
         return p
 
-    def lwrvs(self):
+    def lwrvs(self, mag):
         # length
         m1 = 0.6423327398       # slope
         c1 = 2.1357387698       # y intercept

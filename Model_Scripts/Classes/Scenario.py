@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-sys.path.append('./PreRun/Classes_PreRun/')
+sys.path.append('./PreRun/Classes/')
 
 from maketopo import get_topo, make_dtopo
 from RandomWalk import RandomWalk
@@ -47,8 +47,8 @@ class Scenario:
 		os.system('rm ./InputData/dtopo.tt3')
 
 		#Set up necessary prerun file paths
-		gauges_file_path = './InputData/gauges.npy'
-		shake_gauges_file_path = './InputData/shake_gauges.pkl'
+		gauges_file_path = './PreRun/InputData/gauges.npy'
+		shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
 
 		self.title = title
 		self.iterations = iterations
@@ -64,6 +64,9 @@ class Scenario:
 		else:
 			self.mcmc = RandomWalk(rw_covariance)
 
+		# Build the prior for the model, based on the choice of MCMC
+		self.prior = self.mcmc.build_priors()
+
 		# Get initial draw for the initial run of geoclaw
 		self.init_guesses = self.mcmc.init_guesses(self.init)
 
@@ -76,13 +79,12 @@ class Scenario:
 
 		# Make sure Pre-Run files have been generated
 		if(os.path.isfile(gauges_file_path)):
-			gauges = np.load(gauges_file_path)
+			gauges = np.load(gauges_file_path, allow_pickle=True)
 			self.gauges = [from_json(gauge) for gauge in gauges]
 		else:
 			raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
-		# Build the prior for the model, based on the choice of MCMC
-		self.prior = self.mcmc.build_priors()
+
 
 #        #test shake gauge input
 #        if(os.path.isfile(shake_gauges_file_path)):
