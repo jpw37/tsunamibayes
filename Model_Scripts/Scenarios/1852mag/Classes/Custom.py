@@ -21,8 +21,8 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','Length','Width']
-        self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-Length','P-Width']
+        self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','DeltaLogW','AspectRatio']
+        self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogW','P-AspectRatio']
         self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
         self.num_rectangles = 3
@@ -35,6 +35,7 @@ class Custom(MCMC):
         cols += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
         self.okada_cols = cols
         self.fault = self.build_fault()
+        self.prior = self.build_priors()
 
     def build_fault(self):
         data = pd.read_csv("./InputData/BandaHypoSegments.csv")
@@ -234,7 +235,7 @@ class Custom(MCMC):
         print("calculated length:",l,"m")
         return l
 
-    def get_width(self, mag):
+    def get_width(self, deltalogw,mag):
         """ Width is sampled from a truncated normal distribution that
         is centered at the linear regression of log10(width_cm) and magnitude
         Linear regression was calculated from wellscoppersmith data.
@@ -250,12 +251,15 @@ class Custom(MCMC):
         e2 = 0.4093407095518345 # error bar
 
           #Calculate bounds on error distribution
-        a = mag * m2 + c2 - e2
-        b = mag * m2 + c2 + e2
-        w  = 10**truncnorm.rvs(a,b,size=1)[0]
-        w /= 100. #convert to m
-        print("calculated width:",w,"m")
-        return w #regression was done on log10(width_cm)
+        # a = mag * m2 + c2 - e2
+        # b = mag * m2 + c2 + e2
+        # w  = 10**truncnorm.rvs(a,b,size=1)[0]
+        # w /= 100. #convert to m
+        # print("calculated width:",w,"m")
+
+        mu_logw = mag*m2 + c2
+        logw = mu_logw + deltalogw
+        return (10**logw)/100 #regression was done on log10(width_cm)
 
     def get_slip(self, length, width, mag):
         """Calculated from magnitude and rupture area, Ron Harris gave us the equation
@@ -319,20 +323,16 @@ class Custom(MCMC):
         longitude_std = 0.15
         latitude_std = 0.15
         magnitude_std = 0.1 #garret arbitraily chose this
+        deltalogw_std = 0.1
+        aspect_std = 0.1
 
         # square for std => cov
-        cov = np.diag(np.square([longitude_std, latitude_std, magnitude_std]))
-        mean = np.zeros(3)
-        cov *= 0.25
+        cov = np.diag(np.square([longitude_std, latitude_std, magnitude_std, deltalogw_std, aspect_std]))
+        mean = np.zeros(5)
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
-        new_draw[['Longitude','Latitude','Magnitude']] += e
-
-        # conditional proposal on length and width
-        length = self.get_length(new_draw['Magnitude']) #* 1e-2
-        width = self.get_width(new_draw['Magnitude']) #* 1e-2
-        new_draw[['Length','Width']] = [length,width]
+        new_draw[['Longitude','Latitude','Magnitude','DeltaLogW','AspectRatio']] += e
 
         return new_draw
 
@@ -356,8 +356,7 @@ class Custom(MCMC):
 
         latlon = LatLonPrior(self.fault,100000)
         mag = stats.pareto(b=1,loc=7,scale=0.4)
-        self.prior = Prior(latlon, mag)
-        return self.prior
+        return Prior(latlon, mag)
 
     def map_to_okada(self, draws):
         """
@@ -368,10 +367,12 @@ class Custom(MCMC):
         lon    = draws["Longitude"] #These need to be scalars
         lat    = draws["Latitude"]
         self.mw = draws["Magnitude"]
-        length = draws["Length"]
-        width = draws["Width"]
+        deltalogw = draws["DeltaLogW"]
+        aspect = draws["AspectRatio"]
 
         #get Length,Width,Slip from fitted line
+        width = self.get_width(deltalogw,self.mw)
+        length = aspect*width
         slip = self.get_slip(length, width, self.mw)
 
         #deterministic okada parameters
@@ -379,6 +380,7 @@ class Custom(MCMC):
         dip = self.fault.dip
         depth = self.fault.depth_from_lat_lon(lat,lon)
         strike = self.fault.strike_from_lat_lon(lat,lon)
+
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
 
         rectangles = self.split_rect(lat, lon, strike, length, num = self.num_rectangles)
@@ -460,3 +462,19 @@ class Custom(MCMC):
             guesses = None
 
         return guesses
+
+        def prior_logpdf(self,sample):
+            lon    = sample["Longitude"] #These need to be scalars
+            lat    = sample["Latitude"]
+            mag = sample["Magnitude"]
+            deltalogw = sample["DeltaLogW"]
+            aspect = sample["AspectRatio"]
+
+            params = sample[['Latitude','Longitude','Magnitude']].copy()
+
+            #get Length,Width from fitted line
+            width = self.get_width(deltalogw,mag)
+            length = aspect*width
+            params['Width'] = width
+            params['Length'] = length
+            return self.prior.logpdf(params)

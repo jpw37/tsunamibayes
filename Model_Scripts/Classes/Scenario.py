@@ -64,9 +64,6 @@ class Scenario:
 		else:
 			self.mcmc = RandomWalk(rw_covariance)
 
-		# Build the prior for the model, based on the choice of MCMC
-		self.prior = self.mcmc.build_priors()
-
 		# Get initial draw for the initial run of geoclaw
 		self.init_guesses = self.mcmc.init_guesses(self.init)
 
@@ -197,8 +194,8 @@ class Scenario:
 			self.samples.save_obvs(proposal_obvs)
 
 			# Calculate prior probability for the current sample and proposed sample
-			sample_prior_lpdf = self.prior.logpdf(sample_params)
-			proposal_prior_lpdf = self.prior.logpdf(proposal_params)
+			sample_prior_lpdf = self.mcmc.prior_logpdf(sample_params)
+			proposal_prior_lpdf = self.mcmc.prior_logpdf(proposal_params)
 
 			# Save
 			self.samples.save_sample_prior_lpdf(sample_prior_lpdf)
