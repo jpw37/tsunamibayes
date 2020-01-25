@@ -75,7 +75,7 @@ python Main.py             \
     --mcmc    random_walk  \
     --nsamp   5         \
     --rundir  $rundir      \
-    --init manual          \
+    --init random          \
     | tee -a $logfile
 
 echo "LOG: $( date ): MCMC run complete" | tee -a $logfile

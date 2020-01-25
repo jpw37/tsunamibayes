@@ -341,7 +341,7 @@ class Custom(MCMC):
 
         latlon = LatLonPrior(self.fault,100000)
         mag = stats.pareto(b=1,loc=7,scale=0.4)
-        deltalogw = stats.normal(scale=0.1) # a little over double the sample variance via Wells-Coppersmith
+        deltalogw = stats.norm(scale=0.1) # a little over double the sample variance via Wells-Coppersmith
         aspect = stats.lognorm(s=1,loc=1,scale=1.5) # chosen to match the aspect ratio samples closely enough
         return Prior(latlon, mag,deltalogw,aspect)
 
