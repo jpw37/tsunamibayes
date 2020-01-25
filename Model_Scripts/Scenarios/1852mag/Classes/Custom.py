@@ -287,8 +287,8 @@ class Custom(MCMC):
         print(prop_prior_lpdf)
         print("cur_prior_lpdf is:")
         print(cur_prior_lpdf)
-        print("proposal kernel asymmetry q(sample|proposal)-q(proposalsample):")
-        print(logqs-logqp)
+        #print("proposal kernel asymmetry q(sample|proposal)-q(proposalsample):")
+        #print(logqs-logqp)
         # Note we use np.exp(new - old) because it's the log-likelihood
         return min(1, np.exp(change_llh+change_prior_lpdf))
 
@@ -421,16 +421,20 @@ class Custom(MCMC):
             #long   =  1.30850829e+02
             #lat    = -5.45571375e+00
 
+            # DEPRICATED
             #guesses = np.array([strike, length, width, depth, slip, rake, dip,
             #  long, lat])
             # strike =  1.90000013e+02
-            length =  1.33325981e+05
-            width  =  8.45009646e+04
+            #length =  1.33325981e+05
+            #width  =  8.45009646e+04
+
             lon    =  1.315e+02
             lat    = -5.45571375e+00
             mag = 9.0
+            dellogw = 0
+            asp_ratio = 2
             #guesses = np.array([strike, length, width, slip, long, lat])
-            vals = np.array([lon, lat, mag, length, width])
+            vals = np.array([lon, lat, mag, dellogw, asp_ratio])
             guesses = pd.Series(vals, self.sample_cols)
 
         elif init == "random":
@@ -450,5 +454,5 @@ class Custom(MCMC):
 
         return guesses
 
-        def prior_logpdf(self,sample):
-            return self.prior.logpdf(sample)
+    def prior_logpdf(self,sample):
+        return self.prior.logpdf(sample)
