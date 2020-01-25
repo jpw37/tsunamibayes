@@ -169,7 +169,6 @@ class Custom(MCMC):
                 lat_temp=rect2_lat
                 long_temp=rect2_long
 
-
         elif method == "Step":
             #define step length
             num_steps = 8
@@ -237,7 +236,7 @@ class Custom(MCMC):
 
     def get_width(self, deltalogw,mag):
         """ Width is sampled from a truncated normal distribution that
-        is centered at the linear regression of log10(width_cm) and magnitude
+        is centered at the linear regression of log10(width in meters) and magnitude
         Linear regression was calculated from wellscoppersmith data.
 
         Parameters:
@@ -246,20 +245,12 @@ class Custom(MCMC):
         Returns:
         width (float): width in meters. a sample from the normal distribution centered on the regression
         """
-        m2 = 0.4832185193       # slope
-        c2 = 3.1179508532       # y intercept
-        e2 = 0.4093407095518345 # error bar
+        m = 0.48321852       # slope
+        c = 1.1179508532337916     # y intercept
 
-          #Calculate bounds on error distribution
-        # a = mag * m2 + c2 - e2
-        # b = mag * m2 + c2 + e2
-        # w  = 10**truncnorm.rvs(a,b,size=1)[0]
-        # w /= 100. #convert to m
-        # print("calculated width:",w,"m")
-
-        mu_logw = mag*m2 + c2
+        mu_logw = m*mag + c
         logw = mu_logw + deltalogw
-        return (10**logw)/100 #regression was done on log10(width_cm)
+        return 10**logw
 
     def get_slip(self, length, width, mag):
         """Calculated from magnitude and rupture area, Ron Harris gave us the equation
@@ -292,12 +283,6 @@ class Custom(MCMC):
         # Log-Likelihood
         change_prior_lpdf = prop_prior_lpdf - cur_prior_lpdf
 
-        # Proposal kernel
-        smag,slength,swidth = sample_params[["Magnitude","Length","Width"]]
-        pmag,plength,pwidth = proposal_params[["Magnitude","Length","Width"]]
-        logqs = self.prior.lwlogpdf(slength,swidth,smag)
-        logqp = self.prior.lwlogpdf(plength,pwidth,pmag)
-
         print("prop_prior_lpdf is:")
         print(prop_prior_lpdf)
         print("cur_prior_lpdf is:")
@@ -305,7 +290,7 @@ class Custom(MCMC):
         print("proposal kernel asymmetry q(sample|proposal)-q(proposalsample):")
         print(logqs-logqp)
         # Note we use np.exp(new - old) because it's the log-likelihood
-        return min(1, np.exp(change_llh+change_prior_lpdf+logqs-logqp))
+        return min(1, np.exp(change_llh+change_prior_lpdf))
 
     def draw(self, prev_draw):
         """
@@ -323,7 +308,7 @@ class Custom(MCMC):
         longitude_std = 0.15
         latitude_std = 0.15
         magnitude_std = 0.1 #garret arbitraily chose this
-        deltalogw_std = 0.1
+        deltalogw_std = 0.005
         aspect_std = 0.1
 
         # square for std => cov
@@ -356,7 +341,9 @@ class Custom(MCMC):
 
         latlon = LatLonPrior(self.fault,100000)
         mag = stats.pareto(b=1,loc=7,scale=0.4)
-        return Prior(latlon, mag)
+        deltalogw = stats.normal(scale=0.1) # a little over double the sample variance via Wells-Coppersmith
+        aspect = stats.lognorm(s=1,loc=1,scale=1.5) # chosen to match the aspect ratio samples closely enough
+        return Prior(latlon, mag,deltalogw,aspect)
 
     def map_to_okada(self, draws):
         """
@@ -464,17 +451,4 @@ class Custom(MCMC):
         return guesses
 
         def prior_logpdf(self,sample):
-            lon    = sample["Longitude"] #These need to be scalars
-            lat    = sample["Latitude"]
-            mag = sample["Magnitude"]
-            deltalogw = sample["DeltaLogW"]
-            aspect = sample["AspectRatio"]
-
-            params = sample[['Latitude','Longitude','Magnitude']].copy()
-
-            #get Length,Width from fitted line
-            width = self.get_width(deltalogw,mag)
-            length = aspect*width
-            params['Width'] = width
-            params['Length'] = length
-            return self.prior.logpdf(params)
+            return self.prior.logpdf(sample)

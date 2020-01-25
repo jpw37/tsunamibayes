@@ -22,17 +22,17 @@ class LatLonPrior:
             the fault
         """
         self.fault = fault
-        self.latlon = stats.halfnorm(scale=sigma)
+        self.dist = stats.halfnorm(scale=sigma)
 
     def logpdf(self,lat,lon):
         """Evaluates the logpdf of the prior"""
         distance = self.fault.distance(lat,lon)
-        return self.latlon.logpdf(distance)
+        return self.dist.logpdf(distance)
 
     def pdf(self,lat,lon):
         """Evaluates the pdf of the prior"""
         distance = self.fault.distance(lat,lon)
-        return self.latlon.pdf(distance)
+        return self.dist.pdf(distance)
 
     def rvs(self):
         """Return a random point on the fault"""
@@ -43,7 +43,7 @@ class Prior:
     """
     This class handles the logpdf calculation for the priors given from the custom class
     """
-    def __init__(self,latlon,mag):
+    def __init__(self,latlon,mag,deltalogw,aspect):
         """
         Initialize the class with priors
 
@@ -55,8 +55,7 @@ class Prior:
         mag : instance of scipy.stats.pareto
             Prior distribution on magnitude
         """
-        #rv_continuous.__init__(self)
-        self.priors = {"latlon":latlon,"mag":mag}
+        self.priors = {"latlon":latlon,"mag":mag,"deltalogw":deltalogw,"aspect":aspect}
 
     def logpdf(self, sample):
         """
@@ -67,8 +66,8 @@ class Prior:
         lat    = sample["Latitude"]
         lon    = sample["Longitude"]
         mag    = sample["Magnitude"]
-        length = sample["Length"]
-        width = sample["Width"]
+        deltalogw = sample["DeltaLogW"]
+        aspect = sample["AspectRatio"]
 
         if mag < 0:
             lpdf = np.NINF
@@ -79,8 +78,11 @@ class Prior:
             # Pareto prior on magnitude
             lpdf += self.priors["mag"].logpdf(mag)
 
-            # conditional prior for length and width
-            lpdf += self.lwlogpdf(length,width,mag)
+            # Normal prior on DeltaLogW
+            lpdf += self.priors["deltalogw"].logpdf(deltalogw)
+
+            # Lognormal prior on aspect ratio
+            lpdf += self.priors["aspect"].logpdf(aspect)
 
         return lpdf
 
@@ -92,43 +94,7 @@ class Prior:
         # CHECK ORDER OF PRODUCED RESULTS
         latlon = self.priors["latlon"].rvs()
         mag = self.priors["mag"].rvs()
-        params = np.array(latlon+[mag]+self.lwrvs(mag))
-        return pd.Series(params,["Latitude","Longitude","Magnitude","Length",'Width'])
-
-    def lwlogpdf(self,length,width,mag):
-        # length
-        m1 = 0.6423327398       # slope
-        c1 = 2.1357387698       # y intercept
-        e1 = 0.4073300731874614 # Error bar
-        a = mag * m1 + c1 - e1
-        b = mag * m1 + c1 + e1
-        p = stats.truncnorm.logpdf(np.log10(100*length),a,b)
-
-        # width
-        m2 = 0.4832185193       # slope
-        c2 = 3.1179508532       # y intercept
-        e2 = 0.4093407095518345 # error bar
-        a = mag * m2 + c2 - e2
-        b = mag * m2 + c2 + e2
-        p  += stats.truncnorm.logpdf(np.log10(100*width),a,b)
-
-        return p
-
-    def lwrvs(self, mag):
-        # length
-        m1 = 0.6423327398       # slope
-        c1 = 2.1357387698       # y intercept
-        e1 = 0.4073300731874614 # Error bar
-        a = mag * m1 + c1 - e1
-        b = mag * m1 + c1 + e1
-        length = (10**stats.truncnorm.rvs(a,b,size=1)[0])/100
-
-        # width
-        m2 = 0.4832185193       # slope
-        c2 = 3.1179508532       # y intercept
-        e2 = 0.4093407095518345 # error bar
-        a = mag * m2 + c2 - e2
-        b = mag * m2 + c2 + e2
-        width  = (10**stats.truncnorm.rvs(a,b,size=1)[0])/100
-
-        return [length,width]
+        deltalogw = self.priors["deltalogw"].rvs()
+        aspect = self.priors["aspect"].rvs()
+        params = np.array(latlon+[mag,deltalogw,aspect])
+        return pd.Series(params,["Latitude","Longitude","Magnitude","DeltaLogW","AspectRatio"])
