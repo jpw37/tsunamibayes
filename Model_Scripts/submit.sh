@@ -2,10 +2,13 @@
 
 
 ## Submission flags (Customize for VT/BYU) ##
-#SBATCH -N1 --exclusive
+##SBATCH -N1 --exclusive
+#SBATCH -N1 --ntasks-per-node=16
 #SBATCH -t 24:00:00
 #SBATCH -p normal_q
 #SBATCH -A siallocation
+#SBATCH --mail-user=jkrometi@vt.edu
+#SBATCH --mail-type=END
 
 
 #### SETUP ####
@@ -32,7 +35,7 @@ logfile="$TMPFS/run.log"
 
 #### INSTALL CLAWPACK IN TMPFS ####
 
-clawver=5.4.1
+clawver="v5.6.0"
 #Location of clawpack source (Customize for VT/BYU)
 src=$HOME/build/src/clawpack-$clawver.tar.gz
 export CLAW="$TMPFS/clawpack-$clawver"
@@ -59,10 +62,11 @@ echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 
 #Customize: Set run parameters
 python Main.py             \
-    --scen    1852grl      \
+    --adjoint              \
+    --scen    1852mag      \
     --mcmc    random_walk  \
-    --nsamp   5            \
-    --init    random       \
+    --nsamp   1            \
+    --init    manual       \
     --rundir  $rundir      \
     | tee -a $logfile
 
