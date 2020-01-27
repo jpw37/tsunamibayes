@@ -428,11 +428,11 @@ class Custom(MCMC):
             #length =  1.33325981e+05
             #width  =  8.45009646e+04
 
-            lon    =  1.315e+02
-            lat    = -5.45571375e+00
+            lon    =  1.316e+02
+            lat    = -5.0e+00
             mag = 9.0
             dellogw = 0
-            asp_ratio = 2
+            asp_ratio = 1.8
             #guesses = np.array([strike, length, width, slip, long, lat])
             vals = np.array([lon, lat, mag, dellogw, asp_ratio])
             guesses = pd.Series(vals, self.sample_cols)
