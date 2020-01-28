@@ -417,10 +417,10 @@ class Custom(MCMC):
             lon    =  1.316e+02
             lat    = -5.0e+00
             mag = 9.0
+            dellogl = 0
             dellogw = 0
-            asp_ratio = 1.8
             #guesses = np.array([strike, length, width, slip, long, lat])
-            vals = np.array([lon, lat, mag, dellogw, asp_ratio])
+            vals = np.array([lon, lat, mag, dellogl, dellogw])
             guesses = pd.Series(vals, self.sample_cols)
 
         elif init == "random":
