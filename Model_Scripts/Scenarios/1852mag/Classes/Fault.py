@@ -29,7 +29,7 @@ class Fault:
         self.dip = dip
         self.R = R
         self.name = name
-        self.smoothing = 5000
+        self.smoothing = 50000
 
     @staticmethod
     def haversine(R,lat1,lon1,lat2,lon2):
