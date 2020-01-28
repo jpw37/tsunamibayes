@@ -294,7 +294,7 @@ class Custom(MCMC):
         longitude_std = 0.15
         latitude_std = 0.15
         magnitude_std = 0.1 #garret arbitraily chose this
-        deltalogl_std = 0.01
+        deltalogl_std = 0.005
         deltalogw_std = 0.005
 
         # square for std => cov
@@ -327,7 +327,7 @@ class Custom(MCMC):
 
         latlon = LatLonPrior(self.fault,100000)
         mag = stats.pareto(b=1,loc=7,scale=0.4)
-        deltalogl = stats.norm(scale=0.3407553435267721) # sample standard deviation from data
+        deltalogl = stats.norm(scale=0.18842320591492676) # sample standard deviation from data
         deltalogw = stats.norm(scale=0.17186788334444705) # sample standard deviation from data
         return Prior(latlon,mag,deltalogl,deltalogw)
 
@@ -342,7 +342,6 @@ class Custom(MCMC):
         self.mw = draws["Magnitude"]
         deltalogl = draws["DeltaLogL"]
         deltalogw = draws["DeltaLogW"]
-
 
         #get Length,Width,Slip from fitted line
         width = self.get_width(deltalogw,self.mw)
