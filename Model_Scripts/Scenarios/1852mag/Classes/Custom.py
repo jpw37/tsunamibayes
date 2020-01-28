@@ -21,8 +21,8 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','DeltaLogW','AspectRatio']
-        self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogW','P-AspectRatio']
+        self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','DeltaLogL','DeltaLogW']
+        self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogL','P-DeltaLogW']
         self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
         self.num_rectangles = 3
@@ -204,7 +204,7 @@ class Custom(MCMC):
 
         return rects
 
-    def get_length(self, mag):
+    def get_length(self, deltalogl, mag):
         """ Length is sampled from a truncated normal distribution that
         is centered at the linear regression of log10(length_cm) and magnitude.
         Linear regression was calculated from wellscoppersmith data.
@@ -215,38 +215,24 @@ class Custom(MCMC):
         Returns:
         length (float): Length in meters. a sample from the normal distribution centered on the regression
         """
-        #m1 = 0.6423327398       # slope
-        #c1 = 0.1357387698       # y intercept
-        #e1 = 0.4073300731874614 # Error bar
 
-        m1 = 0.6423327398       # slope
-        c1 = 2.1357387698       # y intercept
-        e1 = 0.4073300731874614 # Error bar
+        m = 0.5233956445903871       # slope
+        c = 1.0974498706605313     # y intercept
 
-        #Calculate bounds on error distribution
-        a = mag * m1 + c1 - e1
-        b = mag * m1 + c1 + e1
-        #print("calculated length")
-        #print(10**truncnorm.rvs(a,b,size=1)[0])
-        #return 10**truncnorm.rvs(a,b,size=1)[0] #regression was done on log10(length_cm)
-        l  = 10**truncnorm.rvs(a,b,size=1)[0]
-        l /= 100. #convert to m
-        print("calculated length:",l,"m")
-        return l
+        mu_logl = m*mag + c
+        logl = mu_logl + deltalogl
+        return 10**logl
 
-    def get_width(self, deltalogw,mag):
-        """ Width is sampled from a truncated normal distribution that
-        is centered at the linear regression of log10(width in meters) and magnitude
-        Linear regression was calculated from wellscoppersmith data.
-
+    def get_width(self, deltalogw, mag):
+        """
         Parameters:
         mag (float): the magnitude of the earthquake
 
         Returns:
-        width (float): width in meters. a sample from the normal distribution centered on the regression
+        width (float): width in meters
         """
-        m = 0.48321852       # slope
-        c = 1.1179508532337916     # y intercept
+        m = 0.29922483873212863       # slope
+        c = 2.608734705074858     # y intercept
 
         mu_logw = m*mag + c
         logw = mu_logw + deltalogw
@@ -308,16 +294,16 @@ class Custom(MCMC):
         longitude_std = 0.15
         latitude_std = 0.15
         magnitude_std = 0.1 #garret arbitraily chose this
+        deltalogl_std = 0.01
         deltalogw_std = 0.005
-        aspect_std = 0.1
 
         # square for std => cov
-        cov = np.diag(np.square([longitude_std, latitude_std, magnitude_std, deltalogw_std, aspect_std]))
+        cov = np.diag(np.square([longitude_std, latitude_std, magnitude_std, deltalogl_std, deltalogw_std]))
         mean = np.zeros(5)
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
-        new_draw[['Longitude','Latitude','Magnitude','DeltaLogW','AspectRatio']] += e
+        new_draw[['Longitude','Latitude','Magnitude','DeltaLogL','DeltaLogW']] += e
 
         return new_draw
 
@@ -341,9 +327,9 @@ class Custom(MCMC):
 
         latlon = LatLonPrior(self.fault,100000)
         mag = stats.pareto(b=1,loc=7,scale=0.4)
-        deltalogw = stats.norm(scale=0.1) # a little over double the sample variance via Wells-Coppersmith
-        aspect = stats.lognorm(s=1,loc=1,scale=1.5) # chosen to match the aspect ratio samples closely enough
-        return Prior(latlon, mag,deltalogw,aspect)
+        deltalogl = stats.norm(scale=0.3407553435267721) # sample standard deviation from data
+        deltalogw = stats.norm(scale=0.17186788334444705) # sample standard deviation from data
+        return Prior(latlon,mag,deltalogl,deltalogw)
 
     def map_to_okada(self, draws):
         """
@@ -354,12 +340,13 @@ class Custom(MCMC):
         lon    = draws["Longitude"] #These need to be scalars
         lat    = draws["Latitude"]
         self.mw = draws["Magnitude"]
+        deltalogl = draws["DeltaLogL"]
         deltalogw = draws["DeltaLogW"]
-        aspect = draws["AspectRatio"]
+
 
         #get Length,Width,Slip from fitted line
         width = self.get_width(deltalogw,self.mw)
-        length = aspect*width
+        length = self.get_length(deltalogl,self.mw)
         slip = self.get_slip(length, width, self.mw)
 
         #deterministic okada parameters

@@ -43,7 +43,7 @@ class Prior:
     """
     This class handles the logpdf calculation for the priors given from the custom class
     """
-    def __init__(self,latlon,mag,deltalogw,aspect):
+    def __init__(self,latlon,mag,deltalogl,deltalogw):
         """
         Initialize the class with priors
 
@@ -55,7 +55,7 @@ class Prior:
         mag : instance of scipy.stats.pareto
             Prior distribution on magnitude
         """
-        self.priors = {"latlon":latlon,"mag":mag,"deltalogw":deltalogw,"aspect":aspect}
+        self.priors = {"latlon":latlon,"mag":mag,"deltalogl":deltalogl,"deltalogw":deltalogw}
 
     def logpdf(self, sample):
         """
@@ -66,8 +66,8 @@ class Prior:
         lat    = sample["Latitude"]
         lon    = sample["Longitude"]
         mag    = sample["Magnitude"]
+        deltalogl = sample["DeltaLogL"]
         deltalogw = sample["DeltaLogW"]
-        aspect = sample["AspectRatio"]
 
         if mag < 0:
             lpdf = np.NINF
@@ -78,11 +78,11 @@ class Prior:
             # Pareto prior on magnitude
             lpdf += self.priors["mag"].logpdf(mag)
 
+            # Normal prior on DeltaLogL
+            lpdf += self.priors["deltalogl"].logpdf(deltalogl)
+
             # Normal prior on DeltaLogW
             lpdf += self.priors["deltalogw"].logpdf(deltalogw)
-
-            # Lognormal prior on aspect ratio
-            lpdf += self.priors["aspect"].logpdf(aspect)
 
         return lpdf
 
@@ -94,7 +94,7 @@ class Prior:
         # CHECK ORDER OF PRODUCED RESULTS
         latlon = self.priors["latlon"].rvs()
         mag = self.priors["mag"].rvs()
+        deltalogl = self.priors["deltalogl"].rvs()
         deltalogw = self.priors["deltalogw"].rvs()
-        aspect = self.priors["aspect"].rvs()
-        params = np.array(latlon+[mag,deltalogw,aspect])
-        return pd.Series(params,["Latitude","Longitude","Magnitude","DeltaLogW","AspectRatio"])
+        params = np.array(latlon+[mag,deltalogl,deltalogw])
+        return pd.Series(params,["Latitude","Longitude","Magnitude","DeltaLogL","DeltaLogW"])
