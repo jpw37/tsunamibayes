@@ -291,9 +291,9 @@ class Custom(MCMC):
         new_draw = prev_draw.copy()
 
         # Random walk draw lat/lon/strike
-        longitude_std = 0.15
-        latitude_std = 0.15
-        magnitude_std = 0.1 #garret arbitraily chose this
+        longitude_std = 0.075
+        latitude_std = 0.075
+        magnitude_std = 0.05 #garret arbitraily chose this
         deltalogl_std = 0.005
         deltalogw_std = 0.005
 
@@ -325,8 +325,8 @@ class Custom(MCMC):
         #
         # dists = [distrb0, distrb1]
 
-        latlon = LatLonPrior(self.fault,100000)
-        mag = stats.pareto(b=1,loc=7,scale=0.4)
+        latlon = LatLonPrior(self.fault,50000)
+        mag = stats.expon(scale=2)
         deltalogl = stats.norm(scale=0.18842320591492676) # sample standard deviation from data
         deltalogw = stats.norm(scale=0.17186788334444705) # sample standard deviation from data
         return Prior(latlon,mag,deltalogl,deltalogw)
