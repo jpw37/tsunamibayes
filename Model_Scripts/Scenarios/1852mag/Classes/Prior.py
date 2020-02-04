@@ -11,28 +11,37 @@ class LatLonPrior:
     """A class for a distance-based latitude/longitude prior. NOTE: this creates
     an unnormalized density function, not a true pdf"""
 
-    def __init__(self,fault,sigma):
+    def __init__(self,fault,mu,sigma,mindepth,maxdepth,minlon):
         """
         Parameters
         ----------
         fault : instance of Fault
             Fault object
-        sigma : float
-            Standard deviation of the half-normal distribution on distance from
-            the fault
+        dist : scipy.rv_continuouis
+            Distribution on depth
         """
         self.fault = fault
-        self.dist = stats.halfnorm(scale=sigma)
+        self.mu = mu
+        self.sigma = sigma
+        self.mindepth = mindepth
+        self.maxdepth = maxdepth
+        self.minlon = minlon
 
-    def logpdf(self,lat,lon):
+    def logpdf(self,lat,lon,width,deltadepth):
         """Evaluates the logpdf of the prior"""
-        distance = self.fault.distance(lat,lon)
-        return self.dist.logpdf(distance)
+        if lon < self.minlon: return -np.inf
+        depth = self.fault.depth_from_lat_lon(lat,lon) + deltadepth
+        mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
+        a, b = (mindepth - self.mu) / self.sigma, (self.maxdepth - self.mu) / self.sigma
+        return stats.truncnorm.logpdf(depth,a,b,loc=self.mu,scale=self.sigma)
 
-    def pdf(self,lat,lon):
+    def pdf(self,lat,lon,width,deltadepth):
         """Evaluates the pdf of the prior"""
-        distance = self.fault.distance(lat,lon)
-        return self.dist.pdf(distance)
+        if lon < self.minlon: return -np.inf
+        depth = self.fault.depth_from_lat_lon(lat,lon) + deltadepth
+        mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
+        a, b = (mindepth - self.mu) / self.sigma, (self.maxdepth - self.mu) / self.sigma
+        return stats.truncnorm.pdf(depth,a,b,loc=self.mu,scale=self.sigma)
 
     def rvs(self):
         """Return a random point on the fault"""
@@ -43,7 +52,7 @@ class Prior:
     """
     This class handles the logpdf calculation for the priors given from the custom class
     """
-    def __init__(self,latlon,mag,deltalogl,deltalogw):
+    def __init__(self,latlon,mag,deltalogl,deltalogw,deltadepth):
         """
         Initialize the class with priors
 
@@ -55,7 +64,11 @@ class Prior:
         mag : instance of scipy.stats.pareto
             Prior distribution on magnitude
         """
-        self.priors = {"latlon":latlon,"mag":mag,"deltalogl":deltalogl,"deltalogw":deltalogw}
+        self.priors = {"latlon":latlon,
+                       "mag":mag,
+                       "deltalogl":deltalogl,
+                       "deltalogw":deltalogw,
+                       "deltadepth":deltadepth}
 
     def logpdf(self, sample):
         """
@@ -68,21 +81,23 @@ class Prior:
         mag    = sample["Magnitude"]
         deltalogl = sample["DeltaLogL"]
         deltalogw = sample["DeltaLogW"]
+        deltadepth = sample["DeltaDepth"]
+        width = sample["Width"]
 
-        if mag < 0:
-            lpdf = np.NINF
-        else:
-            # prior for longitude, latitude
-            lpdf = self.priors["latlon"].logpdf(lat,lon)
+        # prior for longitude, latitude
+        lpdf = self.priors["latlon"].logpdf(lat,lon,width,deltadepth)
 
-            # Pareto prior on magnitude
-            lpdf += self.priors["mag"].logpdf(mag)
+        # Pareto prior on magnitude
+        lpdf += self.priors["mag"].logpdf(mag)
 
-            # Normal prior on DeltaLogL
-            lpdf += self.priors["deltalogl"].logpdf(deltalogl)
+        # Normal prior on DeltaLogL
+        lpdf += self.priors["deltalogl"].logpdf(deltalogl)
 
-            # Normal prior on DeltaLogW
-            lpdf += self.priors["deltalogw"].logpdf(deltalogw)
+        # Normal prior on DeltaLogW
+        lpdf += self.priors["deltalogw"].logpdf(deltalogw)
+
+        # Normal prior on DeltaDepth
+        lpdf += self.priors["deltadepth".logpdf(deltadepth)]
 
         return lpdf
 
@@ -96,5 +111,11 @@ class Prior:
         mag = self.priors["mag"].rvs()
         deltalogl = self.priors["deltalogl"].rvs()
         deltalogw = self.priors["deltalogw"].rvs()
-        params = np.array(latlon+[mag,deltalogl,deltalogw])
-        return pd.Series(params,["Latitude","Longitude","Magnitude","DeltaLogL","DeltaLogW"])
+        deltadepth = self.priors["deltadepth"].rvs()
+        params = np.array(latlon+[mag,deltalogl,deltalogw,deltadepth])
+        return pd.Series(params,["Latitude",
+                                 "Longitude",
+                                 "Magnitude",
+                                 "DeltaLogL",
+                                 "DeltaLogW",
+                                 "DeltaDepth"])

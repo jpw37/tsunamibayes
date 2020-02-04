@@ -152,47 +152,6 @@ class Scenario:
 			# Save the proposal draw for debugging purposes
 			self.samples.save_proposal(proposal_params)
 
-			# If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
-			if(self.use_custom):
-				proposal_params_okada = self.mcmc.map_to_okada(proposal_params)
-			else:
-				proposal_params_okada = proposal_params
-
-			# Save Proposal
-			self.samples.save_proposal_okada(proposal_params_okada)
-
-			# Run Geo Claw on the new proposal
-			self.feedForward.run_geo_claw(proposal_params_okada)
-
-
-			"""
-			BEGIN SHAKE MODEL
-
-			#To speed up shake model calculation set this False
-			#            shake_option = True
-
-			#            print("init_guesses:")
-			#            print(self.init_guesses)
-			#            print(type(self.init_guesses))
-			#            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
-			#            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
-			END SHAKE MODEL
-			"""
-
-			# Calculate the Log Likelihood for the new draw
-			proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
-			sample_llh = self.samples.get_sample_llh()
-
-			# Save SHAKE STUFF
-			print("_____proposal_llh_____", proposal_llh)
-			#            proposal_llh += self.proposal_shake_llh
-			print("_____proposal_llh_____", proposal_llh)
-
-			self.samples.save_sample_llh(sample_llh)
-			self.samples.save_proposal_llh(proposal_llh)
-			proposal_obvs = self.mcmc.make_observations(proposal_params, proposal_arr, proposal_heights)
-			self.samples.save_obvs(proposal_obvs)
-
 			# Calculate prior probability for the current sample and proposed sample
 			sample_prior_lpdf = self.mcmc.prior_logpdf(sample_params)
 			proposal_prior_lpdf = self.mcmc.prior_logpdf(proposal_params)
@@ -201,18 +160,72 @@ class Scenario:
 			self.samples.save_sample_prior_lpdf(sample_prior_lpdf)
 			self.samples.save_proposal_prior_lpdf(proposal_prior_lpdf)
 
-			# Calculate the sample and proposal posterior log likelihood
-			sample_post_lpdf = sample_prior_lpdf + sample_llh
-			proposal_post_lpdf = proposal_prior_lpdf + proposal_llh
-			# Save
-			self.samples.save_sample_posterior_lpdf(sample_post_lpdf)
-			self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
+			if proposal_prior_lpdf == np.NINF or np.isnan(proposal_prior_lpdf):
+				proposal_params_okada = self.samples.get_sample_okada().copy()
+				proposal_params_okada[...] = np.nan
+				self.samples.save_proposal_okada(proposal_params_okada)
+				self.samples.proposal_llh = np.nan
+				self.samples.proposal_posterior_lpdf = np.nan
+				self.samples.save_proposal_llh(proposal_llh)
+				self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
+				proposal_obvs = self.samples.get_sample_obvs().copy()
+				proposal_obvs[...] = np.nan
+				self.samples.save_obvs(proposal_obvs)
+				ar = 0
 
-			# Calculate the acceptance probability of the given proposal
-			accept_prob = self.mcmc.acceptance_prob(sample_params,proposal_params,sample_prior_lpdf, proposal_prior_lpdf)
+			else:
+				# If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)
+				if(self.use_custom):
+					proposal_params_okada = self.mcmc.map_to_okada(proposal_params)
+				else:
+					proposal_params_okada = proposal_params
 
-			# Decide to accept or reject the proposal and save
-			ar = self.mcmc.accept_reject(accept_prob)
+				# Save Proposal
+				self.samples.save_proposal_okada(proposal_params_okada)
+
+				# Run Geo Claw on the new proposal
+				self.feedForward.run_geo_claw(proposal_params_okada)
+
+				"""
+				BEGIN SHAKE MODEL
+
+				#To speed up shake model calculation set this False
+				#            shake_option = True
+
+				#            print("init_guesses:")
+				#            print(self.init_guesses)
+				#            print(type(self.init_guesses))
+				#            self.proposal_MMI = self.feedForward.run_abrahamson(self.shake_gauges, self.init_guesses["Magnitude"], proposal_params_okada)
+				#            self.proposal_shake_llh = self.feedForward.shake_llh(self.proposal_MMI, self.shake_gauges, shake_option )
+				END SHAKE MODEL
+				"""
+
+				# Calculate the Log Likelihood for the new draw
+				proposal_llh, proposal_arr, proposal_heights = self.feedForward.calculate_llh(self.gauges)
+				sample_llh = self.samples.get_sample_llh()
+
+				# Save SHAKE STUFF
+				print("_____proposal_llh_____", proposal_llh)
+				#            proposal_llh += self.proposal_shake_llh
+				print("_____proposal_llh_____", proposal_llh)
+
+				self.samples.save_sample_llh(sample_llh)
+				self.samples.save_proposal_llh(proposal_llh)
+				proposal_obvs = self.mcmc.make_observations(proposal_params, proposal_arr, proposal_heights)
+				self.samples.save_obvs(proposal_obvs)
+
+				# Calculate the sample and proposal posterior log likelihood
+				sample_post_lpdf = sample_prior_lpdf + sample_llh
+				proposal_post_lpdf = proposal_prior_lpdf + proposal_llh
+				# Save
+				self.samples.save_sample_posterior_lpdf(sample_post_lpdf)
+				self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
+
+				# Calculate the acceptance probability of the given proposal
+				accept_prob = self.mcmc.acceptance_prob(sample_params,proposal_params,sample_prior_lpdf, proposal_prior_lpdf)
+
+				# Decide to accept or reject the proposal and save
+				ar = self.mcmc.accept_reject(accept_prob)
 
 			# Saves the stored data for debugging purposes
 			self.samples.save_debug()
@@ -226,7 +239,6 @@ class Scenario:
 				self.samples.save_sample_okada(self.samples.get_proposal_okada())
 				self.samples.save_sample_llh(self.samples.get_proposal_llh())
 			else:
-				self.samples.increment_wins()
 				self.samples.save_sample(self.samples.get_sample())
 				self.samples.save_sample_okada(self.samples.get_sample_okada())
 

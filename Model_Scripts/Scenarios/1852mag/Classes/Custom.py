@@ -21,11 +21,11 @@ class Custom(MCMC):
     """
     def __init__(self):
         MCMC.__init__(self)
-        self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','DeltaLogL','DeltaLogW']
-        self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogL','P-DeltaLogW']
+        self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','DeltaLogL','DeltaLogW','DeltaDepth']
+        self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogL','P-DeltaLogW','P-DeltaDepth']
         self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
-        self.num_rectangles = 3
+        self.num_rectangles = 9
         cols = []
         for i in range(self.num_rectangles):
             cols += ['Strike' + str(i+1)]
@@ -293,17 +293,23 @@ class Custom(MCMC):
         # Random walk draw lat/lon/strike
         longitude_std = 0.075
         latitude_std = 0.075
-        magnitude_std = 0.05 #garret arbitraily chose this
+        magnitude_std = 0.05
         deltalogl_std = 0.005
         deltalogw_std = 0.005
+        deltadepth_std = 500
 
         # square for std => cov
-        cov = np.diag(np.square([longitude_std, latitude_std, magnitude_std, deltalogl_std, deltalogw_std]))
-        mean = np.zeros(5)
+        cov = np.diag(np.square([longitude_std,
+                                 latitude_std,
+                                 magnitude_std,
+                                 deltalogl_std,
+                                 deltalogw_std,
+                                 deltadepth_std]))
+        mean = np.zeros(6)
 
         # random draw from normal distribution
         e = stats.multivariate_normal(mean, cov).rvs()
-        new_draw[['Longitude','Latitude','Magnitude','DeltaLogL','DeltaLogW']] += e
+        new_draw[['Longitude','Latitude','Magnitude','DeltaLogL','DeltaLogW','DeltaDepth']] += e
 
         return new_draw
 
@@ -325,11 +331,17 @@ class Custom(MCMC):
         #
         # dists = [distrb0, distrb1]
 
-        latlon = LatLonPrior(self.fault,50000)
-        mag = stats.expon(scale=2)
+        depth_mu = 30000
+        depth_std = 5000
+        mindepth = 15000
+        maxdepth = 50000
+        minlon = 126
+        latlon = LatLonPrior(self.fault,depth_mu,depth_std,mindepth,maxdepth,minlon)
+        mag = stats.truncexpon(b=3,loc=6.5)
         deltalogl = stats.norm(scale=0.18842320591492676) # sample standard deviation from data
         deltalogw = stats.norm(scale=0.17186788334444705) # sample standard deviation from data
-        return Prior(latlon,mag,deltalogl,deltalogw)
+        deltadepth = stats.norm(scale=2000)
+        return Prior(latlon,mag,deltalogl,deltalogw,deltadepth)
 
     def map_to_okada(self, draws):
         """
@@ -342,6 +354,7 @@ class Custom(MCMC):
         self.mw = draws["Magnitude"]
         deltalogl = draws["DeltaLogL"]
         deltalogw = draws["DeltaLogW"]
+        deltadepth = draws["DeltaDepth"]
 
         #get Length,Width,Slip from fitted line
         width = self.get_width(deltalogw,self.mw)
@@ -351,7 +364,7 @@ class Custom(MCMC):
         #deterministic okada parameters
         rake = 90
         dip = self.fault.dip
-        depth = self.fault.depth_from_lat_lon(lat,lon)
+        depth = self.fault.depth_from_lat_lon(lat,lon) + deltadepth
         strike = self.fault.strike_from_lat_lon(lat,lon)
 
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
@@ -419,8 +432,9 @@ class Custom(MCMC):
             mag = 9.0
             dellogl = 0
             dellogw = 0
+            deltadepth = 0
             #guesses = np.array([strike, length, width, slip, long, lat])
-            vals = np.array([lon, lat, mag, dellogl, dellogw])
+            vals = np.array([lon, lat, mag, dellogl, dellogw, deltadepth])
             guesses = pd.Series(vals, self.sample_cols)
 
         elif init == "random":
@@ -441,4 +455,5 @@ class Custom(MCMC):
         return guesses
 
     def prior_logpdf(self,sample):
+        sample["Width"] = self.get_width(sample['DeltaLogW'],sample['Magnitude'])
         return self.prior.logpdf(sample)
