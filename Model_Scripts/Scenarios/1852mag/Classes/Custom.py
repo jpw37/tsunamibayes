@@ -358,8 +358,8 @@ class Custom(MCMC):
 
         #deterministic okada parameters
         rake = 90
-        dip = self.fault.dip
-        depth = self.fault.depth_from_lat_lon(lat,lon) + deltadepth
+        dip = self.fault.dip_from_lat_lon(lat,lon)
+        depth = self.fault.depth_from_lat_lon(lat,lon)[0] + deltadepth
         strike = self.fault.strike_from_lat_lon(lat,lon)
 
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
