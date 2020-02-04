@@ -164,8 +164,8 @@ class Scenario:
 				proposal_params_okada = self.samples.get_sample_okada().copy()
 				proposal_params_okada[...] = np.nan
 				self.samples.save_proposal_okada(proposal_params_okada)
-				self.samples.proposal_llh = np.nan
-				self.samples.proposal_posterior_lpdf = np.nan
+				proposal_llh = np.nan
+				proposal_posterior_lpdf = np.nan
 				self.samples.save_proposal_llh(proposal_llh)
 				self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
 				proposal_obvs = self.samples.get_sample_obvs().copy()
