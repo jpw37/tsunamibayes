@@ -372,9 +372,9 @@ class Custom(MCMC):
             temp_strike = rect[2]
             temp_length = rect[3]
             temp.append(temp_strike)
-            temp.append( temp_length)
-            temp.append( temp_lon)
-            temp.append( temp_lat )
+            temp.append(temp_length)
+            temp.append(temp_lon)
+            temp.append(temp_lat)
         temp += [width, depth, slip, rake, dip]
         return pd.Series(temp, self.okada_cols)
 

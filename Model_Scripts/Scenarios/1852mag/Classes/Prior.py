@@ -40,7 +40,7 @@ class LatLonPrior:
 
     def pdf(self,lat,lon,width,deltadepth):
         """Evaluates the pdf of the prior"""
-        if lon < self.minlon: return -np.inf
+        if lon < self.minlon: return np.NINF
         try:
             depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth #deltadepth im km to avoid singular covariance matrix
         except ValueError:

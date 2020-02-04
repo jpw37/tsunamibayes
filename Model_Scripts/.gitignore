@@ -1,3 +1,6 @@
 #ignore slurm output files
 slurm-*.out
 *.pyc
+*.xlsx
+*.png
+*.ipynb
