@@ -62,7 +62,7 @@ class AbstractKDE:
             lpdf = np.zeros(samples.shape[-1])
             p = np.prod( samples, axis=0 )
             lpdf[p>0.]  = self.kde.logpdf( self.transform( samples[:,p>0.] ) ) - np.log(p[p>0.])
-            lpdf[p<=0.] = np.ninf
+            lpdf[p<=0.] = np.NINF
         else:
             lpdf = self.kde.logpdf( samples )
 

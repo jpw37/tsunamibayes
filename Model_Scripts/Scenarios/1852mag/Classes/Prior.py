@@ -29,8 +29,11 @@ class LatLonPrior:
 
     def logpdf(self,lat,lon,width,deltadepth):
         """Evaluates the logpdf of the prior"""
-        if lon < self.minlon: return -np.inf
-        depth = self.fault.depth_from_lat_lon(lat,lon) + deltadepth
+        if lon < self.minlon: return np.NINF
+        try:
+            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + deltadepth
+        except ValueError:
+            return np.NINF
         mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
         a, b = (mindepth - self.mu) / self.sigma, (self.maxdepth - self.mu) / self.sigma
         return stats.truncnorm.logpdf(depth,a,b,loc=self.mu,scale=self.sigma)
@@ -38,15 +41,19 @@ class LatLonPrior:
     def pdf(self,lat,lon,width,deltadepth):
         """Evaluates the pdf of the prior"""
         if lon < self.minlon: return -np.inf
-        depth = self.fault.depth_from_lat_lon(lat,lon) + deltadepth
+        try:
+            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + deltadepth
+        except ValueError:
+            return np.NINF
         mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
         a, b = (mindepth - self.mu) / self.sigma, (self.maxdepth - self.mu) / self.sigma
         return stats.truncnorm.pdf(depth,a,b,loc=self.mu,scale=self.sigma)
 
     def rvs(self):
         """Return a random point on the fault"""
-        idx = np.random.randint(len(self.fault.lonpts))
-        return [self.fault.latpts[idx],self.fault.lonpts[idx]]
+        # idx = np.random.randint(len(self.fault.lonpts))
+        # return [self.fault.latpts[idx],self.fault.lonpts[idx]]
+        raise NotImplementedError
 
 class Prior:
     """
@@ -106,6 +113,7 @@ class Prior:
         Pick a random set of parameters out of the prior
         :return:
         """
+        raise NotImplementedError
         # CHECK ORDER OF PRODUCED RESULTS
         latlon = self.priors["latlon"].rvs()
         mag = self.priors["mag"].rvs()

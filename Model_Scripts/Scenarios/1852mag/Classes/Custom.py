@@ -10,7 +10,7 @@ from scipy import stats
 
 from MCMC import MCMC
 from Prior import Prior,LatLonPrior
-from Fault import Fault
+from Fault import Fault, GridFault
 
 from scipy.stats import truncnorm
 
@@ -38,14 +38,9 @@ class Custom(MCMC):
         self.prior = self.build_priors()
 
     def build_fault(self):
-        data = pd.read_csv("./InputData/BandaHypoSegments.csv")
-        latpts = np.array(data["Lat"])
-        lonpts = np.array(data["Long"])
-        strikepts = (np.array(data["Strike"])+180)%360
-        depth = 21000
-        dip = 13
+        data = np.load("./InputData/bandadata.npz")
         R = 6377905
-        return Fault(latpts,lonpts,strikepts,depth,dip,R,"Banda Arc")
+        return GridFault(data['lat'],data['lon'],data['depth'],data['depth_unc'],data['dip'],data['strike'],R,"Banda Arc")
 
     def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
         """Split a given rectangle into 3 of equal length that more closely follow the
