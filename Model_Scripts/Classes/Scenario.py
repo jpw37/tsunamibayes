@@ -167,7 +167,7 @@ class Scenario:
 				proposal_llh = np.nan
 				proposal_posterior_lpdf = np.nan
 				self.samples.save_proposal_llh(proposal_llh)
-				self.samples.save_proposal_posterior_lpdf(proposal_post_lpdf)
+				self.samples.save_proposal_posterior_lpdf(proposal_posterior_lpdf)
 				proposal_obvs = self.samples.get_sample_obvs().copy()
 				proposal_obvs[...] = np.nan
 				self.samples.save_obvs(proposal_obvs)
