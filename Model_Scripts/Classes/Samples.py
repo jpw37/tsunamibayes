@@ -268,7 +268,7 @@ class Samples:
         """
         return self.proposal_posterior_lpdf
 
-      def increment_wins(self):
+    def increment_wins(self):
         """
         Increment the counter for the number of times a sample wins
         """
