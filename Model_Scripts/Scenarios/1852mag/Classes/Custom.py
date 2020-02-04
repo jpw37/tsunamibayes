@@ -291,7 +291,7 @@ class Custom(MCMC):
         magnitude_std = 0.05
         deltalogl_std = 0.005
         deltalogw_std = 0.005
-        deltadepth_std = 500
+        deltadepth_std = .5 #in km to avoid singular covariance matrix
 
         # square for std => cov
         cov = np.diag(np.square([longitude_std,
@@ -335,7 +335,7 @@ class Custom(MCMC):
         mag = stats.truncexpon(b=3,loc=6.5)
         deltalogl = stats.norm(scale=0.18842320591492676) # sample standard deviation from data
         deltalogw = stats.norm(scale=0.17186788334444705) # sample standard deviation from data
-        deltadepth = stats.norm(scale=2000)
+        deltadepth = stats.norm(scale=2) # in km to avoid numerically singular covariance matrix
         return Prior(latlon,mag,deltalogl,deltalogw,deltadepth)
 
     def map_to_okada(self, draws):
@@ -359,7 +359,7 @@ class Custom(MCMC):
         #deterministic okada parameters
         rake = 90
         dip = self.fault.dip_from_lat_lon(lat,lon)
-        depth = self.fault.depth_from_lat_lon(lat,lon)[0] + deltadepth
+        depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth #deltadepth in km to avoid singular covariance matrix
         strike = self.fault.strike_from_lat_lon(lat,lon)
 
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])

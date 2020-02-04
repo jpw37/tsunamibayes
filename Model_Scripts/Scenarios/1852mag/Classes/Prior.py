@@ -31,7 +31,7 @@ class LatLonPrior:
         """Evaluates the logpdf of the prior"""
         if lon < self.minlon: return np.NINF
         try:
-            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + deltadepth
+            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth #deltadepth im km to avoid singular covariance matrix
         except ValueError:
             return np.NINF
         mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
@@ -42,7 +42,7 @@ class LatLonPrior:
         """Evaluates the pdf of the prior"""
         if lon < self.minlon: return -np.inf
         try:
-            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + deltadepth
+            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth #deltadepth im km to avoid singular covariance matrix
         except ValueError:
             return np.NINF
         mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
