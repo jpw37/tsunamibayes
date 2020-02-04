@@ -104,7 +104,7 @@ class Prior:
         lpdf += self.priors["deltalogw"].logpdf(deltalogw)
 
         # Normal prior on DeltaDepth
-        lpdf += self.priors["deltadepth".logpdf(deltadepth)]
+        lpdf += self.priors["deltadepth"].logpdf(deltadepth)
 
         return lpdf
 
