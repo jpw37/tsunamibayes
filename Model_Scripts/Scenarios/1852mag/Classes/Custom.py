@@ -25,14 +25,17 @@ class Custom(MCMC):
         self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogL','P-DeltaLogW','P-DeltaDepth']
         self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
-        self.num_rectangles = 9
+        self.length_split = 11
+        self.width_split = 3
+        self.num_rectangles = self.length_split * self.width_split
         cols = []
         for i in range(self.num_rectangles):
-            cols += ['Strike' + str(i+1)]
-            cols += ['Length' + str(i+1)]
-            cols += ['Longitude' + str(i+1)]
             cols += ['Latitude' + str(i+1)]
-        cols += [ 'Width', 'Depth', 'Slip', 'Rake', 'Dip']
+            cols += ['Longitude' + str(i+1)]
+            cols += ['Strike' + str(i+1)]
+            cols += ['Dip' + str(i+1)]
+            cols += ['Depth' + str(i+1)]
+        cols += [ 'Sublength', 'Subwidth', 'Slip', 'Rake']
         self.okada_cols = cols
         self.fault = self.build_fault()
         self.prior = self.build_priors()
@@ -199,7 +202,7 @@ class Custom(MCMC):
     #
     #     return rects
 
-    def split_rect(fault,lat,lon,length,width,n=11,m=3):
+    def split_rect(self,fault,lat,lon,length,width,n=11,m=3):
         R = fault.R
         # n = int(length/15000)
         # m = int(width/15000)
@@ -431,19 +434,20 @@ class Custom(MCMC):
         strike = self.fault.strike_from_lat_lon(lat,lon)
 
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
-
-        rectangles = self.split_rect(lat, lon, strike, length, num = self.num_rectangles)
+        rectangles, sublength, subwidth = self.split_rect(self.fault, lat, lon, length, width, n = self.length_split, m = self.width_split)
         temp = []
         for i, rect in enumerate(rectangles):
             temp_lat = rect[0]
             temp_lon = rect[1]
             temp_strike = rect[2]
-            temp_length = rect[3]
-            temp.append(temp_strike)
-            temp.append(temp_length)
-            temp.append(temp_lon)
+            temp_dip = rect[3]
+            temp_depth = rect[4]
             temp.append(temp_lat)
-        temp += [width, depth, slip, rake, dip]
+            temp.append(temp_lon)
+            temp.append(temp_strike)
+            temp.append(temp_dip)
+            temp.append(temp_depth)
+        temp += [sublength, subwidth, slip, rake]
         return pd.Series(temp, self.okada_cols)
 
     def make_observations(self, params, arrivals, heights):

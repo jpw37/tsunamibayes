@@ -45,21 +45,23 @@ class Samples:
                                 'gauge 6 arrival', 'gauge 6 height']
         cols = []
         for i in range(num_rectangles):
-            cols += ['O-Strike' + str(i+1)]
-            cols += ['O-Length' + str(i+1)]
-            cols += ['O-Longitude' + str(i+1)]
             cols += ['O-Latitude' + str(i+1)]
-        cols += [ 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip']
+            cols += ['O-Longitude' + str(i+1)]
+            cols += ['O-Strike' + str(i+1)]
+            cols += ['O-Dip' + str(i+1)]
+            cols += ['O-Depth' + str(i+1)]
+        cols += [ 'O-Sublength', 'O-Subwidth', 'O-Slip', 'O-Rake']
         okada_cols = cols
         #okada_cols = ['O-Strike', 'O-Length', 'O-Width', 'O-Depth', 'O-Slip', 'O-Rake', 'O-Dip', 'O-Logitude','O-Latitude']
 
         cols = []
         for i in range(num_rectangles):
-            cols += ['OP-Strike' + str(i+1)]
-            cols += ['OP-Length' + str(i+1)]
-            cols += ['OP-Longitude' + str(i+1)]
             cols += ['OP-Latitude' + str(i+1)]
-        cols += [ 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip']
+            cols += ['OP-Longitude' + str(i+1)]
+            cols += ['OP-Strike' + str(i+1)]
+            cols += ['OP-Dip' + str(i+1)]
+            cols += ['OP-Depth' + str(i+1)]
+        cols += [ 'OP-Sublength', 'OP-Subwidth', 'OP-Slip', 'OP-Rake']
         proposal_okada_cols = cols
         #proposal_okada_cols = ['OP-Strike', 'OP-Length', 'OP-Width', 'OP-Depth', 'OP-Slip', 'OP-Rake', 'OP-Dip','OP-Logitude', 'OP-Latitude']
 

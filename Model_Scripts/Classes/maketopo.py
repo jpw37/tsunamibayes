@@ -54,7 +54,7 @@ def make_dtopo(params, makeplots=False):
     dtopo_fname = os.path.join('./InputData/', "dtopo.tt3")
 
     # number of cols = number of rectangles * number of changing params + number of constant params
-    n = (len(params) - 5) // 4
+    n = (len(params) - 4) // 5
 
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
@@ -63,12 +63,12 @@ def make_dtopo(params, makeplots=False):
     for i in range(n):
         usgs_subfault = dtopotools.SubFault()
         usgs_subfault.strike = params['Strike' + str(i+1)]
-        usgs_subfault.length = params['Length' + str(i+1)]
-        usgs_subfault.width = params['Width']
-        usgs_subfault.depth = params['Depth']
+        usgs_subfault.length = params['Sublength']
+        usgs_subfault.width = params['Subwidth']
+        usgs_subfault.depth = params['Depth'+ str(i+1)]
         usgs_subfault.slip = params['Slip']
         usgs_subfault.rake = params['Rake']
-        usgs_subfault.dip = params['Dip']
+        usgs_subfault.dip = params['Dip'+ str(i+1)]
         usgs_subfault.longitude = params['Longitude' + str(i+1)]
         usgs_subfault.latitude = params['Latitude' + str(i+1)]
         usgs_subfault.coordinate_specification = "centroid"
