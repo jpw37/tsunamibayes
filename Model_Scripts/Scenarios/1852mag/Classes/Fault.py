@@ -52,10 +52,10 @@ class Fault:
 class GridFault(Fault):
     def __init__(self,lat,lon,depth,depth_unc,dip,strike,R,name):
         super().__init__(R,name)
-        self.depth_map = RegularGridInterpolator((lat,lon),depth)
-        self.depth_unc_map = RegularGridInterpolator((lat,lon),depth_unc)
-        self.dip_map = RegularGridInterpolator((lat,lon),dip)
-        self.strike_map = RegularGridInterpolator((lat,lon),strike)
+        self.depth_map = RegularGridInterpolator((lat,lon),depth,bounds_error=False)
+        self.depth_unc_map = RegularGridInterpolator((lat,lon),depth_unc,bounds_error=False)
+        self.dip_map = RegularGridInterpolator((lat,lon),dip,bounds_error=False)
+        self.strike_map = RegularGridInterpolator((lat,lon),strike,bounds_error=False)
         self.lat = lat
         self.lon = lon
         self.depth = depth
