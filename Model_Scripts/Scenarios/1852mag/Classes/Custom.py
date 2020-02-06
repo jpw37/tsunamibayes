@@ -42,162 +42,230 @@ class Custom(MCMC):
         R = 6377905
         return GridFault(data['lat'],data['lon'],data['depth'],data['depth_unc'],data['dip'],data['strike'],R,"Banda Arc")
 
-    def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
-        """Split a given rectangle into 3 of equal length that more closely follow the
-        curve of the fault.
+    # def split_rect(self, lat, lon, strike, leng, num=3, method="Step"):
+    #     """Split a given rectangle into 3 of equal length that more closely follow the
+    #     curve of the fault.
+    #
+    #     Parameters:
+    #         lat (float): latitude of center
+    #         lon (float): longitude of center
+    #         leng (float): length of the long edge (km)
+    #
+    #     Return:
+    #         list rectangles represented by a list of parameters: [lat,long,strike,leng]
+    #     """
+    #     if num < 3 or num % 2!=1:
+    #         raise ValueError("'num' must be an odd integer of at least 3!")
+    #
+    #
+    #     """Spencer & Garret:
+    #         The code now constructs a Fault object, which is just a container for
+    #         the fault data, and has methods to compute distance and the strike map.
+    #         We can also extend the class to manage the other Okada parameter maps.
+    #         Until then, the important method is Fault.strike_from_lat_lon().
+    #         Custom now initializes with a Fault instance, self.fault. So you can
+    #         compute the strike map using self.fault.strike_from_lat_lon(lat,lon)
+    #     """
+    #
+    #     # DEPRICATED
+    #     # #Pulling prior of lon/lat information to contruct best fit approximaiton of strike
+    #     # prior_lat = self.latlongstrikeprior[:,0]
+    #     # prior_lon = self.latlongstrikeprior[:,1]
+    #     # prior_strike = self.latlongstrikeprior[:,2]
+    #     #
+    #     # #Constructing best fit
+    #     # A = np.vstack([np.ones(len(prior_lat)), prior_lat, prior_lon, prior_lat*prior_lon, prior_lat**2, prior_lon**2, prior_lat**2*prior_lon, prior_lon**2*prior_lat, prior_lat**3, prior_lon**3]).T
+    #     # lat_long_bestfit = np.linalg.lstsq(A, prior_strike, rcond=None)[0]
+    #     #
+    #     # #strike/latitude linear regression
+    #     # def strike_from_lat_long(lat, lon):
+    #     #     temp_array = np.array([1, lat, lon, lat*lon, lat**2, lon**2, lat**2*lon, lon**2*lat, lat**3, lon**3])
+    #     #     return temp_array @ lat_long_bestfit
+    #         #line of best fit for strike given latitude
+    #     # strike_from_lat = np.poly1d([-4.69107194e-01, -1.31232324e+01, -1.44327025e+02,
+    #     #                            -7.82503768e+02, -2.13007839e+03, -2.40708004e+03])
+    #     strike_from_lat_lon = self.fault.strike_from_lat_lon
+    #     step = self.fault.step
+    #     nleng= leng/num
+    #     rects = []
+    #     rects.append([lat, lon, strike, nleng])
+    #
+    #     if method == "Avg": # NOT IMPLEMENTED
+    #         lat_temp=lat
+    #         long_temp=lon
+    #         for i in range((num - 1)//2):
+    #             #Find the edge of the center rect and the strike at that point
+    #             edge1_lat = lat_temp + nleng/222*np.cos(np.radians(strike))
+    #             edge1_long = long_temp + nleng/222*np.sin(np.radians(strike))
+    #             strike1 = strike_from_lat_long(edge1_lat,edge1_long)
+    #             #Find the far egde of the adjacent rectangle
+    #             end1_lat = edge1_lat + nleng/111*np.cos(np.radians(strike1))
+    #             end1_long = edge1_long + nleng/111*np.sin(np.radians(strike1))
+    #             #average the strike of the two points
+    #             strike1 = (strike1 + strike_from_lat_long(end1_lat, end1_long))/2
+    #             #find the coordinates of the rectangle using the new strike
+    #             rect1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
+    #             rect1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
+    #
+    #             rects.append([rect1_lat, rect1_long, strike1, nleng])
+    #             lat_temp=rect1_lat
+    #             long_temp=rect1_long
+    #
+    #         lat_temp=lat
+    #         long_temp=lon
+    #         for i in range((num - 1)//2):
+    #             #Find the edge of the center rect and the strike at that point
+    #             edge2_lat = lat_temp - nleng/222*np.cos(np.radians(strike))
+    #             edge2_long = long_temp - nleng/222*np.sin(np.radians(strike))
+    #             strike2 = strike_from_lat_long(edge2_lat,edge1_long)
+    #             #Find the far egde of the adjacent rectangle
+    #             end2_lat = edge1_lat - nleng/111*np.cos(np.radians(strike2))
+    #             end2_long = edge1_long - nleng/111*np.sin(np.radians(strike2))
+    #             #average the strike of the two points
+    #             strike2 = (strike2 + strike_from_lat_long(end2_lat, end2_long))/2
+    #             #find the coordinates of the rectangle using the new strike
+    #             rect2_lat = edge2_lat - nleng/222*np.cos(np.radians(strike2))
+    #             rect2_long = edge2_long - nleng/222*np.sin(np.radians(strike2))
+    #
+    #             rects.append([rect2_lat, rect2_long, strike2, nleng])
+    #             lat_temp=rect2_lat
+    #             long_temp=rect2_long
+    #
+    #     elif method == "Center": # NOT IMPLEMENTED
+    #         lat_temp=lat
+    #         long_temp=lon
+    #         for i in range((num - 1)//2):
+    #             edge1_lat = lat_temp + nleng/222*np.cos(np.radians(strike))
+    #             edge1_long = long_temp + nleng/222*np.sin(np.radians(strike))
+    #             strike1 = strike_from_lat_long(edge1_lat,edge1_long)
+    #             mid1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
+    #             mid1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
+    #             strike1 = strike_from_lat_long(mid1_lat, mid1_long)
+    #             rect1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
+    #             rect1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
+    #
+    #             rects.append([rect1_lat, rect1_long, strike1, nleng])
+    #             lat_temp=rect1_lat
+    #             long_temp=rect1_long
+    #
+    #         lat_temp=lat
+    #         long_temp=lon
+    #         for i in range((num - 1)//2):
+    #             edge2_lat = lat_temp - nleng/222*np.cos(np.radians(strike))
+    #             edge2_long = long_temp - nleng/222*np.sin(np.radians(strike))
+    #             strike2 = strike_from_lat_long(edge2_lat,edge1_long)
+    #             mid2_lat = edge1_lat - nleng/222*np.cos(np.radians(strike2))
+    #             mid2_long = edge1_long - nleng/222*np.sin(np.radians(strike2))
+    #             strike2 = strike_from_lat_long(mid2_lat, mid2_long)
+    #             rect2_lat = edge2_lat - nleng/222*np.cos(np.radians(strike2))
+    #             rect2_long = edge2_long - nleng/222*np.sin(np.radians(strike2))
+    #
+    #             rects.append([rect2_lat, rect2_long, strike2, nleng])
+    #             lat_temp=rect2_lat
+    #             long_temp=rect2_long
+    #
+    #     elif method == "Step":
+    #         #define step length
+    #         num_steps = 8
+    #         step_len = nleng/num_steps
+    #
+    #         #add rectangles in direction of positive strike
+    #         bearing = strike
+    #         step_lat = lat
+    #         step_lon = lon
+    #         for i in range((num - 1)//2):
+    #             for i in range(num_steps):
+    #                 step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
+    #                 bearing = strike_from_lat_lon(step_lat, step_lon)
+    #             rects.append([step_lat, step_lon, strike_from_lat_lon(step_lat, step_lon), nleng])
+    #
+    #         #add rectangles in direction of negative strike
+    #         bearing = (strike-180)%360
+    #         step_lat = lat
+    #         step_lon = lon
+    #         for i in range((num - 1)//2):
+    #             for i in range(num_steps):
+    #                 step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
+    #                 bearing = (strike_from_lat_lon(step_lat, step_lon)-180)%360
+    #             rects.append([step_lat, step_lon, strike_from_lat_lon(step_lat, step_lon), nleng])
+    #
+    #         return rects
+    #
+    #     else:
+    #         raise ValueError("'method' must be either 'Avg', 'Center', or 'Step'")
+    #
+    #     rects.append([rect1_lat, rect1_long, strike1, nleng])
+    #     rects.append([rect2_lat, rect2_long, strike2, nleng])
+    #
+    #     return rects
 
-        Parameters:
-            lat (float): latitude of center
-            lon (float): longitude of center
-            leng (float): length of the long edge (km)
+    def split_rect(fault,lat,lon,length,width,n=11,m=3):
+        R = fault.R
+        # n = int(length/15000)
+        # m = int(width/15000)
+        n_steps = 8
+        length_step = length/(n*n_steps)
+        width_step = width/(m*n_steps)
+        sublength = length/n
+        subwidth = width/m
 
-        Return:
-            list rectangles represented by a list of parameters: [lat,long,strike,leng]
-        """
-        if num < 3 or num % 2!=1:
-            raise ValueError("'num' must be an odd integer of at least 3!")
+        lats = np.empty(n)
+        lons = np.empty(n)
+        lats[(n - 1)//2] = lat
+        lons[(n - 1)//2] = lon
 
+        # add strikeward and anti-strikeward centers
+        bearing1 = fault.strike_from_lat_lon(lat,lon)
+        bearing2 = (bearing1-180)%360
+        lat1,lon1 = lat,lon
+        lat2,lon2 = lat,lon
+        for i in range(1,(n - 1)//2+1):
+            for j in range(n_steps):
+                lat1,lon1 = Fault.step(lat1,lon1,bearing1,length_step,R)
+                lat2,lon2 = Fault.step(lat2,lon2,bearing2,length_step,R)
+                bearing1 = fault.strike_from_lat_lon(lat1, lon1)
+                bearing2 = (fault.strike_from_lat_lon(lat2, lon2)-180)%360
+            lats[(n-1)//2+i] = lat1
+            lats[(n-1)//2-i] = lat2
+            lons[(n-1)//2+i] = lon1
+            lons[(n-1)//2-i] = lon2
 
-        """Spencer & Garret:
-            The code now constructs a Fault object, which is just a container for
-            the fault data, and has methods to compute distance and the strike map.
-            We can also extend the class to manage the other Okada parameter maps.
-            Until then, the important method is Fault.strike_from_lat_lon().
-            Custom now initializes with a Fault instance, self.fault. So you can
-            compute the strike map using self.fault.strike_from_lat_lon(lat,lon)
-        """
+        strikes = fault.strike_map(np.vstack((lats,lons)).T)
+        dips = fault.dip_map(np.vstack((lats,lons)).T)
+        dipward = (strikes+90)%360
 
-        # DEPRICATED
-        # #Pulling prior of lon/lat information to contruct best fit approximaiton of strike
-        # prior_lat = self.latlongstrikeprior[:,0]
-        # prior_lon = self.latlongstrikeprior[:,1]
-        # prior_strike = self.latlongstrikeprior[:,2]
-        #
-        # #Constructing best fit
-        # A = np.vstack([np.ones(len(prior_lat)), prior_lat, prior_lon, prior_lat*prior_lon, prior_lat**2, prior_lon**2, prior_lat**2*prior_lon, prior_lon**2*prior_lat, prior_lat**3, prior_lon**3]).T
-        # lat_long_bestfit = np.linalg.lstsq(A, prior_strike, rcond=None)[0]
-        #
-        # #strike/latitude linear regression
-        # def strike_from_lat_long(lat, lon):
-        #     temp_array = np.array([1, lat, lon, lat*lon, lat**2, lon**2, lat**2*lon, lon**2*lat, lat**3, lon**3])
-        #     return temp_array @ lat_long_bestfit
-            #line of best fit for strike given latitude
-        # strike_from_lat = np.poly1d([-4.69107194e-01, -1.31232324e+01, -1.44327025e+02,
-        #                            -7.82503768e+02, -2.13007839e+03, -2.40708004e+03])
-        strike_from_lat_lon = self.fault.strike_from_lat_lon
-        step = self.fault.step
-        nleng= leng/num
-        rects = []
-        rects.append([lat, lon, strike, nleng])
+        Lats = np.empty((m,n))
+        Lons = np.empty((m,n))
+        Strikes = np.empty((m,n))
+        Dips = np.empty((m,n))
+        Lats[(m-1)//2] = lats
+        Lons[(m-1)//2] = lons
+        Strikes[(m-1)//2] = strikes
+        Dips[(m-1)//2] = dips
 
-        if method == "Avg": # NOT IMPLEMENTED
-            lat_temp=lat
-            long_temp=lon
-            for i in range((num - 1)//2):
-                #Find the edge of the center rect and the strike at that point
-                edge1_lat = lat_temp + nleng/222*np.cos(np.radians(strike))
-                edge1_long = long_temp + nleng/222*np.sin(np.radians(strike))
-                strike1 = strike_from_lat_long(edge1_lat,edge1_long)
-                #Find the far egde of the adjacent rectangle
-                end1_lat = edge1_lat + nleng/111*np.cos(np.radians(strike1))
-                end1_long = edge1_long + nleng/111*np.sin(np.radians(strike1))
-                #average the strike of the two points
-                strike1 = (strike1 + strike_from_lat_long(end1_lat, end1_long))/2
-                #find the coordinates of the rectangle using the new strike
-                rect1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
-                rect1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
+        # add dipward and antidipward centers
+        templats1,templons1 = lats.copy(),lons.copy()
+        templats2,templons2 = lats.copy(),lons.copy()
+        tempdips1,tempdips2 = dips.copy(),dips.copy()
+        for i in range(1,(m - 1)//2+1):
+            for j in range(n_steps):
+                templats1,templons1 = Fault.step(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)),R)
+                templats2,templons2 = Fault.step(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)),R)
+                tempdips1 = fault.dip_map(np.vstack((templats1,templons1)).T)
+                tempdips2 = fault.dip_map(np.vstack((templats2,templons2)).T)
+            Lats[(m-1)//2+i] = templats1
+            Lats[(m-1)//2-i] = templats2
+            Lons[(m-1)//2+i] = templons1
+            Lons[(m-1)//2-i] = templons2
+            Strikes[(m-1)//2+i] = fault.strike_map(np.vstack((templats1,templons1)).T)
+            Strikes[(m-1)//2-i] = fault.strike_map(np.vstack((templats2,templons2)).T)
+            Dips[(m-1)//2+i] = tempdips1
+            Dips[(m-1)//2-i] = tempdips2
 
-                rects.append([rect1_lat, rect1_long, strike1, nleng])
-                lat_temp=rect1_lat
-                long_temp=rect1_long
-
-            lat_temp=lat
-            long_temp=lon
-            for i in range((num - 1)//2):
-                #Find the edge of the center rect and the strike at that point
-                edge2_lat = lat_temp - nleng/222*np.cos(np.radians(strike))
-                edge2_long = long_temp - nleng/222*np.sin(np.radians(strike))
-                strike2 = strike_from_lat_long(edge2_lat,edge1_long)
-                #Find the far egde of the adjacent rectangle
-                end2_lat = edge1_lat - nleng/111*np.cos(np.radians(strike2))
-                end2_long = edge1_long - nleng/111*np.sin(np.radians(strike2))
-                #average the strike of the two points
-                strike2 = (strike2 + strike_from_lat_long(end2_lat, end2_long))/2
-                #find the coordinates of the rectangle using the new strike
-                rect2_lat = edge2_lat - nleng/222*np.cos(np.radians(strike2))
-                rect2_long = edge2_long - nleng/222*np.sin(np.radians(strike2))
-
-                rects.append([rect2_lat, rect2_long, strike2, nleng])
-                lat_temp=rect2_lat
-                long_temp=rect2_long
-
-        elif method == "Center": # NOT IMPLEMENTED
-            lat_temp=lat
-            long_temp=lon
-            for i in range((num - 1)//2):
-                edge1_lat = lat_temp + nleng/222*np.cos(np.radians(strike))
-                edge1_long = long_temp + nleng/222*np.sin(np.radians(strike))
-                strike1 = strike_from_lat_long(edge1_lat,edge1_long)
-                mid1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
-                mid1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
-                strike1 = strike_from_lat_long(mid1_lat, mid1_long)
-                rect1_lat = edge1_lat + nleng/222*np.cos(np.radians(strike1))
-                rect1_long = edge1_long + nleng/222*np.sin(np.radians(strike1))
-
-                rects.append([rect1_lat, rect1_long, strike1, nleng])
-                lat_temp=rect1_lat
-                long_temp=rect1_long
-
-            lat_temp=lat
-            long_temp=lon
-            for i in range((num - 1)//2):
-                edge2_lat = lat_temp - nleng/222*np.cos(np.radians(strike))
-                edge2_long = long_temp - nleng/222*np.sin(np.radians(strike))
-                strike2 = strike_from_lat_long(edge2_lat,edge1_long)
-                mid2_lat = edge1_lat - nleng/222*np.cos(np.radians(strike2))
-                mid2_long = edge1_long - nleng/222*np.sin(np.radians(strike2))
-                strike2 = strike_from_lat_long(mid2_lat, mid2_long)
-                rect2_lat = edge2_lat - nleng/222*np.cos(np.radians(strike2))
-                rect2_long = edge2_long - nleng/222*np.sin(np.radians(strike2))
-
-                rects.append([rect2_lat, rect2_long, strike2, nleng])
-                lat_temp=rect2_lat
-                long_temp=rect2_long
-
-        elif method == "Step":
-            #define step length
-            num_steps = 8
-            step_len = nleng/num_steps
-
-            #add rectangles in direction of positive strike
-            bearing = strike
-            step_lat = lat
-            step_lon = lon
-            for i in range((num - 1)//2):
-                for i in range(num_steps):
-                    step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
-                    bearing = strike_from_lat_lon(step_lat, step_lon)
-                rects.append([step_lat, step_lon, strike_from_lat_lon(step_lat, step_lon), nleng])
-
-            #add rectangles in direction of negative strike
-            bearing = (strike-180)%360
-            step_lat = lat
-            step_lon = lon
-            for i in range((num - 1)//2):
-                for i in range(num_steps):
-                    step_lat,step_lon = step(step_lat,step_lon,bearing,step_len,self.fault.R)
-                    bearing = (strike_from_lat_lon(step_lat, step_lon)-180)%360
-                rects.append([step_lat, step_lon, strike_from_lat_lon(step_lat, step_lon), nleng])
-
-            return rects
-
-        else:
-            raise ValueError("'method' must be either 'Avg', 'Center', or 'Step'")
-
-        rects.append([rect1_lat, rect1_long, strike1, nleng])
-        rects.append([rect2_lat, rect2_long, strike2, nleng])
-
-        return rects
+        Depths = fault.depth_map(np.vstack((Lats.flatten(),Lons.flatten())).T)
+        data = [Lats,Lons,Strikes,Dips,Depths]
+        data = [arr.flatten() for arr in data]
+        return np.array(data).T, sublength, subwidth
 
     def get_length(self, deltalogl, mag):
         """ Length is sampled from a truncated normal distribution that
@@ -328,7 +396,7 @@ class Custom(MCMC):
 
         depth_mu = 30000
         depth_std = 5000
-        mindepth = 15000
+        mindepth = 0
         maxdepth = 50000
         minlon = 126
         latlon = LatLonPrior(self.fault,depth_mu,depth_std,mindepth,maxdepth,minlon)
