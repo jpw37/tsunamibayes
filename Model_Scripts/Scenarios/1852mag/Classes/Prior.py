@@ -11,7 +11,7 @@ class LatLonPrior:
     """A class for a distance-based latitude/longitude prior. NOTE: this creates
     an unnormalized density function, not a true pdf"""
 
-    def __init__(self,fault,mu,sigma,mindepth,maxdepth,minlon):
+    def __init__(self,fault,mu,sigma,mindepth,maxdepth):
         """
         Parameters
         ----------
@@ -25,29 +25,22 @@ class LatLonPrior:
         self.sigma = sigma
         self.mindepth = mindepth
         self.maxdepth = maxdepth
-        self.minlon = minlon
+        a,b = (self.mindepth - self.mu) / self.sigma, (self.maxdepth - self.mu) / self.sigma
+        self.dist = stats.truncnorm(a,b,loc=self.mu,scale=self.sigma)
 
-    def logpdf(self,lat,lon,width,deltadepth):
+    def logpdf(self,lat,lon,rects,subwidth,deltadepth):
         """Evaluates the logpdf of the prior"""
-        if lon < self.minlon: return np.NINF
-        try:
-            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth #deltadepth im km to avoid singular covariance matrix
-        except ValueError:
-            return np.NINF
-        mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
-        a, b = (mindepth - self.mu) / self.sigma, (self.maxdepth - self.mu) / self.sigma
-        return stats.truncnorm.logpdf(depth,a,b,loc=self.mu,scale=self.sigma)
+        for rect in rects:
+            if rect[4] < .5*subwidth*np.sin(np.deg2rad(rect[3])) + self.mindepth: return np.NINF
+        depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth
+        return self.dist.logpdf(depth)
 
     def pdf(self,lat,lon,width,deltadepth):
         """Evaluates the pdf of the prior"""
-        if lon < self.minlon: return np.NINF
-        try:
-            depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth #deltadepth im km to avoid singular covariance matrix
-        except ValueError:
-            return np.NINF
-        mindepth = max(self.mindepth,.5*width*np.sin(np.deg2rad(self.fault.dip_from_lat_lon(lat,lon))))
-        a, b = (mindepth - self.mu) / self.sigma, (self.maxdepth - self.mu) / self.sigma
-        return stats.truncnorm.pdf(depth,a,b,loc=self.mu,scale=self.sigma)
+        for rect in rects:
+            if rect[4] < .5*subwidth*np.sin(np.deg2rad(rect[3])) + self.mindepth: return 0
+        depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth
+        return self.dist.pdf(depth)
 
     def rvs(self):
         """Return a random point on the fault"""
@@ -77,7 +70,7 @@ class Prior:
                        "deltalogw":deltalogw,
                        "deltadepth":deltadepth}
 
-    def logpdf(self, sample):
+    def logpdf(self, sample, rects, subwidth):
         """
         Calculate the prior log likelihood
         :param sample:
@@ -89,10 +82,9 @@ class Prior:
         deltalogl = sample["DeltaLogL"]
         deltalogw = sample["DeltaLogW"]
         deltadepth = sample["DeltaDepth"]
-        width = sample["Width"]
 
         # prior for longitude, latitude
-        lpdf = self.priors["latlon"].logpdf(lat,lon,width,deltadepth)
+        lpdf = self.priors["latlon"].logpdf(lat,lon,rects,subwidth,deltadepth)
 
         # Pareto prior on magnitude
         lpdf += self.priors["mag"].logpdf(mag)

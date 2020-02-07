@@ -202,7 +202,7 @@ class Custom(MCMC):
     #
     #     return rects
 
-    def split_rect(self,fault,lat,lon,length,width,n=11,m=3):
+    def split_rect(self,fault,lat,lon,length,width,deltadepth,n=11,m=3):
         R = fault.R
         # n = int(length/15000)
         # m = int(width/15000)
@@ -265,7 +265,7 @@ class Custom(MCMC):
             Dips[(m-1)//2+i] = tempdips1
             Dips[(m-1)//2-i] = tempdips2
 
-        Depths = fault.depth_map(np.vstack((Lats.flatten(),Lons.flatten())).T)
+        Depths = fault.depth_map(np.vstack((Lats.flatten(),Lons.flatten())).T) + deltadepth
         data = [Lats,Lons,Strikes,Dips,Depths]
         data = [arr.flatten() for arr in data]
         return np.array(data).T, sublength, subwidth
@@ -434,7 +434,7 @@ class Custom(MCMC):
         strike = self.fault.strike_from_lat_lon(lat,lon)
 
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
-        rectangles, sublength, subwidth = self.split_rect(self.fault, lat, lon, length, width, n = self.length_split, m = self.width_split)
+        rectangles, sublength, subwidth = self.split_rect(self.fault, lat, lon, length, width, deltadepth, n = self.length_split, m = self.width_split)
         temp = []
         for i, rect in enumerate(rectangles):
             temp_lat = rect[0]
@@ -522,5 +522,9 @@ class Custom(MCMC):
         return guesses
 
     def prior_logpdf(self,sample):
-        sample["Width"] = self.get_width(sample['DeltaLogW'],sample['Magnitude'])
-        return self.prior.logpdf(sample)
+        length = self.get_length(sample['DeltaLogL'],sample['Magnitude'])
+        width = self.get_width(sample['DeltaLogW'],sample['Magnitude'])
+        rects,sublength,subwidth = self.split_rect(self.fault,sample['Latitude'],sample['Longitude'],length,width,sample['DeltaDepth'],n = self.length_split,m = self.width_split)
+        if np.any(np.isnan(rects)):
+            return -np.NINF
+        return self.prior.logpdf(sample,rects,subwidth)
