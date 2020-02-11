@@ -58,7 +58,7 @@ class GridFault(Fault):
         self.strike_map = RegularGridInterpolator((lat,lon),strike,bounds_error=False)
         self.lat = lat
         self.lon = lon
-        self.depth = depth
+        self.depth = np.nan_to_num(depth)
         self.depth_unc = depth_unc
         self.dip = dip
         self.strike = strike
