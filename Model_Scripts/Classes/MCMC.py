@@ -65,16 +65,15 @@ class MCMC:
         if np.random.random() < accept_prob:
             # Accept and save proposal
             ar = True
+            self.samples.accepts += 1
             print("Accepted new proposal")
         else:
             # Reject Proposal and Save current winner to sample list
             ar = False
+            self.samples.rejects += 1
             print("Rejected new proposal")
-            if(self.samples.wins == 1):
-                self.samples.win_counter()
 
         self.samples.accepted = ar
-        self.samples.trial_counter()
         return ar
 
     def map_to_okada(self, draws):

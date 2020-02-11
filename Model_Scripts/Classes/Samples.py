@@ -85,8 +85,9 @@ class Samples:
 
         #TODO: should this always run, even during a restart?
         self.accepted = True
-        self.trials = 1
-        self.total_sample_wins = 0
+
+        self.accepts = 1
+        self.rejects = 0
 
         self.sample_llh = None
         self.sample_prior_lpdf = None
@@ -270,20 +271,6 @@ class Samples:
         """
         return self.proposal_posterior_lpdf
 
-    def win_counter(self):
-        """
-        Increments when a new sample is accepted to keep track of how many generated samples are being accepted
-        :return:
-        """
-        self.total_sample_wins += 1
-
-    def trial_counter(self):
-        """
-        Counts the total number of runs so far
-        :return:
-        """
-        self.trials += 1
-
     def save_debug(self):
         """
         Saves all the parameters into a list to save for the debug file
@@ -295,7 +282,7 @@ class Samples:
         if self.accepted: saves += ['Accepted']
         else: saves += ['Rejected']
 
-        saves += [((self.trials - self.total_sample_wins) / self.trials)]
+        saves += [self.accepts/(self.accepts+self.rejects)]
 
         self.mcmc.loc[len(self.mcmc)] = saves
 
