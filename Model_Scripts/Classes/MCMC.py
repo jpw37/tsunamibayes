@@ -65,8 +65,6 @@ class MCMC:
         if np.random.random() < accept_prob:
             # Accept and save proposal
             ar = True
-            self.samples.reset_wins()
-            self.samples.increment_wins()
             print("Accepted new proposal")
         else:
             # Reject Proposal and Save current winner to sample list
@@ -75,6 +73,7 @@ class MCMC:
             if(self.samples.wins == 1):
                 self.samples.win_counter()
 
+        self.samples.accepted = ar
         self.samples.trial_counter()
         return ar
 
@@ -86,4 +85,3 @@ class MCMC:
 
     def acceptance_prob(self, prop_prior_llh, cur_prior_llh):
         pass
-
