@@ -4,7 +4,7 @@
 ## Submission flags (Customize for VT/BYU) ##
 #SBATCH --nodes=1
 #SBATCH --ntasks=12
-#SBATCH --time=48:00:00
+#SBATCH --time=168:00:00
 #SBATCH --mem-per-cpu=4096M #memory requirement
 #SBATCH --mail-user=whitehead@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
@@ -73,9 +73,10 @@ echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 python Main.py             \
     --scen    1852mag      \
     --mcmc    random_walk  \
-    --nsamp   500         \
+    --nsamp   3000         \
     --rundir  $rundir      \
-    --init manual          \
+    --init restart         \
+    --resdir /fslhome/jpw37/fsl_groups/fslg_tsunami/compute/runs/34319122_m8 \
     | tee -a $logfile
 
 echo "LOG: $( date ): MCMC run complete" | tee -a $logfile

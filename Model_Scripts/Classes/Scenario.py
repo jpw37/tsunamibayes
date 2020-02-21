@@ -231,7 +231,7 @@ class Scenario:
 			self.samples.save_debug()
 
 			# Save to csv
-			if i % 50 == 0:
+			if i % 1 == 0: #maybe change this back to 50?
 				self.samples.save_to_csv()
 
 			if ar:

@@ -402,7 +402,7 @@ class Custom(MCMC):
         mindepth = 0
         maxdepth = 50000
         minlon = 126
-        latlon = LatLonPrior(self.fault,depth_mu,depth_std,mindepth,maxdepth,minlon)
+        latlon = LatLonPrior(self.fault,depth_mu,depth_std,mindepth,maxdepth)
         mag = stats.truncexpon(b=3,loc=6.5)
         deltalogl = stats.norm(scale=0.18842320591492676) # sample standard deviation from data
         deltalogw = stats.norm(scale=0.17186788334444705) # sample standard deviation from data
