@@ -399,7 +399,7 @@ class Custom(MCMC):
 
         depth_mu = 30000
         depth_std = 5000
-        mindepth = 0
+        mindepth = 2500
         maxdepth = 50000
         minlon = 126
         latlon = LatLonPrior(self.fault,depth_mu,depth_std,mindepth,maxdepth)

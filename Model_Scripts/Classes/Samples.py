@@ -68,7 +68,7 @@ class Samples:
         mcmc_cols = sample_cols + proposal_cols + okada_cols + proposal_okada_cols + \
                     ["Sample Prior", "Sample LLH", "Sample Posterior"] + \
                     ["Proposal Prior", "Proposal LLH", "Proposal Posterior"] + \
-                    ["Wins","Proposal Accept/Reject", "Acceptance ratio"]
+                    ["Proposal Accept/Reject", "Acceptance Rate"]
 
         self.samples        = pd.DataFrame(columns=sample_cols)
         self.proposals      = pd.DataFrame(columns=proposal_cols)
@@ -84,9 +84,10 @@ class Samples:
         #    self.load_csv()
 
         #TODO: should this always run, even during a restart?
-        self.wins = 1
-        self.trials = 1
-        self.total_sample_wins = 0
+        self.accepted = True
+
+        self.accepts = 1
+        self.rejects = 0
 
         self.sample_llh = None
         self.sample_prior_lpdf = None
@@ -270,32 +271,6 @@ class Samples:
         """
         return self.proposal_posterior_lpdf
 
-    def increment_wins(self):
-        """
-        Increment the counter for the number of times a sample wins
-        """
-        self.wins += 1
-
-    def reset_wins(self):
-        """
-        Reset the number of wins when a new proposal is accepted
-        """
-        self.wins = 0
-
-    def win_counter(self):
-        """
-        Increments when a new sample is accepted to keep track of how many generated samples are being accepted
-        :return:
-        """
-        self.total_sample_wins += 1
-
-    def trial_counter(self):
-        """
-        Counts the total number of runs so far
-        :return:
-        """
-        self.trials += 1
-
     def save_debug(self):
         """
         Saves all the parameters into a list to save for the debug file
@@ -304,13 +279,10 @@ class Samples:
         saves = self.get_sample().tolist() + self.get_proposal().tolist() + self.get_sample_okada().tolist() + self.get_proposal_okada().tolist()
         saves += [self.sample_prior_lpdf, self.sample_llh, self.sample_posterior_lpdf]
         saves += [self.proposal_prior_lpdf, self.proposal_llh, self.proposal_posterior_lpdf]
-        saves += [self.wins]
-        if self.wins == 1:
-            saves += ['Accepted']
-        else:
-            saves += ['Rejected']
+        if self.accepted: saves += ['Accepted']
+        else: saves += ['Rejected']
 
-        saves += [((self.trials - self.total_sample_wins) / self.trials)]
+        saves += [self.accepts/(self.accepts+self.rejects)]
 
         self.mcmc.loc[len(self.mcmc)] = saves
 

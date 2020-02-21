@@ -171,7 +171,8 @@ class Scenario:
 				proposal_obvs = self.samples.get_sample_obvs().copy()
 				proposal_obvs[...] = np.nan
 				self.samples.save_obvs(proposal_obvs)
-				ar = 0
+				accept_prob = 0
+				ar = self.mcmc.accept_reject(accept_prob)
 
 			else:
 				# If instructed to use the custom parameters, map parameters to Okada space (9 Dimensional)

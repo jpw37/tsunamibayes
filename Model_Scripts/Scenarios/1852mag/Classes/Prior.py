@@ -31,14 +31,14 @@ class LatLonPrior:
     def logpdf(self,lat,lon,rects,subwidth,deltadepth):
         """Evaluates the logpdf of the prior"""
         for rect in rects:
-            if rect[4] < .5*subwidth*np.sin(np.deg2rad(rect[3])) + self.mindepth: return np.NINF
+            if rect[4] < .5*subwidth*np.sin(np.deg2rad(rect[3])): return np.NINF
         depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth
         return self.dist.logpdf(depth)
 
     def pdf(self,lat,lon,width,deltadepth):
         """Evaluates the pdf of the prior"""
         for rect in rects:
-            if rect[4] < .5*subwidth*np.sin(np.deg2rad(rect[3])) + self.mindepth: return 0
+            if rect[4] < .5*subwidth*np.sin(np.deg2rad(rect[3])): return 0
         depth = self.fault.depth_from_lat_lon(lat,lon)[0] + 1000*deltadepth
         return self.dist.pdf(depth)
 
@@ -46,7 +46,10 @@ class LatLonPrior:
         """Return a random point on the fault"""
         # idx = np.random.randint(len(self.fault.lonpts))
         # return [self.fault.latpts[idx],self.fault.lonpts[idx]]
-        raise NotImplementedError
+        d = self.dist.rvs()
+        I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
+        idx = np.random.randint(len(I))
+        return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
 
 class Prior:
     """
@@ -105,7 +108,6 @@ class Prior:
         Pick a random set of parameters out of the prior
         :return:
         """
-        raise NotImplementedError
         # CHECK ORDER OF PRODUCED RESULTS
         latlon = self.priors["latlon"].rvs()
         mag = self.priors["mag"].rvs()
