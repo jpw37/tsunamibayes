@@ -406,7 +406,7 @@ class Custom(MCMC):
         mag = stats.truncexpon(b=3,loc=6.5)
         deltalogl = stats.norm(scale=0.18842320591492676) # sample standard deviation from data
         deltalogw = stats.norm(scale=0.17186788334444705) # sample standard deviation from data
-        deltadepth = stats.norm(scale=2) # in km to avoid numerically singular covariance matrix
+        deltadepth = stats.norm(scale=5) # in km to avoid numerically singular covariance matrix
         return Prior(latlon,mag,deltalogl,deltalogw,deltadepth)
 
     def map_to_okada(self, draws):
