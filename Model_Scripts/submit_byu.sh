@@ -3,8 +3,8 @@
 
 ## Submission flags (Customize for VT/BYU) ##
 #SBATCH --nodes=1
-#SBATCH --ntasks=12
-#SBATCH --time=02:00:00
+#SBATCH --ntasks=24
+#SBATCH --time=00:20:00
 #SBATCH --mem-per-cpu=8192M #memory requirement
 #SBATCH --mail-user=whitehead@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
@@ -43,11 +43,6 @@ logfile="$TMPFS/run.log"
 [[ ! -z $PARALLEL_SEQ ]] && finaldir="$finaldir/$( printf %03d $PARALLEL_SEQ )"
 
 
-# set OMP flags
-export OMP_NUM_THREADS=12
-export OMP_STACKSIZE=16M
-ulimit -s unlimited
-
 #### INSTALL CLAWPACK IN TMPFS ####
 
 clawver=v5.6.0
@@ -70,9 +65,9 @@ cd $workdir
 > $logfile
 
 #set some environment variables for Geoclaw
-export FFLAGS='-O2 -fPIC -fopenmp' ; echo "FFLAGS=$FFLAGS"                          | tee -a $logfile
+export FFLAGS='-O2 -fPIC -fopenmp -fdefault-integer-8' ; echo "FFLAGS=$FFLAGS"                          | tee -a $logfile
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE; echo "OMP_NUM_THREADS=$OMP_NUM_THREADS" | tee -a $logfile
-export OMP_STACKSIZE=16M           ; echo "OMP_STACKSIZE=$OMP_STACKSIZE"            | tee -a $logfile
+export OMP_STACKSIZE=8192M           ; echo "OMP_STACKSIZE=$OMP_STACKSIZE"            | tee -a $logfile
 ulimit -s unlimited                ; echo "stack size unlimited"                    | tee -a $logfile
 
 echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
