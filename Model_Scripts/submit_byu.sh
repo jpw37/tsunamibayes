@@ -4,10 +4,11 @@
 ## Submission flags (Customize for VT/BYU) ##
 #SBATCH --nodes=1
 #SBATCH --ntasks=12
-#SBATCH --time=00:30:00
-#SBATCH --mem-per-cpu=4096M #memory requirement
+#SBATCH --time=02:00:00
+#SBATCH --mem-per-cpu=8192M #memory requirement
 #SBATCH --mail-user=whitehead@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
+#SBATCH --job-name=threadingx2
 ###SBATCH --qos=test
 #SBATCH -A jpw37
 #SBATCH -C rhel7
@@ -42,11 +43,18 @@ logfile="$TMPFS/run.log"
 [[ ! -z $PARALLEL_SEQ ]] && finaldir="$finaldir/$( printf %03d $PARALLEL_SEQ )"
 
 
+# set OMP flags
+export OMP_NUM_THREADS=12
+export OMP_STACKSIZE=16M
+ulimit -s unlimited
+
 #### INSTALL CLAWPACK IN TMPFS ####
 
 clawver=v5.6.0
 #Location of clawpack source (Customize for VT/BYU)
-src=/fslgroup/fslg_tsunami/justin/src/clawpack-$clawver.tar.gz
+#src=/fslgroup/fslg_tsunami/justin/src/clawpack-$clawver.tar.gz
+#The following is a modified clawpack installation that should speed up memory allocation
+src=/fslhome/jpw37/fsl_groups/fslg_tsunami/compute/clawpack-$clawver.tar.gz
 export CLAW="$TMPFS/clawpack-$clawver"
 mkdir -p $CLAW
 cd $CLAW
@@ -73,7 +81,7 @@ echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 python Main.py             \
     --scen    1852mag      \
     --mcmc    random_walk  \
-    --nsamp   1         \
+    --nsamp   5         \
     --rundir  $rundir      \
     --init manual         \
     | tee -a $logfile

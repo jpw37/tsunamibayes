@@ -56,6 +56,7 @@ class FeedForward:
         # os.system('make clobber')
         os.system('rm .output')
         os.system('make .output')
+#        os.system('make .plots') #JPW: remove this...only for debugging
 
         return
 
