@@ -2,8 +2,14 @@ import numpy as np
 import pandas as pd
 
 class BaseScenario:
-    def __init__(self,name,gauges):
+    """Base class for running a tsunamibayes scenario. Contains the essential
+    core routines for running the Metropolis-Hastings algorithm, as well as
+    saving the various kinds of output data associated with the sampling proceedure.
+    This class should never be instantiated, but should be inherited from."""
+    def __init__(self,name,prior,forward_model,gauges):
         self.name = name
+        self.prior = prior
+        self.forward_model = forward_model
         self.gauges = gauges
         self.observation_cols = [gauge.name + " " + obstype for gauge in gauges for obstype in gauge.obstypes]
 
@@ -81,6 +87,20 @@ class BaseScenario:
         self.observations.to_csv(save_path+"observations.csv")
 
     def sample(self,nsamples):
+        """Draw samples from the posterior distribution using the Metropolis-Hastings
+        algorithm.
+
+        Parameters
+        ----------
+        nsamples : int
+            number of samples to draw
+
+        Returns
+        -------
+        samples : DataFrame
+            pandas dataframe containing samples, including any from prior runs
+            (such as when using Scenario.restart())
+        """
         if not hasattr(self,'samples'):
             raise AttributeError("Chain must first be initialized with {}.initialize_chain() or {}.restart()".format(type(self).__name__,type(self).__name__))
         for _ in range(nsamples):
@@ -92,18 +112,47 @@ class BaseScenario:
 
             # if prior logpdf is -infinity, reject proposal and bypass forward model
             if prior_lpdf = np.NINF:
+                # set accept/reject probablity to 0
                 alpha = 0
 
-                # save nan values to dataframes
+                # generate nan Series for dataframes
             else:
                 proposal_obs = self.forward_model.run(proposal)
                 proposal_llh = self.forward_model.llh()
 
+                # accept/reject probability
+                alpha = proposal_prior_lpdf + proposal_llh + \
+                        self.proposal_logpdf(self.samples.iloc[-1],proposal) - \
+                        self.debug.iloc[-1]['sample prior logpdf'] - \
+                        self.debug.iloc[-1]['sample llh'] - \
+                        self.proposal_logpdf(proposal,self.samples.iloc[-1])
+                alpha = np.exp(alpha)
 
+            # accept/reject
+            accepted = (np.random.rand() < alpha)
+            if accepted:
+                self.samples.loc[len(self.samples)] = proposal
+                # update other dataframes
+            else:
+                self.samples.loc[len(self.samples)] = self.samples.iloc[-1]
+                # update other dataframes
 
+            return self.samples
 
     def propose(self,sample):
-        pass
+        """Propose a new sample, perhaps dependent on the current sample. Must
+        be implemented in inherited classes.
+        """
+        raise NotImplementedError("{}.propose() must be implemented in classes inheriting from BaseScenario".format(type(self).__name__))
+
+    def proposal_logpdf(self,u,v):
+        """Evaluate the logpdf of the proposal kernel, expressed as the log-probability-density
+        of moving from `v` to `u`. Must be implemented in inherited classes.
+        """
+        raise NotImplementedError("{}.proposal_logpdf() must be implemented in classes inheriting from BaseScenario".format(type(self).__name__))
 
     def map_to_model_params(self,sample):
-        pass
+        """Evaluate the map from sample parameters to forward model parameters.
+        Must be implemented in inherited classes.
+        """
+        raise NotImplementedError("{}.map_to_model_params() must be implemented in classes inheriting from BaseScenario".format(type(self).__name__))

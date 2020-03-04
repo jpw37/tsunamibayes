@@ -1,6 +1,26 @@
 import scipy.stats as stats
 
 class Gauge:
+    """Class for managing data related to observations. A Gauge object
+    loosely corresponds to an observation location, along with probability distributions
+    representing each type of observation associated with that location.
+
+    Parameters
+    ----------
+    name : str
+        Name of the observation (for use in output data files)
+    lat : float
+        Latitude of observation location
+    lon : float
+        Longitude of observation location
+    dists : dict
+        Dictionary of scipy.stats frozen_rv objects. Each distribution's key
+        corresponds to which type of observation the distribution is associated
+        with
+    vs30 : float (optional)
+        Shear-wave velocity in the top 30 meters of soil. Only used for shake
+        observations
+    """
     tsunami_obstypes = ['arrival','height','inundation']
     shake_obstypes = ['pga']
     obstypes = tsunami_obstypes + shake_obstypes
@@ -24,7 +44,29 @@ class Gauge:
         self.obstypes = self.dists.keys()
 
     @classmethod
-    def from_shapes(cls,name,lat,lon,params):
+    def from_shapes(cls,name,lat,lon,params,**kwargs):
+        """Alternate constructor for Gauge objects. Accepts a `params` dictionary
+        rather than a `dists` dictionary, where the `params` dictionary contains
+        the various parameters associated with the scipy.stats frozen_rv object
+        that will be constructed within the class.
+
+        Parameters
+        ----------
+        name : str
+            Name of the observation (for use in output data files)
+        lat : float
+            Latitude of observation location
+        lon : float
+            Longitude of observation location
+        params : dict
+            Dictionary of distribution parameters. Each key corresponds to another dictionary:
+            params['arrival'] = {'name':'norm','shapes':{'loc':1,'scale':2}}.
+            This dictionary must contain a valid scipy.stats distribution name,
+            as well as a dictionary of shape parameters that will be passed to the
+            scipy.stats constructor as keyword arguments.
+        **kwargs
+            Additional arguments to the Gauge class constructor.
+        """
         dists = {}
         for obstype,d in params.items():
             if obstype not in Gauge.obstypes:
@@ -34,7 +76,7 @@ class Gauge:
             if 'shapes' not in d.keys():
                 raise TypeError("Observation type '{}' must have associated distribution shape parameters")
             dists[obstype] = getattr(stats,d['name'])(**d['shapes'])
-        return cls(name,lat,lon,dists)
+        return cls(name,lat,lon,dists,**kwargs)
 
     def to_json(self):
         ignore = ['dists','obstypes']
