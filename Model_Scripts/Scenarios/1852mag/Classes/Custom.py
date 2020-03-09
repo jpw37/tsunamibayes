@@ -23,7 +23,7 @@ class Custom(MCMC):
         MCMC.__init__(self)
         self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','DeltaLogL','DeltaLogW','DeltaDepth']
         self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogL','P-DeltaLogW','P-DeltaDepth']
-        self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height']
+        self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height']
         self.mw = 0
         self.length_split = 11
         self.width_split = 3
@@ -494,9 +494,9 @@ class Custom(MCMC):
             #length =  1.33325981e+05
             #width  =  8.45009646e+04
 
-            lon    =  1.316e+02
+            lon    =  1.32e+02
             lat    = -5.0e+00
-            mag = 9.0
+            mag = 8.5
             dellogl = 0
             dellogw = 0
             deltadepth = 0
