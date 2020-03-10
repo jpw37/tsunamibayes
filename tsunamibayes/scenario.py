@@ -130,11 +130,6 @@ class BaseScenario:
         self.samples = pd.DataFrame(columns=self.sample_cols)
         self.samples.loc[0] = u0
 
-    def load_gauges(infile):
-        with open(infile,'r') as f:
-            lst = json.load(f)
-        return [Gauge.from_json(d) for d in lst]
-
     def restart(self,restart_path):
         self.samples = pd.read_csv(restart_path+"samples.csv",index_col=0)
         self.okada_params = pd.read_csv(restart_path+"okada_params.csv",index_col=0)

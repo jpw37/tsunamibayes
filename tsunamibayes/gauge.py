@@ -1,4 +1,5 @@
 import scipy.stats as stats
+import json
 
 class Gauge:
     """Class for managing data related to observations. A Gauge object
