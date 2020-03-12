@@ -434,7 +434,7 @@ class Custom(MCMC):
         strike = self.fault.strike_from_lat_lon(lat,lon)
 
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
-        rectangles, sublength, subwidth = self.split_rect(self.fault, lat, lon, length, width, deltadepth, n = self.length_split, m = self.width_split)
+        rectangles, sublength, subwidth = self.split_rect(self.fault, lat, lon, length, width, 1000*deltadepth, n = self.length_split, m = self.width_split)
         temp = []
         for i, rect in enumerate(rectangles):
             temp_lat = rect[0]
