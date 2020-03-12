@@ -25,48 +25,6 @@ class BaseScenario:
                           ["proposal prior logpdf", "proposal llh", "proposal posterior logpdf"] + \
                           ["accept/reject", "acceptance rate"]
 
-    def acceptance_prob(self,prop_prior_llh,cur_prior_llh):
-        """Calculate the acceptance probability given the llh for the current 
-        and proposed parameters
-
-        Parameters
-        ----------
-        prop_prior_llh : float 
-            proposed parameters likelihood
-        cur_prior_llh : float
-            current parameters likelihood
-        
-        Returns
-        -------
-        float 
-            Probability of accepting the proposal
-        """
-        # TODO: FIX THIS TWO LINES
-        # Get these two from the debug dataframe
-        sample_llh = self.debug["Sample LLH"].iloc[-1]
-        proposal_llh = self.debug["Proposal LLH"].iloc[-1]
-        # sample_llh = self.samples.get_sample_llh()
-        # proposal_llh = self.samples.get_proposal_llh()
-
-        # TODO: CHECK WITH HADEN IF THESE ARE NO LONGER NECESSARY
-        if np.isneginf(proposal_llh) and np.isneginf(sample_llh):
-            change_llh = 0
-        elif np.isnan(proposal_llh) and np.isnan(sample_llh):
-            change_llh = 0
-            # fix situation where nan in proposal llh results in acceptance, e.g., 8855 [-52.34308085] -10110.84699320795 [-10163.19007406] [-51.76404079] nan [nan] 1 accept
-        elif np.isnan(proposal_llh) and not np.isnan(sample_llh):
-            change_llh = np.NINF
-        elif not np.isnan(proposal_llh) and np.isnan(sample_llh):
-            change_llh = np.inf
-        else:
-            change_llh = proposal_llh - sample_llh
-
-        # Log-Likelihood
-        change_prior_lpdf = prop_prior_llh - cur_prior_llh
-
-        # Note we use np.exp(new - old) because it's the log-likelihood
-        return min(1, np.exp(change_llh+change_prior_lpdf))
-
     def debug_row(self,**kwargs):
         """Create a Pandas Series object with the given data that is desired to
         be kept in the debug output. 
@@ -161,7 +119,7 @@ class BaseScenario:
             raise AttributeError("Chain must first be initialized with {}.initialize_chain() or {}.restart()".format(type(self).__name__,type(self).__name__))
         for _ in range(nsamples):
             # propose new sample from previous
-            proposal = self.propose(samples.iloc[-1])
+            proposal = self.propose(self.samples.iloc[-1])
 
             # evaluate prior logpdf
             proposal_prior_lpdf = self.prior.logpdf(proposal)
