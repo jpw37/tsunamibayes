@@ -1,8 +1,9 @@
 class BasePrior:
     def __init__(self):
-        pass
+        raise NotImplementedError("{}__init__() must be implemented in classes inheriting from BasePrior".format(type(self).__name__))
     def logpdf(self,sample):
-        pass
-    def rvs(self,n):
-        pass
+        raise NotImplementedError("{}.logpdf() must be implemented in classes inheriting from BasePrior".format(type(self).__name__))
+    def rvs(self,n):        
+        raise NotImplementedError("{}.rvs() must be implemented in classes inheriting from BasePrior".format(type(self).__name__))
+
     
