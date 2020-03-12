@@ -70,9 +70,9 @@ class ForwardGeoClaw(BaseForwardModel):
         """
         arrivals, heights = observations
         llh = 0.  # init p
-        heightLikelihoodTable = np.load('./InputData/gaugeHeightLikelihood.npy')
+        heightLikelihoodTable = np.load(self.global_params['h_table_path'])
         heightValues = heightLikelihoodTable[:, 0]
-        inundationLikelihoodTable = np.load('./InputData/gaugeInundationLikelihood.npy')
+        inundationLikelihoodTable = np.load(self.global_params['inu_table_path'])
         inundationValues = inundationLikelihoodTable[:, 0]
 
         for i, gauge in enumerate(self.gauges):

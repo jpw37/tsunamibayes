@@ -23,5 +23,9 @@
 "fault_data_path" : "./InputData/bandadata.npz",
 
 "obser_file_path" : "./fort.FG1.valuemax",
-"bath_file_path"  : "./fort.FG1.aux1"
+"bath_file_path"  : "./fort.FG1.aux1",
+"h_table_path"    : "./InputData/gaugeHeightLikelihood.npy",
+"inu_table_path"  : "./InputData/gaugeInundationLikelihood.npy",
+
+"nsamples"        : 10
 }

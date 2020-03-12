@@ -54,20 +54,20 @@ class Fault:
     def dip_map(self,lat,lon):
         pass
 
-    def split_rect(self,lat,lon,length,width,deltadepth,n=11,m=3):
+    def split_rect(self,lat,lon,length,width,depth_offset=0,n=11,m=3):
         """
         Parameters:
         -----------
         lat : float
-            Latitude coordinate (degrees?)
+            Latitude coordinate (degrees)
         lon : float
-            Longitude coordinate (degrees?)
+            Longitude coordinate (degrees)
         length : float
-            Length of rectangle (km?)
+            Length of rectangle (meters)
         width : float
-            Width of rectangle (km?)
-        deltadepth : float
-             (km?)
+            Width of rectangle (meters)
+        depth_offset : float
+            Noise parameter for sampling depth (meters)
         n : int
             Number of splits along length
         m : int
@@ -83,8 +83,6 @@ class Fault:
             The width of each subrectangle
         """
         R = self.R
-        # n = int(length/15000)
-        # m = int(width/15000)
         n_steps = 8
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)
@@ -144,7 +142,7 @@ class Fault:
             Dips[(m-1)//2+i] = tempdips1
             Dips[(m-1)//2-i] = tempdips2
 
-        Depths = self.depth_map(np.vstack((Lats.flatten(),Lons.flatten())).T) + deltadepth
+        Depths = self.depth_map(np.vstack((Lats.flatten(),Lons.flatten())).T) + depth_offset
         data = [Lats,Lons,Strikes,Dips,Depths]
         data = [arr.flatten() for arr in data]
         rectangles = np.array(data).T
