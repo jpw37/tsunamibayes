@@ -7,18 +7,16 @@ class BaseScenario:
     saving the various kinds of output data associated with the sampling proceedure.
     This class should never be instantiated, but should be inherited from."""
 
-    prepend_p = lambda string: 'p_'+string
     bayes_data_cols = ["prior_logpdf","llh","posterior_logpdf"]
     # Must be defined in derived classes. Placed here for reference.
     sample_cols = None
     model_param_cols = None
 
-    def __init__(self,name,prior,forward_model,gauges):
+    def __init__(self,name,prior,forward_model):
         self.name = name
         self.prior = prior
         self.forward_model = forward_model
-        self.gauges = gauges
-        self.model_output_cols = [gauge.name + " " + obstype for gauge in gauges for obstype in gauge.obstypes]
+        self.model_output_cols = forward_model.model_output_cols
 
         # generate column headings for debug dataframe
         if self.sample_cols is None or self.model_param_cols is None:
