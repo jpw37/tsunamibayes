@@ -521,31 +521,20 @@ class Custom(MCMC):
 
         return guesses
 
-    def out_of_bounds(self,rects,sublength,subwidth,minlat,maxlat,minlon,maxlon):
-        # strikeward/antistrikeward edge midpoints
-        strikeward_lats,strikeward_lons = Fault.step(rects[:,0],rects[:,1],rects[:,2],sublength/2,self.fault.R)
-        antistrikeward_lats,antistrikeward_lons = Fault.step(rects[:,0],rects[:,1],rects[:,2],-sublength/2,self.fault.R)
-
-        # first corners
-        c1_lats,c1_lons = Fault.step(strikeward_lats,strikeward_lons,(rects[:,2]-90)%360,subwidth/2,self.fault.R)
-        if np.any(c1_lats < minlat) or np.any(c1_lats > maxlat) or np.any(c1_lons < minlon) or np.any(c1_lons > maxlon):
-            return True
-
-        # second corners
-        c2_lats,c2_lons = Fault.step(strikeward_lats,strikeward_lons,(rects[:,2]-90)%360,-subwidth/2,self.fault.R)
-        if np.any(c2_lats < minlat) or np.any(c2_lats > maxlat) or np.any(c2_lons < minlon) or np.any(c2_lons > maxlon):
-            return True
-
-        # third corners
-        c3_lats,c3_lons = Fault.step(antistrikeward_lats,antistrikeward_lons,(rects[:,2]-90)%360,subwidth/2,self.fault.R)
-        if np.any(c3_lats < minlat) or np.any(c3_lats > maxlat) or np.any(c3_lons < minlon) or np.any(c3_lons > maxlon):
-            return True
-
-        # fourth corners
-        c4_lats,c4_lons = Fault.step(antistrikeward_lats,antistrikeward_lons,(rects[:,2]-90)%360,-subwidth/2,self.fault.R)
-        if np.any(c4_lats < minlat) or np.any(c4_lats > maxlat) or np.any(c4_lons < minlon) or np.any(c4_lons > maxlon):
-            return True
-
+    def out_of_bounds(self,lat,lon,strike,length,width,minlat,maxlat,minlon,maxlon):
+    """Computes the lat-lon coordinates of the rectangle corners"""
+    edge1 = Fault.step(lat,lon,strike,length/2,self.fault.R)
+    edge2 = Fault.step(lat,lon,strike-180,length/2,self.fault.R)
+    corner1 = Fault.step(edge1[0],edge1[1],strike+90,width/2,self.fault.R)
+    corner2 = Fault.step(edge1[0],edge1[1],strike-90,width/2,self.fault.R)
+    corner3 = Fault.step(edge2[0],edge2[1],strike+90,width/2,self.fault.R)
+    corner4 = Fault.step(edge2[0],edge2[1],strike-90,width/2,self.fault.R)
+    corners = np.hstack((corner1,corner2,corner3,corner4))
+    if np.any(corners[0] < minlat) or np.any(corners[0] > maxlat):
+        return True
+    elif np.any(corners[1] < minlon) or np.any(corners[1] > maxlon):
+        return True
+    else:
         return False
 
     def prior_logpdf(self,sample):
@@ -554,6 +543,6 @@ class Custom(MCMC):
         rects,sublength,subwidth = self.split_rect(self.fault,sample['Latitude'],sample['Longitude'],length,width,sample['DeltaDepth'],n = self.length_split,m = self.width_split)
         if np.any(np.isnan(rects)):
             return -np.NINF
-        elif self.out_of_bounds(rects,sublength,subwidth,126,133.5,-10,-2):
+        elif self.out_of_bounds(rects,sublength,subwidth,-10,-2,126,133.5):
             return -np.NINF
         return self.prior.logpdf(sample,rects,subwidth)
