@@ -1,4 +1,5 @@
 import scipy.stats as stats
+import json
 
 class Gauge:
     """Class for managing data related to observations. A Gauge object
@@ -17,34 +18,27 @@ class Gauge:
         Dictionary of scipy.stats frozen_rv objects. Each distribution's key
         corresponds to which type of observation the distribution is associated
         with
-    vs30 : float (optional)
-        Shear-wave velocity in the top 30 meters of soil. Only used for shake
-        observations
+    **kwargs : optional
+        Additional arguments to class constructor. Set as class attributes
     """
-    tsunami_obstypes = ['arrival','height','inundation']
-    shake_obstypes = ['pga']
-    obstypes = tsunami_obstypes + shake_obstypes
-    def __init__(self,name,lat,lon,dists,vs30=None):
+
+    def __init__(self,name,lat,lon,dists,**kwargs):
         # core attributes
         self.name = name
         self.lat = lat
         self.lon = lon
 
-        # shake observation error catching
-        if vs30 is not None:
-            if not any([obstype in dists.keys() for obstype in Gauge.shake_obstypes]):
-                raise TypeError("At least one observation type from {} must be specified when 'vs30' is given".format(Gauge.shake_obstypes))
-
         for obstype,dist in dists.items():
-            if obstype not in Gauge.obstypes:
-                raise TypeError("'{}' is not a valid observation type (must be one of {})".format(obstype,Gauge.obstypes))
             if not isinstance(dist,stats._distn_infrastructure.rv_frozen):
                 raise TypeError("dists['{}'] must be a frozen scipy.stats distribution".format(obstype))
         self.dists = dists
         self.obstypes = self.dists.keys()
 
+        for key,value in kwargs.items():
+            setattr(self,key,value)
+
     @classmethod
-    def from_shapes(cls,name,lat,lon,params,**kwargs):
+    def from_shapes(cls,name,lat,lon,dist_params,**kwargs):
         """Alternate constructor for Gauge objects. Accepts a `params` dictionary
         rather than a `dists` dictionary, where the `params` dictionary contains
         the various parameters associated with the scipy.stats frozen_rv object
@@ -58,9 +52,12 @@ class Gauge:
             Latitude of observation location
         lon : float
             Longitude of observation location
-        params : dict
-            Dictionary of distribution parameters. Each key corresponds to another dictionary:
-            params['arrival'] = {'name':'norm','shapes':{'loc':1,'scale':2}}.
+        dist_params : dict
+            Dictionary of distribution parameters. Each key corresponds to
+            another dictionary. For example:
+
+            dist_params['arrival'] = {'name':'norm','shapes':{'loc':1,'scale':2}}.
+
             This dictionary must contain a valid scipy.stats distribution name,
             as well as a dictionary of shape parameters that will be passed to the
             scipy.stats constructor as keyword arguments.
@@ -68,12 +65,10 @@ class Gauge:
             Additional arguments to the Gauge class constructor.
         """
         dists = {}
-        for obstype,d in params.items():
-            if obstype not in Gauge.obstypes:
-                raise TypeError("'{}' is not a valid observation type (must be one of {})".format(obstype,Gauge.obstypes))
+        for obstype,d in dist_params.items():
             if 'name' not in d.keys():
                 raise TypeError("Observation type '{}' must have an associated distribution name")
-            if 'shapes' not in d.keys():
+            elif 'shapes' not in d.keys():
                 raise TypeError("Observation type '{}' must have associated distribution shape parameters")
             dists[obstype] = getattr(stats,d['name'])(**d['shapes'])
         return cls(name,lat,lon,dists,**kwargs)
@@ -81,9 +76,9 @@ class Gauge:
     def to_json(self):
         ignore = ['dists','obstypes']
         d = {key:self.__dict__[key] for key in self.__dict__ if key not in ignore}
-        d['params'] = {}
+        d['dist_params'] = {}
         for key,dist in self.dists.items():
-            d['params'][key] = {'name':dist.dist.name,'shapes':dist.kwds}
+            d['dist_params'][key] = {'name':dist.dist.name,'shapes':dist.kwds}
         return d
 
     @classmethod

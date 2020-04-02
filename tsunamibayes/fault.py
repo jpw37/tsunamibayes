@@ -1,3 +1,5 @@
+import numpy as np
+
 class Fault:
     """A class for data relating to the fault"""
     def __init__(self,R,name):
