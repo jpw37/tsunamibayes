@@ -521,10 +521,39 @@ class Custom(MCMC):
 
         return guesses
 
+    def out_of_bounds(self,rects,sublength,subwidth,minlat,maxlat,minlon,maxlon):
+        # strikeward/antistrikeward edge midpoints
+        strikeward_lats,strikeward_lons = Fault.step(rects[:,0],rects[:,1],rects[:,2],sublength/2,self.fault.R)
+        antistrikeward_lats,antistrikeward_lons = Fault.step(rects[:,0],rects[:,1],rects[:,2],-sublength/2,self.fault.R)
+
+        # first corners
+        c1_lats,c1_lons = Fault.step(strikeward_lats,strikeward_lons,(rects[:,2]-90)%360,subwidth/2,self.fault.R)
+        if np.any(c1_lats < minlat) or np.any(c1_lats > maxlat) or np.any(c1_lons < minlon) or np.any(c1_lons > maxlon):
+            return True
+
+        # second corners
+        c2_lats,c2_lons = Fault.step(strikeward_lats,strikeward_lons,(rects[:,2]-90)%360,-subwidth/2,self.fault.R)
+        if np.any(c2_lats < minlat) or np.any(c2_lats > maxlat) or np.any(c2_lons < minlon) or np.any(c2_lons > maxlon):
+            return True
+
+        # third corners
+        c3_lats,c3_lons = Fault.step(antistrikeward_lats,antistrikeward_lons,(rects[:,2]-90)%360,subwidth/2,self.fault.R)
+        if np.any(c3_lats < minlat) or np.any(c3_lats > maxlat) or np.any(c3_lons < minlon) or np.any(c3_lons > maxlon):
+            return True
+
+        # fourth corners
+        c4_lats,c4_lons = Fault.step(antistrikeward_lats,antistrikeward_lons,(rects[:,2]-90)%360,-subwidth/2,self.fault.R)
+        if np.any(c4_lats < minlat) or np.any(c4_lats > maxlat) or np.any(c4_lons < minlon) or np.any(c4_lons > maxlon):
+            return True
+
+        return False
+
     def prior_logpdf(self,sample):
         length = self.get_length(sample['DeltaLogL'],sample['Magnitude'])
         width = self.get_width(sample['DeltaLogW'],sample['Magnitude'])
         rects,sublength,subwidth = self.split_rect(self.fault,sample['Latitude'],sample['Longitude'],length,width,sample['DeltaDepth'],n = self.length_split,m = self.width_split)
         if np.any(np.isnan(rects)):
+            return -np.NINF
+        elif self.out_of_bounds(rects,sublength,subwidth,126,133.5,-10,-2):
             return -np.NINF
         return self.prior.logpdf(sample,rects,subwidth)
