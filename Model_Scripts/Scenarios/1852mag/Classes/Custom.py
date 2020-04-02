@@ -522,20 +522,20 @@ class Custom(MCMC):
         return guesses
 
     def out_of_bounds(self,lat,lon,strike,length,width,minlat,maxlat,minlon,maxlon):
-    """Computes the lat-lon coordinates of the rectangle corners"""
-    edge1 = Fault.step(lat,lon,strike,length/2,self.fault.R)
-    edge2 = Fault.step(lat,lon,strike-180,length/2,self.fault.R)
-    corner1 = Fault.step(edge1[0],edge1[1],strike+90,width/2,self.fault.R)
-    corner2 = Fault.step(edge1[0],edge1[1],strike-90,width/2,self.fault.R)
-    corner3 = Fault.step(edge2[0],edge2[1],strike+90,width/2,self.fault.R)
-    corner4 = Fault.step(edge2[0],edge2[1],strike-90,width/2,self.fault.R)
-    corners = np.hstack((corner1,corner2,corner3,corner4))
-    if np.any(corners[0] < minlat) or np.any(corners[0] > maxlat):
-        return True
-    elif np.any(corners[1] < minlon) or np.any(corners[1] > maxlon):
-        return True
-    else:
-        return False
+        """Detects if a given rectangle lies outside of model bounds"""
+        edge1 = Fault.step(lat,lon,strike,length/2,self.fault.R)
+        edge2 = Fault.step(lat,lon,strike-180,length/2,self.fault.R)
+        corner1 = Fault.step(edge1[0],edge1[1],strike+90,width/2,self.fault.R)
+        corner2 = Fault.step(edge1[0],edge1[1],strike-90,width/2,self.fault.R)
+        corner3 = Fault.step(edge2[0],edge2[1],strike+90,width/2,self.fault.R)
+        corner4 = Fault.step(edge2[0],edge2[1],strike-90,width/2,self.fault.R)
+        corners = np.hstack((corner1,corner2,corner3,corner4))
+        if np.any(corners[0] < minlat) or np.any(corners[0] > maxlat):
+            return True
+        elif np.any(corners[1] < minlon) or np.any(corners[1] > maxlon):
+            return True
+        else:
+            return False
 
     def prior_logpdf(self,sample):
         length = self.get_length(sample['DeltaLogL'],sample['Magnitude'])
@@ -543,6 +543,6 @@ class Custom(MCMC):
         rects,sublength,subwidth = self.split_rect(self.fault,sample['Latitude'],sample['Longitude'],length,width,sample['DeltaDepth'],n = self.length_split,m = self.width_split)
         if np.any(np.isnan(rects)):
             return -np.NINF
-        elif self.out_of_bounds(rects,sublength,subwidth,-10,-2,126,133.5):
+        elif self.out_of_bounds(rects[:,0],rects[:,1],rects[:,2],sublength,subwidth,-10,-2,126,133.5):
             return -np.NINF
         return self.prior.logpdf(sample,rects,subwidth)
