@@ -79,6 +79,7 @@ python Main.py             \
     --nsamp   500         \
     --rundir  $rundir      \
     --init manual         \
+    --adjoint            \
     | tee -a $logfile
 
 #    --resdir /fslhome/jpw37/fsl_groups/fslg_tsunami/compute/runs/34319122_m8 \

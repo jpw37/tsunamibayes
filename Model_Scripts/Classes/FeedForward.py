@@ -143,9 +143,10 @@ class FeedForward:
                     print("WARNING: height value {:.2f} is outside height interpolation range.".format(heights[i]))
                     p_i = np.NINF
                 else:
-                    heightLikelihoods = heightLikelihoodTable[:, i + 1]
-                    f = interp1d(heightValues, heightLikelihoods, assume_sorted=True)  # ,kind='cubic')
-                    p_i = np.log(f(heights[i]))
+#                    heightLikelihoods = heightLikelihoodTable[:, i + 1]
+#                    f = interp1d(heightValues, heightLikelihoods, assume_sorted=True)  # ,kind='cubic')
+#                    p_i = np.log(f(heights[i]))
+                    p_i = gauge.height_dist.logpdf(heights[i])
 
                 llh += p_i
                 print("GAUGE LOG: gauge", i, " (height)    : logpdf +=", p_i)
@@ -161,9 +162,10 @@ class FeedForward:
                     print("WARNING: height value {:.2f} is outside inundation interpolation range.".format(heights[i]))
                     p_i = np.NINF
                 else:
-                    inundationLikelihoods = inundationLikelihoodTable[:, i + 1]
-                    f = interp1d(inundationValues, inundationLikelihoods, assume_sorted=True)  # ,kind='cubic')
-                    p_i = np.log(f(heights[i]))
+#                    inundationLikelihoods = inundationLikelihoodTable[:, i + 1]
+#                    f = interp1d(inundationValues, inundationLikelihoods, assume_sorted=True)  # ,kind='cubic')
+#                    p_i = np.log(f(heights[i]))
+                    p_i = gauge.inundation_dist.logpdf(0.06*heights[i]**(4/3)*np.cos(gauge.beta*np.pi/180)/(gauge.n**2))
 
                 llh += p_i
                 print("GAUGE LOG: gauge", i, " (inundation): logpdf +=", p_i)
