@@ -1,45 +1,54 @@
 import json
 import numpy as np
 import pandas as pd
+from fault import BaseFault
+from maketopo import make_dtopo
 
 class BaseForwardModel:
-    # Must be defined in inherited classes. Placed here for reference
-    obstypes = None
     def __init__(self,gauges):
         self.gauges = gauges
-        self.model_output_cols = [gauge.name + " " + obstype for gauge in gauges for obstype in gauge.obstypes if obstype in self.obstypes]
-        # #Load in global parameters
-        # with open('parameters.txt') as json_file:
-        #     self.global_params = json.load(json_file)
+        self.model_output_cols = [gauge.name + " " + obstype
+                                  for gauge in gauges
+                                  for obstype in gauge.obstypes
+                                  if obstype in self.obstypes]
 
-    def run(self,model_params):
-        """
-        Run  Model(model_params)
-        Read gauges
-        Return observations (arrival times, Wave heights)
-        """
-        raise NotImplementedError("run() must be implemented in classes inheriting from BaseForwardModel")
+    def run(self,model_params,verbose=False):
+        raise NotImplementedError("run() must be implemented in classes \
+                                  inheriting from BaseForwardModel")
 
-    def llh(self, model_output):
-        """
-        Parameters:
-        ----------
-        observations : ndarray
-            arrivals , heights
-        Compute/Return llh
-        """
-        raise NotImplementedError("llh() must be implemented in classes inheriting from BaseForwardModel")
+    def llh(self,model_output,verbose=False):
+        raise NotImplementedError("run() must be implemented in classes \
+                                  inheriting from BaseForwardModel")
+
+class CompositeForwardModel(BaseForwardModel):
+    def __init__(self,submodels,gauges):
+        self.submodels = submodels
+        self.obstypes = [obstype for submodel in submodels
+                         for obstype in submodel.obstypes]
+        super().__init__(gauges)
+
+    def run(self,model_params,verbose=False):
+        model_output = list()
+        for submodel in submodels:
+            model_output.append(submodel.run(model_params,verbose))
+        return pd.concat(model_output)
+
+    def llh(self,model_output,verbose=False):
+        llh = 0
+        for submodel in submodels:
+            llh += submodel.llh(model_output,verbose)
+        return llh
 
 class TestForwardModel(BaseForwardModel):
     obstypes = ['power']
-    def run(self,model_params):
+    def run(self,model_params,verbose=False):
         d = {}
         for gauge in self.gauges:
             if 'power' in gauge.obstypes:
                 d[gauge.name+' power'] = np.log(model_params['length']*model_params['width'])
         return d
 
-    def llh(self,model_output):
+    def llh(self,model_output,verbose=False):
         llh = 0
         for gauge in self.gauges:
             if 'power' in gauge.obstypes:
@@ -48,15 +57,21 @@ class TestForwardModel(BaseForwardModel):
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
+    def __init__(self,gauges,fault):
+        if not isinstance(fault,BaseFault):
+            raise TypeError("fault must be an instance of BaseFault or an \
+                            inherited class.")
+        super.__init__(gauges)
+        self.fault = fault
 
-    def run(self,model_params):
+    def run(self,okada_params,verbose=False):
         """
         Run  Model(model_params)
         Read gauges
         Return observations (arrival times, Wave heights)
         """
-        get_topo()
-        make_dtopo(model_params)
+        subfault_params = self.fault.subfault_split(okada_params)
+        make_dtopo(subfault_params,minlat,maxlat,minlon,maxlon,dtopo_path,verbose)
         os.system('rm .output')
         os.system('make .output')
 
@@ -78,7 +93,7 @@ class GeoClawForwardModel(BaseForwardModel):
 
         return arrivals, wave_heights
 
-    def llh(self, observations):
+    def llh(self, observations,verbose=False):
         """
         Parameters:
         ----------

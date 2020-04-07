@@ -3,5 +3,9 @@
 
 # Python Files
 .ipynb_checkpoints
+*.pyc
 
 .idea/
+
+# egg files
+tsunamibayes.egg*

@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from prior import BasePrior
+from forward import BaseForwardModel
 
 class BaseScenario:
     """Base class for running a tsunamibayes scenario. Contains the essential
@@ -13,20 +15,31 @@ class BaseScenario:
     model_param_cols = None
 
     def __init__(self,name,prior,forward_model):
+
+        if not isinstance(prior,BasePrior):
+            raise TypeError("prior must be an instance of BasePrior or an inherited class")
+
+        if not isinstance(forward_model,BaseForwardModel):
+            raise TypeError("forward_model must be an instance of BaseForwardModel \
+                            or an inherited class")
+
         self.name = name
         self.prior = prior
         self.forward_model = forward_model
         self.model_output_cols = forward_model.model_output_cols
 
-        # generate column headings for debug dataframe
+        # generate column labels for debug dataframe
         if self.sample_cols is None or self.model_param_cols is None:
-            raise NotImplementedError("sample_cols and model_param_cols must be defined in inherited classes")
+            raise NotImplementedError("sample_cols and model_param_cols must be \
+                                      defined in inherited classes")
+
         proposal_cols = list(map(lambda x:'p_'+x,self.sample_cols))
         proposal_model_cols = list(map(lambda x:'p_'+x,self.model_param_cols))
         proposal_bayes_cols = list(map(lambda x:'p_'+x,self.bayes_data_cols))
 
-        self.debug_cols = self.sample_cols + proposal_cols + self.model_param_cols + proposal_model_cols + \
-                          self.bayes_data_cols + proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
+        self.debug_cols = self.sample_cols + proposal_cols + self.model_param_cols
+                          + proposal_model_cols + self.bayes_data_cols +
+                          proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
 
     def init_chain(self,u0=None,method=None,**kwargs):
         """Initialize a sampling chain with a given initial sample or a string
@@ -53,23 +66,33 @@ class BaseScenario:
         """
         if isinstance(u0,dict):
             if set(u0.keys()) != set(self.sample_cols):
-                raise TypeError("u0 must have keys: {}".format(self.sample_cols))
+                raise ValueError("u0 must have keys: {}".format(self.sample_cols))
+
         elif isinstance(u0,(list,np.ndarray)):
             if len(u0) != len(self.sample_cols):
                 raise ValueError("u0 must have length {}".format(len(self.sample_cols)))
             u0 = dict(zip(self.sample_cols,u0))
+
+        elif isinstance(u0,pd.Series):
+            if set(u0.index) != set(self.sample_cols):
+                raise ValueError("u0 must have index: {}".format(self.sample_cols))
+
         elif method == 'prior_rvs':
             u0 = self.prior.rvs()
             u0 = dict(zip(self.sample_cols,u0))
+
         else:
             if not all(key in self.sample_cols for key in kwargs.keys()):
-                raise TypeError("Valid keyword argments are: {}".format(self.sample_cols))
+                raise ValueError("Valid keyword argments are: {}".format(self.sample_cols))
+
             missing_kwargs = list(set(self.sample_cols)-set(kwargs.keys()))
+
             if len(missing_kwargs) == 0:
                 u0 = kwargs
+
             else:
                 if method is None:
-                    raise TypeError("Missing keyword arguments: {}".format(missing_kwargs))
+                    raise ValueError("Missing keyword arguments: {}".format(missing_kwargs))
                 for key in kwargs.keys():
                     u0[key] = kwargs[key]
 
@@ -93,8 +116,10 @@ class BaseScenario:
         # evaluate forward model and compute log-likelihood
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
+
         model_output = self.forward_model.run(model_params)
         self.model_output.loc[0] = model_output
+
         llh = self.forward_model.llh(model_output)
 
         # save prior logpdf, log-likelihood, and posterior logpdf
@@ -129,7 +154,9 @@ class BaseScenario:
             (such as when using Scenario.restart())
         """
         if not hasattr(self,'samples'):
-            raise AttributeError("Chain must first be initialized with {}.init_chain() or {}.restart()".format(type(self).__name__,type(self).__name__))
+            raise AttributeError("Chain must first be initialized with \
+            {}.init_chain() or {}.restart()".format(type(self).__name__,type(self).__name__))
+
         for i in range(len(self.samples),len(self.samples)+nsamples):
             # propose new sample from previous
             proposal = self.propose(self.samples.loc[i-1])
@@ -143,9 +170,9 @@ class BaseScenario:
                 # set acceptance probablity to 0
                 alpha = 0
 
-                # model_output and log-likelihood are set to nan values
-                model_output = self.model_output.loc[i-1].copy()
-                model_output[...] = np.nan
+                # model_params, model_output and log-likelihood are set to nan values
+                model_params = np.nan
+                model_output = np.nan
                 llh = np.nan
 
             # otherwise run the forward model, calculate the log-likelihood, and calculate
@@ -162,6 +189,7 @@ class BaseScenario:
                         self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
 
+            #
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
 
             # accept/reject
@@ -178,19 +206,21 @@ class BaseScenario:
                 self.bayes_data.loc[i] = self.bayes_data.loc[i-1]
 
             # generate data for debug dataframe
-            metro_hastings_data = pd.Series({'alpha':alpha,'accepted':int(accepted),'acceptance_rate':np.nan})
+            metro_hastings_data = pd.Series({'alpha':alpha,'accepted':int(accepted),
+                                             'acceptance_rate':np.nan})
             self.debug.loc[i-1] = self.gen_debug_row(self.samples.loc[i-1],
-                                                                 proposal,
-                                                                 self.model_params.loc[i-1],
-                                                                 model_params,
-                                                                 self.bayes_data.loc[i-1],
-                                                                 bayes_data,
-                                                                 metro_hastings_data)
+                                                     proposal,
+                                                     self.model_params.loc[i-1],
+                                                     model_params,
+                                                     self.bayes_data.loc[i-1],
+                                                     bayes_data,
+                                                     metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
         return self.samples
 
-    def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,sample_bayes,proposal_bayes,metro_hastings_data):
+    def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
+                      sample_bayes,proposal_bayes,metro_hastings_data):
         """Create a Pandas Series object with the given data that is desired to
         be kept in the debug output.
 
@@ -218,19 +248,23 @@ class BaseScenario:
         """Propose a new sample, perhaps dependent on the current sample. Must
         be implemented in inherited classes.
         """
-        raise NotImplementedError("propose() must be implemented in classes inheriting from BaseScenario")
+        raise NotImplementedError("propose() must be implemented in classes \
+        inheriting from BaseScenario")
 
     def proposal_logpdf(self,u,v):
-        """Evaluate the logpdf of the proposal kernel, expressed as the log-probability-density
-        of proposing 'u' given current sample 'v'. Must be implemented in inherited classes.
+        """Evaluate the logpdf of the proposal kernel, expressed as the
+        log-probability-density of proposing 'u' given current sample 'v'. Must
+        be implemented in inherited classes.
         """
-        raise NotImplementedError("proposal_logpdf() must be implemented in classes inheriting from BaseScenario")
+        raise NotImplementedError("proposal_logpdf() must be implemented in \
+        classes inheriting from BaseScenario")
 
     def map_to_model_params(self,sample):
         """Evaluate the map from sample parameters to forward model parameters.
         Must be implemented in inherited classes.
         """
-        raise NotImplementedError("map_to_model_params() must be implemented in classes inheriting from BaseScenario")
+        raise NotImplementedError("map_to_model_params() must be implemented in \
+        classes inheriting from BaseScenario")
 
 class TestScenario(BaseScenario):
     sample_cols = ["magnitude"]

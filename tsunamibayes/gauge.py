@@ -3,18 +3,15 @@ import json
 
 class Gauge:
     """Class for managing data related to observations. A Gauge object
-    loosely corresponds to an observation location, along with probability distributions
-    representing each type of observation associated with that location.
+    loosely corresponds to an observation location, along with probability
+    distributions representing each type of observation associated
+    with that location.
 
     Parameters
     ----------
     name : str
         Name of the observation (for use in output data files)
-    lat : float
-        Latitude of observation location
-    lon : float
-        Longitude of observation location
-    dists : dict
+    dists : dict, optional
         Dictionary of scipy.stats frozen_rv objects. Each distribution's key
         corresponds to which type of observation the distribution is associated
         with
@@ -22,7 +19,7 @@ class Gauge:
         Additional arguments to class constructor. Set as class attributes
     """
 
-    def __init__(self,name,lat,lon,dists,**kwargs):
+    def __init__(self,name,dists={},**kwargs):
         # core attributes
         self.name = name
         self.lat = lat
@@ -30,7 +27,8 @@ class Gauge:
 
         for obstype,dist in dists.items():
             if not isinstance(dist,stats._distn_infrastructure.rv_frozen):
-                raise TypeError("dists['{}'] must be a frozen scipy.stats distribution".format(obstype))
+                raise TypeError("dists['{}'] must be a frozen scipy.stats \
+                                distribution".format(obstype))
         self.dists = dists
         self.obstypes = self.dists.keys()
 
@@ -67,9 +65,11 @@ class Gauge:
         dists = {}
         for obstype,d in dist_params.items():
             if 'name' not in d.keys():
-                raise TypeError("Observation type '{}' must have an associated distribution name")
+                raise TypeError("Observation type '{}' must have an associated \
+                                distribution name")
             elif 'shapes' not in d.keys():
-                raise TypeError("Observation type '{}' must have associated distribution shape parameters")
+                raise TypeError("Observation type '{}' must have associated \
+                                distribution shape parameters")
             dists[obstype] = getattr(stats,d['name'])(**d['shapes'])
         return cls(name,lat,lon,dists,**kwargs)
 
