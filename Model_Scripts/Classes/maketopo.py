@@ -8,12 +8,12 @@ but now they are explicit below.
 Call functions with makeplots==True to create plots of topo, slip, and dtopo.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
 import os
 import json
+import numpy as np
 
 import clawpack.clawutil.data
+from clawpack.geoclaw import dtopotools
 
 try:
     CLAW = os.environ['CLAW']
@@ -48,8 +48,6 @@ def make_dtopo(params, makeplots=False):
     Create dtopo data file for deformation of sea floor due to earthquake.
     Uses the Okada model with fault parameters and mesh specified below.
     """
-    from clawpack.geoclaw import dtopotools
-    import numpy
 
     dtopo_fname = os.path.join('./InputData/', "dtopo.tt3")
 
@@ -58,8 +56,8 @@ def make_dtopo(params, makeplots=False):
 
     # Specify subfault parameters for this simple fault model consisting
     # of a single subfault:
-    
-    fault_list = numpy.zeros(0)
+
+    subfaults = []
     for i in range(n):
         usgs_subfault = dtopotools.SubFault()
         usgs_subfault.strike = params['Strike' + str(i+1)]
@@ -72,11 +70,10 @@ def make_dtopo(params, makeplots=False):
         usgs_subfault.longitude = params['Longitude' + str(i+1)]
         usgs_subfault.latitude = params['Latitude' + str(i+1)]
         usgs_subfault.coordinate_specification = "centroid"
-        fault_list = numpy.append(fault_list, usgs_subfault)
-
+        subfaults.append(usgs_subfault)
 
     fault = dtopotools.Fault()
-    fault.subfaults = fault_list
+    fault.subfaults = subfaults
     print(fault.subfaults)
 
     print("Mw = ",fault.Mw())
@@ -108,13 +105,15 @@ def make_dtopo(params, makeplots=False):
         xupper = xlower + (mx-1)*dx
         my = int((yupper - ylower)/dx + 1)
         yupper = ylower + (my-1)*dx
-        x = numpy.linspace(xlower, xupper, mx)
-        y = numpy.linspace(ylower, yupper, my)
+        print("New upper bounds:\n")
+        print("latitude:",yupper)
+        print("longitude:",xupper)
+        x = np.linspace(xlower, xupper, mx)
+        y = np.linspace(ylower, yupper, my)
 
         fault.create_dtopography(x,y,times,verbose=True)
         dtopo = fault.dtopo
         dtopo.write(dtopo_fname, dtopo_type=3)
-
 
     if makeplots:
         from matplotlib import pyplot as plt
@@ -135,7 +134,6 @@ def make_dtopo(params, makeplots=False):
         fname = os.path.splitext(os.path.split(dtopo_fname)[-1])[0] + '.png'
         plt.savefig(fname)
         print("Created ",fname)
-
 
 if __name__=='__main__':
     get_topo(False)
