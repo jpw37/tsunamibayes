@@ -20,23 +20,23 @@ class Gauge:
     """
 
     def __init__(self,name,dists={},**kwargs):
-        # core attributes
-        self.name = name
-        self.lat = lat
-        self.lon = lon
-
+        # check if distributions are scipy.stats rv_frozen objects
         for obstype,dist in dists.items():
             if not isinstance(dist,stats._distn_infrastructure.rv_frozen):
                 raise TypeError("dists['{}'] must be a frozen scipy.stats \
                                 distribution".format(obstype))
+
+        # core attributes
+        self.name = name
         self.dists = dists
         self.obstypes = self.dists.keys()
 
+        # set instance attributes for keyword arguments
         for key,value in kwargs.items():
             setattr(self,key,value)
 
     @classmethod
-    def from_shapes(cls,name,lat,lon,dist_params,**kwargs):
+    def from_shapes(cls,name,dist_params,**kwargs):
         """Alternate constructor for Gauge objects. Accepts a `params` dictionary
         rather than a `dists` dictionary, where the `params` dictionary contains
         the various parameters associated with the scipy.stats frozen_rv object
@@ -46,10 +46,6 @@ class Gauge:
         ----------
         name : str
             Name of the observation (for use in output data files)
-        lat : float
-            Latitude of observation location
-        lon : float
-            Longitude of observation location
         dist_params : dict
             Dictionary of distribution parameters. Each key corresponds to
             another dictionary. For example:
@@ -71,7 +67,7 @@ class Gauge:
                 raise TypeError("Observation type '{}' must have associated \
                                 distribution shape parameters")
             dists[obstype] = getattr(stats,d['name'])(**d['shapes'])
-        return cls(name,lat,lon,dists,**kwargs)
+        return cls(name,dists,**kwargs)
 
     def to_json(self):
         ignore = ['dists','obstypes']

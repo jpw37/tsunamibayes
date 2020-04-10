@@ -1,29 +1,17 @@
-import os
-import json
 import numpy as np
 from clawpack.geoclaw import dtopotools
 
-try:
-    CLAW = os.environ['CLAW']
-except:
-    raise Exception("*** Must first set CLAW enviornment variable")
-
-def make_dtopo(subfault_params,minlat,maxlat,minlon,maxlon,dtopo_path,verbose=False):
-    """ Create dtopo data file for deformation of sea floor due to earthquake.
+def make_fault_dtopo(subfault_params,bounds,verbose=False):
+    """Create GeoClaw fault object and dtopo for deformation of sea floor due to earthquake.
     Uses the Okada model with fault parameters and mesh specified below.
 
     Parameters
     ----------
     subfault_params : pandas DataFrame
         DataFrame containing the 9 Okada parameters for each subfault
-    minlat : float
-        Minimum latitude (for dtopo region)
-    maxlat : float
-        Maximum latitude
-    minlon : float
-        Minimum longitude
-    maxlon : float
-        Maximum longitude
+    bounds : dict
+        Dictionary containing the model bounds. Keys are 'lon_min','lon_max',
+        'lat_min', 'lat_max'
     dtopo_path : string
         Path for writing dtopo file
     verbose : bool, optional
@@ -34,15 +22,15 @@ def make_dtopo(subfault_params,minlat,maxlat,minlon,maxlon,dtopo_path,verbose=Fa
     for _,params in subfault_params.iterrows():
         subfault = dtopotools.SubFault()
         subfault.coordinate_specification = "centroid"
-        subfault.latitude = params['Latitude']
-        subfault.longitude = params['Longitude']
-        subfault.strike = params['Strike']
-        subfault.length = params['Length']
-        subfault.width = params['Width']
-        subfault.slip = params['Slip']
-        subfault.depth = params['Depth']
-        subfault.dip = params['Dip']
-        subfault.rake = params['Rake']
+        subfault.latitude = params['latitude']
+        subfault.longitude = params['longitude']
+        subfault.strike = params['strike']
+        subfault.length = params['length']
+        subfault.width = params['width']
+        subfault.slip = params['slip']
+        subfault.depth = params['depth']
+        subfault.dip = params['dip']
+        subfault.rake = params['rake']
         subfaults.append(subfault)
 
     fault = dtopotools.Fault()
@@ -54,12 +42,18 @@ def make_dtopo(subfault_params,minlat,maxlat,minlon,maxlon,dtopo_path,verbose=Fa
     times = [1.]
     points_per_degree = 60 # 1 arcminute resolution
     dx = 1/points_per_degree
-    n = int((maxlon - minlon)/dx + 1)
-    maxlon = minlon + (n-1)*dx
-    m = int((maxlat - minlat)/dx + 1)
-    maxlat = minlat + (m-1)*dx
-    lon = numpy.linspace(minlon, maxlon, n)
-    lat = numpy.linspace(minlat, maxlat, m)
+    lon_min,lon_max = bounds['lon_min'],bounds['lon_max']
+    lat_min,lat_max = bounds['lat_min'],bounds['lat_max']
+    n = int((lon_max - lon_min)/dx + 1)
+    lon_max = lon_min + (n-1)*dx
+    m = int((lat_max - lat_min)/dx + 1)
+    lat_max = lat_min + (m-1)*dx
+    lon = np.linspace(lon_min, lon_max, n)
+    lat = np.linspace(lat_min, lat_max, m)
 
     fault.create_dtopography(lon,lat,times,verbose=verbose)
-    fault.dtopo.write(dtopo_path, dtopo_type=3)
+    return fault
+
+def write_dtopo(subfault_params,bounds,dtopo_path,verbose=False):
+    fault = make_fault_dtopo(subfault_params,bounds,verbose=False)
+    fault.dtopo.write(dtopo_path)

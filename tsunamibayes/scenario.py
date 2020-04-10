@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from prior import BasePrior
-from forward import BaseForwardModel
+from .prior import BasePrior
+from .forward import BaseForwardModel
 
 class BaseScenario:
     """Base class for running a tsunamibayes scenario. Contains the essential
@@ -37,8 +37,8 @@ class BaseScenario:
         proposal_model_cols = list(map(lambda x:'p_'+x,self.model_param_cols))
         proposal_bayes_cols = list(map(lambda x:'p_'+x,self.bayes_data_cols))
 
-        self.debug_cols = self.sample_cols + proposal_cols + self.model_param_cols
-                          + proposal_model_cols + self.bayes_data_cols +
+        self.debug_cols = self.sample_cols + proposal_cols + self.model_param_cols \
+                          + proposal_model_cols + self.bayes_data_cols + \
                           proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
 
     def init_chain(self,u0=None,method=None,**kwargs):
@@ -138,7 +138,7 @@ class BaseScenario:
         self.model_output.to_csv(save_path+"model_output.csv")
         self.debug.to_csv(save_path+"debug.csv")
 
-    def sample(self,nsamples):
+    def sample(self,nsamples,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -189,7 +189,7 @@ class BaseScenario:
                         self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
 
-            #
+            # prior, likelihood, and posterior logpdf values
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
 
             # accept/reject

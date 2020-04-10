@@ -3,5 +3,6 @@
 name = "tsunamibayes"
 from .scenario import BaseScenario, TestScenario
 from .prior import BasePrior, TestPrior
-from .forward import BaseForwardModel, TestForwardModel
+from .forward import BaseForwardModel, GeoClawForwardModel, TestForwardModel
 from .gauge import Gauge, dump_gauges, load_gauges
+from .fault import BaseFault, GridFault

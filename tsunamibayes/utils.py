@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def haversine(lat1,lon1,lat2,lon2,R):
     """Computes great-circle distance between lat-lon coordinates on a sphere
     with radius R"""

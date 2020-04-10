@@ -1,8 +1,8 @@
 import json
 import numpy as np
 import pandas as pd
-from fault import BaseFault
-from maketopo import make_dtopo
+from .fault import BaseFault
+from .maketopo import write_dtopo
 
 class BaseForwardModel:
     def __init__(self,gauges):
@@ -39,6 +39,95 @@ class CompositeForwardModel(BaseForwardModel):
             llh += submodel.llh(model_output,verbose)
         return llh
 
+class GeoClawForwardModel(BaseForwardModel):
+    obstypes = ['arrival','height','inundation']
+    def __init__(self,gauges,fault,dtopo_path,fgmax_grid_path,fgmax_out_path,bathy_path):
+        if not isinstance(fault,BaseFault):
+            raise TypeError("fault must be an instance of BaseFault or an \
+                            inherited class.")
+        super.__init__(gauges)
+        self.fault = fault
+        self.dtopo_path = dtopo_path
+        self.fgmax_grid_path = fgmax_grid_path
+        self.fgmax_out_path = fgmax_out_path
+        self.bathy_path = bathy_path
+        self.write_fgmax_grid(self.gauges,self.fgmax_grid_path)
+
+    def run(self,model_params,verbose=False):
+        """
+        Run  Model(model_params)
+        Read gauges
+        Return observations (arrival times, Wave heights)
+        """
+        subfault_params = self.fault.subfault_split(model_params['latitude'],
+                                                    model_params['longitude'],
+                                                    model_params['length'],
+                                                    model_params['width'],
+                                                    model_params['slip'],
+                                                    model_params['depth_offset'])
+
+        write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
+        os.system('rm .output')
+        os.system('make .output')
+
+        fgmax_data = np.loadtxt(self.fgmax_out_path)
+        bath_data  = np.loadtxt(self.bathy_path)
+
+        # this is the arrival time of the first wave, not the maximum wave
+        # converting from seconds to minutes
+        arrival_times = fgmax_data[:, -1] /60
+
+        max_heights = fgmax_data[:, 3]
+        bath_depth = bath_data[:, -1]
+
+        # these are locations where the wave never reached the gauge...
+        max_heights[max_heights < 1e-15] = -9999
+        max_heights[np.abs(max_heights) > 1e15] = -9999
+
+        bath_depth[max_heights == 0] = 0
+        wave_heights = max_heights + bath_depth
+
+        model_output = pd.Series(dtype='float64')
+        for i,gauge in enumerate(gauges):
+            if 'arrival' in gauge.obstypes:
+                model_output[gauge.name+' arrival'] = arrival_times[i]
+            if 'height' in gauge.obstypes:
+                model_output[gauge.name+' height'] = wave_heights[i]
+            if 'inundation' in gauge.obstypes:
+                # put inundation model here
+                pass
+
+        return model_output
+
+    def llh(self,model_output,verbose=False):
+        llh = 0
+        if verbose: print("Gauge Log\n---------")
+        for gauge in gauges:
+            if verbose: print(gauge.name)
+            if 'arrival' in gauge.obstypes:
+                arrival_time = model_output[gauge.name+' arrival']
+                log_p = gauge.dists['arrival'].logpdf(arrival_time)
+                llh += log_p
+                if verbose: print("arrival: {:.3f}, llh: {:.3e}".format(arrival_time,log_p))
+
+            if 'height' in gauge.obstypes:
+                wave_height = model_output[gauge.name+' height']
+                if np.abs(wave_height) > 999999999: log_p = np.NINF
+                else: log_p = gauge.dists['height'].logpdf(wave_height)
+                llh += log_p
+                if verbose: print("height: {:.3f}, llh: {:.3e}".format(wave_height,log_p))
+
+            if 'inundation' in gauge.obstypes:
+                inundation = model_output[gauge.name+' inundation']
+                log_p = gauge.dists['inundation'].logpdf(inundation)
+                llh += log_p
+                if verbose: print("inundation: {:.3f}, llh: {:.3e}".format(inundation,log_p))
+        return llh
+
+    def write_fgmax_grid(self,gauges,fgmax_grid_path):
+        pass
+
+
 class TestForwardModel(BaseForwardModel):
     obstypes = ['power']
     def run(self,model_params,verbose=False):
@@ -54,101 +143,3 @@ class TestForwardModel(BaseForwardModel):
             if 'power' in gauge.obstypes:
                 llh += gauge.dists['power'].logpdf(model_output[gauge.name+' power'])
         return llh
-
-class GeoClawForwardModel(BaseForwardModel):
-    obstypes = ['arrival','height','inundation']
-    def __init__(self,gauges,fault):
-        if not isinstance(fault,BaseFault):
-            raise TypeError("fault must be an instance of BaseFault or an \
-                            inherited class.")
-        super.__init__(gauges)
-        self.fault = fault
-
-    def run(self,okada_params,verbose=False):
-        """
-        Run  Model(model_params)
-        Read gauges
-        Return observations (arrival times, Wave heights)
-        """
-        subfault_params = self.fault.subfault_split(okada_params)
-        make_dtopo(subfault_params,minlat,maxlat,minlon,maxlon,dtopo_path,verbose)
-        os.system('rm .output')
-        os.system('make .output')
-
-        observations = np.loadtxt(self.global_params['obser_file_path'])
-        bath_data    = np.loadtxt(self.global_params['bath_file_path'])
-
-        # this is the arrival time of the first wave, not the maximum wave
-        arrivals = observations[:, -1] / 60.
-        # note that fgmax outputs in seconds, but our likelihood is in minutes
-        max_heights = observations[:, 3]
-        bath_depth = bath_data[:, -1]
-
-         # these are locations where the wave never reached the gauge...
-        max_heights[max_heights < 1e-15] = -9999
-        max_heights[np.abs(max_heights) > 1e15] = -9999
-
-        bath_depth[max_heights == 0] = 0
-        wave_heights = max_heights + bath_depth
-
-        return arrivals, wave_heights
-
-    def llh(self, observations,verbose=False):
-        """
-        Parameters:
-        ----------
-        observations : ndarray
-            arrivals , heights
-        Compute/Return llh
-        """
-        arrivals, heights = observations
-        llh = 0.  # init p
-        heightLikelihoodTable = np.load(self.global_params['h_table_path'])
-        heightValues = heightLikelihoodTable[:, 0]
-        inundationLikelihoodTable = np.load(self.global_params['inu_table_path'])
-        inundationValues = inundationLikelihoodTable[:, 0]
-
-        for i, gauge in enumerate(self.gauges):
-            print("GAUGE LOG: gauge", i, "(", gauge.longitude, ",", gauge.latitude, "): arrival =", arrivals[i],
-                  ", heights =", heights[i])
-            # arrivals
-            if (gauge.kind[0]):
-                p_i = gauge.arrival_dist.logpdf(arrivals[i])
-                llh += p_i
-                print("GAUGE LOG: gauge", i, " (arrival)   : logpdf +=", p_i)
-
-            # heights
-            if (gauge.kind[1]):
-                # special case: wave didn't arrive
-                if np.abs(heights[i]) > 999999999:
-                    p_i = np.NINF
-                # special case: value is outside interpolation bounds
-                # may need to make lower bound 0 and enable extrapolation for values very close to 0
-                elif (heights[i] > max(heightValues) or heights[i] < min(heightValues)):
-                    print("WARNING: height value {:.2f} is outside height interpolation range.".format(heights[i]))
-                    p_i = np.NINF
-                else:
-                    heightLikelihoods = heightLikelihoodTable[:, i + 1]
-                    f = interp1d(heightValues, heightLikelihoods, assume_sorted=True)  # ,kind='cubic')
-                    p_i = np.log(f(heights[i]))
-
-                llh += p_i
-                print("GAUGE LOG: gauge", i, " (height)    : logpdf +=", p_i)
-
-            # inundations
-            if (gauge.kind[2]):
-                # special case: wave didn't arrive
-                if np.abs(heights[i]) > 999999999:
-                    p_i = np.NINF
-                # special case: value is outside interpolation bounds
-                # may need to make lower bound 0 and enable extrapolation for values very close to 0
-                elif (heights[i] > max(heightValues) or heights[i] < min(heightValues)):
-                    print("WARNING: height value {:.2f} is outside inundation interpolation range.".format(heights[i]))
-                    p_i = np.NINF
-                else:
-                    inundationLikelihoods = inundationLikelihoodTable[:, i + 1]
-                    f = interp1d(inundationValues, inundationLikelihoods, assume_sorted=True)  # ,kind='cubic')
-                    p_i = np.log(f(heights[i]))
-
-                llh += p_i
-                print("GAUGE LOG: gauge", i, " (inundation): logpdf +=", p_i)
