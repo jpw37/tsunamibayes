@@ -542,7 +542,7 @@ class Custom(MCMC):
         width = self.get_width(sample['DeltaLogW'],sample['Magnitude'])
         rects,sublength,subwidth = self.split_rect(self.fault,sample['Latitude'],sample['Longitude'],length,width,sample['DeltaDepth'],n = self.length_split,m = self.width_split)
         if np.any(np.isnan(rects)):
-            return -np.NINF
+            return np.NINF
         elif self.out_of_bounds(rects[:,0],rects[:,1],rects[:,2],sublength,subwidth,-10,-2,126,133.5):
-            return -np.NINF
+            return np.NINF
         return self.prior.logpdf(sample,rects,subwidth)
