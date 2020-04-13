@@ -10,29 +10,24 @@ class BaseScenario:
     This class should never be instantiated, but should be inherited from."""
 
     bayes_data_cols = ["prior_logpdf","llh","posterior_logpdf"]
-    # Must be defined in derived classes. Placed here for reference.
+
+    # Must be defined in inherited classes. Placed here for reference.
     sample_cols = None
     model_param_cols = None
 
-    def __init__(self,name,prior,forward_model):
+    def __init__(self,name,prior,forward_model,data_path):
 
-        if not isinstance(prior,BasePrior):
-            raise TypeError("prior must be an instance of BasePrior or an inherited class")
-
-        if not isinstance(forward_model,BaseForwardModel):
-            raise TypeError("forward_model must be an instance of BaseForwardModel \
-                            or an inherited class")
-
-        self.name = name
-        self.prior = prior
-        self.forward_model = forward_model
-        self.model_output_cols = forward_model.model_output_cols
-
-        # generate column labels for debug dataframe
         if self.sample_cols is None or self.model_param_cols is None:
             raise NotImplementedError("sample_cols and model_param_cols must be \
                                       defined in inherited classes")
 
+        self.name = name
+        self.prior = prior
+        self.forward_model = forward_model
+        self.data_path = data_path
+        self.model_output_cols = forward_model.model_output_cols
+
+        # generate column labels for debug dataframe
         proposal_cols = list(map(lambda x:'p_'+x,self.sample_cols))
         proposal_model_cols = list(map(lambda x:'p_'+x,self.model_param_cols))
         proposal_bayes_cols = list(map(lambda x:'p_'+x,self.bayes_data_cols))
@@ -138,7 +133,7 @@ class BaseScenario:
         self.model_output.to_csv(save_path+"model_output.csv")
         self.debug.to_csv(save_path+"debug.csv")
 
-    def sample(self,nsamples,verbose=False):
+    def sample(self,nsamples,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -184,8 +179,8 @@ class BaseScenario:
                 # acceptance probability
                 alpha = prior_logpdf + llh + \
                         self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
-                        self.bayes_data.loc[i-1]['prior_logpdf'] - \
-                        self.bayes_data.loc[i-1]['llh'] - \
+                        self.bayes_data.loc[i-1,'prior_logpdf'] - \
+                        self.bayes_data.loc[i-1,'llh'] - \
                         self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
 
@@ -216,6 +211,9 @@ class BaseScenario:
                                                      bayes_data,
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
+
+            if not i%save_freq:
+                self.save_data(data_path)
 
         return self.samples
 
@@ -268,7 +266,7 @@ class BaseScenario:
 
 class TestScenario(BaseScenario):
     sample_cols = ["magnitude"]
-    model_param_cols = ["length","width"]
+    model_param_cols = ["length","width",'magnitude']
 
     def propose(self,sample):
         return sample + 0.1*np.random.randn()
@@ -279,4 +277,4 @@ class TestScenario(BaseScenario):
     def map_to_model_params(self,sample):
         length = 2*sample["magnitude"]**0.5
         width = 0.5*sample["magnitude"]**0.5
-        return {'length':length,'width':width}
+        return {'length':length,'width':width,'magnitude':sample['magnitude']}

@@ -23,3 +23,27 @@ def step(lat,lon,bearing,distance,R):
     lon2 = lon+np.arctan2(np.sin(bearing)*np.sin(delta)*np.cos(lat),
                           np.cos(delta)-np.sin(lat)*np.sin(lat2))
     return np.degrees(lat2),np.degrees(lon2)
+
+def calc_length(magnitude,delta_logL):
+    a = 0.5233956445903871     # slope
+    b = 1.0974498706605313     # intercept
+
+    mu_logl = a*magnitude + b
+    logl = mu_logl + delta_logL
+    return 10**logl
+
+def calc_width(magnitude,delta_logW):
+    m = 0.29922483873212863   # slope
+    c = 2.608734705074858     # y intercept
+
+    mu_logw = m*magnitude + c
+    logw = mu_logw + delta_logW
+    return 10**logw
+
+def calc_slip(magnitude,length,width,mu=4e10):
+    return 10**(1.5*magnitude+9.05-np.log10(mu*length*width))
+
+def out_of_bounds(subfault_params,bounds):
+    """Returns true if any subfault lies outside of the bounds, or intersects with
+    the surface"""
+    

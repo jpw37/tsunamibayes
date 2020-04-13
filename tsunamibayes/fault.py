@@ -238,25 +238,8 @@ class GridFault(BaseFault):
 
     @classmethod
     def from_slab2(cls,depth_file,dip_file,strike_file,bounds):
-        # load depth file, extract lat/lon grid, make latitude array in increasing order
-        depth = np.loadtxt(depth_file,delimiter=',')
-        lat = np.unique(depth[:,1])
-        lon = np.unique(depth[:,0])
-
-        # make depth positive and in meters, load strike and dip, reshape arrays
-        depth = -1000*depth[:,2]
-        dip = np.loadtxt(dip_file,delimiter=',')[:,2]
-        strike = np.loadtxt(strike_file,delimiter=',')[:,2]
-        depth = depth.reshape((lat.shape[0],lon.shape[0]))[::-1]
-        dip = dip.reshape((lat.shape[0],lon.shape[0]))[::-1]
-        strike = strike.reshape((lat.shape[0],lon.shape[0]))[::-1]
-
-        # compute indices corresponding to the bounds
-        i,j = np.nonzero((lat >= bounds['lat_min'])&(lat <= bounds['lat_max']))[0][[0,-1]]
-        k,l = np.nonzero((lon >= bounds['lon_min'])&(lon <= bounds['lon_max']))[0][[0,-1]]
-
-        # pass data to the GridFault constructor
-        return cls(lat[i:j+1],lon[k:l+1],depth[i:j+1,k:l+1],dip[i:j+1,k:l+1],strike[i:j+1,k:l+1],bounds)
+        arrays = load_slab2_data(depth_file,dip_file,strike_file,bounds)
+        return cls(bounds=bounds,**arrays)
 
     def depth_map(self,lat,lon):
         arr = self.depth_interp(np.array([lat,lon]).T)

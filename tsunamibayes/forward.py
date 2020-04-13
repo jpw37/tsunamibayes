@@ -21,10 +21,14 @@ class BaseForwardModel:
                                   inheriting from BaseForwardModel")
 
 class CompositeForwardModel(BaseForwardModel):
-    def __init__(self,submodels,gauges):
+    def __init__(self,submodels):
+
         self.submodels = submodels
         self.obstypes = [obstype for submodel in submodels
                          for obstype in submodel.obstypes]
+        gauges = list()
+        for submodel in submodels:
+            gauges.extend(gauge for gauge in submodel.gauges if gauge not in gauges)
         super().__init__(gauges)
 
     def run(self,model_params,verbose=False):
@@ -41,17 +45,18 @@ class CompositeForwardModel(BaseForwardModel):
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
-    def __init__(self,gauges,fault,dtopo_path,fgmax_grid_path,fgmax_out_path,bathy_path):
+    def __init__(self,gauges,fault,dtopo_path,fgmax_params,bathy_path):
         if not isinstance(fault,BaseFault):
             raise TypeError("fault must be an instance of BaseFault or an \
                             inherited class.")
         super.__init__(gauges)
         self.fault = fault
         self.dtopo_path = dtopo_path
-        self.fgmax_grid_path = fgmax_grid_path
-        self.fgmax_out_path = fgmax_out_path
+        self.fgmax_params = fgmax_params
+        self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
+        self.fgmax_out_path = fmax_params['fgmax_out_path']
         self.bathy_path = bathy_path
-        self.write_fgmax_grid(self.gauges,self.fgmax_grid_path)
+        self.write_fgmax_grid(self.gauges,self.fgmax_params)
 
     def run(self,model_params,verbose=False):
         """
@@ -59,17 +64,25 @@ class GeoClawForwardModel(BaseForwardModel):
         Read gauges
         Return observations (arrival times, Wave heights)
         """
+        # split fault into subfaults aligning to fault zone geometry
         subfault_params = self.fault.subfault_split(model_params['latitude'],
                                                     model_params['longitude'],
                                                     model_params['length'],
                                                     model_params['width'],
                                                     model_params['slip'],
-                                                    model_params['depth_offset'])
+                                                    model_params['depth_offset'],
+                                                    model_params['rake'])
 
+        # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
+
+        # clear .output
         os.system('rm .output')
+
+        # run GeoClaw
         os.system('make .output')
 
+        # load fgmax and bathymetry data
         fgmax_data = np.loadtxt(self.fgmax_out_path)
         bath_data  = np.loadtxt(self.bathy_path)
 
@@ -124,9 +137,22 @@ class GeoClawForwardModel(BaseForwardModel):
                 if verbose: print("inundation: {:.3f}, llh: {:.3e}".format(inundation,log_p))
         return llh
 
-    def write_fgmax_grid(self,gauges,fgmax_grid_path):
-        pass
+    def write_fgmax_grid(self,gauges,fgmax_params):
+        npts = sum(1 for gauge in gauges if
+                   any(obstype in self.obstypes for obstype in gauge.obstypes))
 
+        with open(fgmax_params['fgmax_grid_path'],'w') as f:
+            f.write(str(fgmax_params['tstart_max'])+'\t# tstart_max\n')
+            f.write(str(fgmax_params['tend_max'])+'\t# tend_max\n')
+            f.write(str(fgmax_params['dt_check'])+'\t# dt_check\n')
+            f.write(str(fgmax_params['min_level_check'])+'\t# min_level_check\n')
+            f.write(str(fgmax_params['arrival_tol'])+'\t# arrival_tol\n')
+            f.write(str(fgmax_params['point_style'])+'\t# point_style\n')
+            f.write(str(npts)+'\t# n_pts\n')
+            for gauge in gauges:
+                if any(obstype in self.obstypes for obstype in gauge.obstypes):
+                    f.write(str(gauge.fgmax_lon)+' '+str(gauge.fgmax_lat))
+                    f.write('\t# '+gauge.name)
 
 class TestForwardModel(BaseForwardModel):
     obstypes = ['power']
