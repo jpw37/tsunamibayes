@@ -4,7 +4,7 @@ from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
 
 class BandaScenario(BaseScenario):
-    sample_cols = ['latitude','longitude','magnitude','delta_logL','delta_logW',
+    sample_cols = ['latitude','longitude','magnitude','delta_logl','delta_logw',
                    'depth_offset']
     model_param_cols = ['latitude','longitude','length','width','slip','strike',
                         'dip','depth','rake','depth_offset']
@@ -29,8 +29,8 @@ class BandaScenario(BaseScenario):
     def map_to_model_params(self,sample):
         """Evaluate the map from sample parameters to forward model parameters.
         """
-        length = calc_length(sample['magnitude'],sample['delta_logL'])
-        width = calc_width(sample['magnitude'],sample['delta_logW'])
+        length = calc_length(sample['magnitude'],sample['delta_logl'])
+        width = calc_width(sample['magnitude'],sample['delta_logw'])
         slip = calc_slip(sample['magnitude'],length,width)
         strike = self.fault.strike_map(sample['latitude'],
                                        sample['longitude'])

@@ -7,7 +7,6 @@ from .utils import step
 class BaseFault:
     """A class for data relating to the fault"""
     def __init__(self,bounds):
-        self.R = 6.3781e6
         self.bounds = bounds
 
     def depth_map(self,lat,lon):
@@ -50,7 +49,6 @@ class BaseFault:
         subfault_params : pandas DataFrame
             DataFrame containing the Okada parameters for each subfault
         """
-        R = self.R
         n_steps = 8
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)
@@ -69,8 +67,8 @@ class BaseFault:
         lat2,lon2 = lat,lon
         for i in range(1,(n - 1)//2+1):
             for j in range(n_steps):
-                lat1,lon1 = step(lat1,lon1,bearing1,length_step,R)
-                lat2,lon2 = step(lat2,lon2,bearing2,length_step,R)
+                lat1,lon1 = step(lat1,lon1,bearing1,length_step)
+                lat2,lon2 = step(lat2,lon2,bearing2,length_step)
                 bearing1 = self.strike_map(lat1, lon1)
                 bearing2 = (self.strike_map(lat2, lon2)-180)%360
             lats[(n-1)//2+i] = lat1
@@ -97,8 +95,8 @@ class BaseFault:
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,(m - 1)//2+1):
             for j in range(n_steps):
-                templats1,templons1 = step(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)),R)
-                templats2,templons2 = step(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)),R)
+                templats1,templons1 = step(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
+                templats2,templons2 = step(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
                 tempdips1 = self.dip_map(templats1,templons1)
                 tempdips2 = self.dip_map(templats2,templons2)
             Lats[(m-1)//2+i] = templats1
