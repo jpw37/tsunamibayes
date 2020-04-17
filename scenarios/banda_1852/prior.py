@@ -2,25 +2,25 @@ from tsunamibayes import BasePrior
 from tsuamibayes.utils import calc_length, calc_width, out_of_bounds
 
 class BandaPrior(BasePrior):
-    def __init__(self,latlon,mag,deltalogl,deltalogw,depth_offset):
+    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset):
         self.latlon = latlon
         self.mag = mag
-        self.deltalogl = deltalogl
-        self.deltalogw = deltalogw
+        self.delta_logl = delta_logl
+        self.delta_logw = delta_logw
         self.depth_offset = depth_offset
 
     def logpdf(self,sample):
         lat    = sample["latitude"]
         lon    = sample["longitude"]
         mag    = sample["magnitude"]
-        deltalogl = sample["deltalogl"]
-        deltalogw = sample["deltalogw"]
+        delta_logl = sample["delta_logl"]
+        delta_logw = sample["delta_logw"]
         depth_offset = sample["depth_offset"]
 
         lpdf = self.latlon.logpdf(sample)
         lpdf += self.mag.logpdf(mag)
-        lpdf += self.deltalogl.logpdf(deltalogl)
-        lpdf += self.deltalogw.logpdf(deltalogw)
+        lpdf += self.delta_logl.logpdf(delta_logl)
+        lpdf += self.delta_logw.logpdf(delta_logw)
         lpdf += self.depth_offset.logpdf(depth_offset)
 
         return lpdf
@@ -28,15 +28,15 @@ class BandaPrior(BasePrior):
     def rvs(self):
         latlon = self.latlon.rvs()
         mag = self.mag.rvs()
-        deltalogl = self.deltalogl.rvs()
-        deltalogw = self.deltalogw.rvs()
+        delta_logl = self.delta_logl.rvs()
+        delta_logw = self.delta_logw.rvs()
         depth_offset = self.depth_offset.rvs()
-        params = np.array(latlon+[mag,deltalogl,deltalogw,depth_offset])
+        params = np.array(latlon+[mag,delta_logl,delta_logw,depth_offset])
         return pd.Series(params,["latitude",
                                  "longitude",
                                  "magnitude",
-                                 "deltalogl",
-                                 "deltalogw",
+                                 "delta_logl",
+                                 "delta_logw",
                                  "depth_offset"])
 
 class LatLonPrior(BasePrior):

@@ -17,7 +17,7 @@ def bearing(lat1,lon1,lat2,lon2):
     y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
     return np.degrees(np.arctan2(x,y))%360
 
-def step(lat,lon,bearing,distance):
+def displace(lat,lon,bearing,distance):
     """Compute the lat-lon coordinates of a point given another point, a
     bearing, and a distance. R = radius of the earth."""
     lat,lon,bearing = np.deg2rad(lat),np.deg2rad(lon),np.deg2rad(bearing)
@@ -53,12 +53,12 @@ def out_of_bounds(subfault_params,bounds):
     # check if subfaults are outside bounds
     lats = np.array(subfault_params['latitude'])
     lons = np.array(subfault_params['longitude'])
-    edge1 = step(lats,lons,strike,length/2,R)
-    edge2 = step(lats,lons,strike-180,length/2,R)
-    corner1 = step(edge1[0],edge1[1],strike+90,width/2)
-    corner2 = step(edge1[0],edge1[1],strike-90,width/2)
-    corner3 = step(edge2[0],edge2[1],strike+90,width/2)
-    corner4 = step(edge2[0],edge2[1],strike-90,width/2)
+    edge1 = displace(lats,lons,strike,length/2,R)
+    edge2 = displace(lats,lons,strike-180,length/2,R)
+    corner1 = displace(edge1[0],edge1[1],strike+90,width/2)
+    corner2 = displace(edge1[0],edge1[1],strike-90,width/2)
+    corner3 = displace(edge2[0],edge2[1],strike+90,width/2)
+    corner4 = displace(edge2[0],edge2[1],strike-90,width/2)
     corners = np.hstack((corner1,corner2,corner3,corner4))
     if np.any(corners[0] < bounds['lat_min']) or np.any(corners[0] > bounds['lat_max']):
         return True
@@ -67,7 +67,7 @@ def out_of_bounds(subfault_params,bounds):
 
     # check if subfaults intersect surface
     for _,subfault in subfault_params.iterrows():
-        if subfault['depth'] < .5*subfault['width']*np.sin(np.deg2rad(subfault['dip']])):
+        if subfault['depth'] < .5*subfault['width']*np.sin(np.deg2rad(subfault['dip'])):
             return True
 
     return False

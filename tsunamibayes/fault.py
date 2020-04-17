@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
-from .utils import step
+from .utils import displace
 
 class BaseFault:
     """A class for data relating to the fault"""
@@ -67,8 +67,8 @@ class BaseFault:
         lat2,lon2 = lat,lon
         for i in range(1,(n - 1)//2+1):
             for j in range(n_steps):
-                lat1,lon1 = step(lat1,lon1,bearing1,length_step)
-                lat2,lon2 = step(lat2,lon2,bearing2,length_step)
+                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)
+                lat2,lon2 = displace(lat2,lon2,bearing2,length_step)
                 bearing1 = self.strike_map(lat1, lon1)
                 bearing2 = (self.strike_map(lat2, lon2)-180)%360
             lats[(n-1)//2+i] = lat1
@@ -95,8 +95,8 @@ class BaseFault:
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,(m - 1)//2+1):
             for j in range(n_steps):
-                templats1,templons1 = step(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
-                templats2,templons2 = step(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
+                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
+                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
                 tempdips1 = self.dip_map(templats1,templons1)
                 tempdips2 = self.dip_map(templats2,templons2)
             Lats[(m-1)//2+i] = templats1
@@ -169,8 +169,8 @@ class BaseFault:
         lat2,lon2 = lat,lon
         for i in range(1,mid_l+1):
             for j in range(n_steps):
-                lat1,lon1 = step(lat1,lon1,bearing1,length_step,R)
-                lat2,lon2 = step(lat2,lon2,bearing2,length_step,R)
+                lat1,lon1 = displace(lat1,lon1,bearing1,length_step,R)
+                lat2,lon2 = displace(lat2,lon2,bearing2,length_step,R)
                 bearing1 = self.strike_map(lat1, lon1)
                 bearing2 = (self.strike_map(lat2, lon2)-180)%360
             lats[mid_l+i],lons[mid_l+i] = lat1,lon1
@@ -195,8 +195,8 @@ class BaseFault:
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,mid_w+1):
             for j in range(n_steps):
-                templats1,templons1 = step(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)),R)
-                templats2,templons2 = step(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)),R)
+                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)),R)
+                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)),R)
                 tempdips1 = self.dip_map(templats1,templons1)
                 tempdips2 = self.dip_map(templats2,templons2)
             Lats[:,mid_w+i],Lons[:,mid_w+i] = templats1,templons1

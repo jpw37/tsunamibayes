@@ -1,7 +1,10 @@
+import numpy as np
 import scipy.stats as stats
 import json
+import matplotlib.pyplot as plt
 
 class Gauge:
+    plot_bounds = {'arrival':(0,120),'height':(0,10),'inundation':(0,500)}
     """Class for managing data related to observations. A Gauge object
     loosely corresponds to an observation location, along with probability
     distributions representing each type of observation associated
@@ -80,6 +83,43 @@ class Gauge:
     @classmethod
     def from_json(cls,d):
         return cls.from_shapes(**d)
+
+    def plot(self,obstype,ax=None):
+        dist = self.dists[obstype]
+
+        if obstype in ['arrival','height','inundation']:
+            a,b = Gauge.plot_bounds[obstype]
+        else:
+            a,b = dist.a,dist.b
+            if a == np.NINF:
+                a = dist.interval(.999)[0]
+            if b == np.inf:
+                b = dist.interval(.999)[1]
+
+        if ax is None:
+            fig = plt.figure()
+            ax = plt.axes()
+
+        x = np.linspace(a,b,1000)
+        ax.plot(x,dist.pdf(x))
+        ax.set_title(self.name + ' ' + obstype)
+
+    def plot_all(self,fig=None):
+        if fig is None:
+            fig = plt.figure()
+
+        nobs = len(self.obstypes)
+        if nobs == 1:
+            n = 1
+            m = 1
+        else:
+            n = 2
+            m = np.ceil(nobs/2)
+            fig.set_size_inches(10, 5*m)
+
+        for i,obstype in enumerate(self.obstypes):
+            ax = fig.add_subplot(m,n,i+1)
+            self.plot(obstype,ax)
 
 def dump_gauges(gauges,outfile):
     with open(outfile,'w') as f:

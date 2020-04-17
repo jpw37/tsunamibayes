@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from .fault import BaseFault
 from .maketopo import write_dtopo
+from . import models
 
 class BaseForwardModel:
     def __init__(self,gauges):
@@ -45,16 +46,16 @@ class CompositeForwardModel(BaseForwardModel):
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
-    def __init__(self,gauges,fault,dtopo_path,fgmax_params,bathy_path):
+    def __init__(self,gauges,fault,fgmax_params,dtopo_path,bathy_path):
         if not isinstance(fault,BaseFault):
             raise TypeError("fault must be an instance of BaseFault or an \
                             inherited class.")
-        super.__init__(gauges)
+        super().__init__(gauges)
         self.fault = fault
         self.dtopo_path = dtopo_path
         self.fgmax_params = fgmax_params
         self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
-        self.fgmax_out_path = fmax_params['fgmax_out_path']
+        self.fgmax_out_path = fgmax_params['fgmax_out_path']
         self.bathy_path = bathy_path
         self.write_fgmax_grid(self.gauges,self.fgmax_params)
 
@@ -107,8 +108,7 @@ class GeoClawForwardModel(BaseForwardModel):
             if 'height' in gauge.obstypes:
                 model_output[gauge.name+' height'] = wave_heights[i]
             if 'inundation' in gauge.obstypes:
-                # put inundation model here
-                pass
+                model_output[gauge.name+' inundation'] = models.inundation(wave_heights[i],gauge.beta,gauge.n)
 
         return model_output
 
@@ -147,12 +147,12 @@ class GeoClawForwardModel(BaseForwardModel):
             f.write(str(fgmax_params['dt_check'])+'\t# dt_check\n')
             f.write(str(fgmax_params['min_level_check'])+'\t# min_level_check\n')
             f.write(str(fgmax_params['arrival_tol'])+'\t# arrival_tol\n')
-            f.write(str(fgmax_params['point_style'])+'\t# point_style\n')
+            f.write('0'+'\t# point_style\n')
             f.write(str(npts)+'\t# n_pts\n')
             for gauge in gauges:
                 if any(obstype in self.obstypes for obstype in gauge.obstypes):
                     f.write(str(gauge.fgmax_lon)+' '+str(gauge.fgmax_lat))
-                    f.write('\t# '+gauge.name)
+                    f.write('\t# '+gauge.name+'\n')
 
 class TestForwardModel(BaseForwardModel):
     obstypes = ['power']
