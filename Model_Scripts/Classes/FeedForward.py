@@ -127,13 +127,13 @@ class FeedForward:
             print("GAUGE LOG: gauge", i, "(", gauge.longitude, ",", gauge.latitude, "): arrival =", arrivals[i],
                   ", heights =", heights[i])
             # arrivals
-            if (gauge.kind[0]):
-                p_i = gauge.arrival_dist.logpdf(arrivals[i])
+            if 'arrival' in gauge.obstypes:
+                p_i = gauge.dists['arrival'].logpdf(arrivals[i])
                 llh += p_i
                 print("GAUGE LOG: gauge", i, " (arrival)   : logpdf +=", p_i)
 
             # heights
-            if (gauge.kind[1]):
+            if 'height' in gauge.obstypes:
                 # special case: wave didn't arrive
                 if np.abs(heights[i]) > 999999999:
                     p_i = np.NINF
@@ -146,13 +146,13 @@ class FeedForward:
 #                    heightLikelihoods = heightLikelihoodTable[:, i + 1]
 #                    f = interp1d(heightValues, heightLikelihoods, assume_sorted=True)  # ,kind='cubic')
 #                    p_i = np.log(f(heights[i]))
-                    p_i = gauge.height_dist.logpdf(heights[i])
+                    p_i = gauge.dists['height'].logpdf(heights[i])
 
                 llh += p_i
                 print("GAUGE LOG: gauge", i, " (height)    : logpdf +=", p_i)
 
             # inundations
-            if (gauge.kind[2]):
+            if 'inundation' in gauge.obstypes:
                 # special case: wave didn't arrive
                 if np.abs(heights[i]) > 999999999:
                     p_i = np.NINF
@@ -165,7 +165,7 @@ class FeedForward:
 #                    inundationLikelihoods = inundationLikelihoodTable[:, i + 1]
 #                    f = interp1d(inundationValues, inundationLikelihoods, assume_sorted=True)  # ,kind='cubic')
 #                    p_i = np.log(f(heights[i]))
-                    p_i = gauge.inundation_dist.logpdf(0.06*heights[i]**(4/3)*np.cos(gauge.beta*np.pi/180)/(gauge.n**2))
+                    p_i = gauge.dists['inundation'].logpdf(0.06*heights[i]**(4/3)*np.cos(gauge.beta*np.pi/180)/(gauge.n**2))
 
                 llh += p_i
                 print("GAUGE LOG: gauge", i, " (inundation): logpdf +=", p_i)

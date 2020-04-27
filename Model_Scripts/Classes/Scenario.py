@@ -16,7 +16,7 @@ from IndependentSampler import IndependentSampler
 from Samples import Samples
 from FeedForward import FeedForward
 from Custom import Custom
-from Gauge import from_json
+from Gauge import load_gauges
 from Adjoint import Adjoint
 from pandas import read_pickle
 
@@ -76,8 +76,8 @@ class Scenario:
 
 		# Make sure Pre-Run files have been generated
 		if(os.path.isfile(gauges_file_path)):
-			gauges = np.load(gauges_file_path, allow_pickle=True)
-			self.gauges = [from_json(gauge) for gauge in gauges]
+			# gauges = np.load(gauges_file_path, allow_pickle=True)
+			self.gauges = load_gauges(gauges_file_path)
 		else:
 			raise ValueError("The Gauge and FG Max files have not be created.(Please see the file /PreRun/Gauges.ipynb")
 
