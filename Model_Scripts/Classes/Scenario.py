@@ -47,7 +47,7 @@ class Scenario:
 		os.system('rm ./InputData/dtopo.tt3')
 
 		#Set up necessary prerun file paths
-		gauges_file_path = './PreRun/InputData/gauges.npy'
+		gauges_file_path = './PreRun/InputData/gauges.json'
 		shake_gauges_file_path = './PreRun/InputData/shake_gauges.pkl'
 
 		self.title = title
