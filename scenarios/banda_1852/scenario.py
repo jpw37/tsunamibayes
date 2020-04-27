@@ -17,7 +17,7 @@ class BandaScenario(BaseScenario):
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal."""
         proposal = sample.copy()
-        proposal += np.random.multivariate_normal(np.zeros(len(sample_cols)),cov=self.cov)
+        proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
         return proposal
 
     def proposal_logpdf(self,u,v):

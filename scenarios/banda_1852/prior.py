@@ -1,5 +1,6 @@
+import numpy as np
 from tsunamibayes import BasePrior
-from tsuamibayes.utils import calc_length, calc_width, out_of_bounds
+from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 
 class BandaPrior(BasePrior):
     def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset):
@@ -52,7 +53,7 @@ class LatLonPrior(BasePrior):
                                                     sample['longitude'],
                                                     length,
                                                     width,
-                                                    slip=1,
+                                                    1,
                                                     sample['depth_offset'])
 
         if out_of_bounds(subfault_params,self.fault.bounds):
@@ -69,7 +70,7 @@ class LatLonPrior(BasePrior):
                                                     sample['longitude'],
                                                     length,
                                                     width,
-                                                    slip=1,
+                                                    1,
                                                     sample['depth_offset'])
 
         if out_of_bounds(subfault_params,self.fault.bounds):

@@ -1,3 +1,4 @@
+import os
 import json
 import numpy as np
 import pandas as pd
@@ -102,20 +103,22 @@ class GeoClawForwardModel(BaseForwardModel):
         wave_heights = max_heights + bath_depth
 
         model_output = pd.Series(dtype='float64')
-        for i,gauge in enumerate(gauges):
+        for i,gauge in enumerate(self.gauges):
             if 'arrival' in gauge.obstypes:
                 model_output[gauge.name+' arrival'] = arrival_times[i]
             if 'height' in gauge.obstypes:
                 model_output[gauge.name+' height'] = wave_heights[i]
             if 'inundation' in gauge.obstypes:
-                model_output[gauge.name+' inundation'] = models.inundation(wave_heights[i],gauge.beta,gauge.n)
+                model_output[gauge.name+' inundation'] = models.inundation(wave_heights[i],
+                                                                           gauge.beta,
+                                                                           gauge.n)
 
         return model_output
 
     def llh(self,model_output,verbose=False):
         llh = 0
         if verbose: print("Gauge Log\n---------")
-        for gauge in gauges:
+        for gauge in self.gauges:
             if verbose: print(gauge.name)
             if 'arrival' in gauge.obstypes:
                 arrival_time = model_output[gauge.name+' arrival']
@@ -151,7 +154,7 @@ class GeoClawForwardModel(BaseForwardModel):
             f.write(str(npts)+'\t# n_pts\n')
             for gauge in gauges:
                 if any(obstype in self.obstypes for obstype in gauge.obstypes):
-                    f.write(str(gauge.fgmax_lon)+' '+str(gauge.fgmax_lat))
+                    f.write(str(gauge.fg_lon)+' '+str(gauge.fg_lat))
                     f.write('\t# '+gauge.name+'\n')
 
 class TestForwardModel(BaseForwardModel):

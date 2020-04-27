@@ -53,12 +53,15 @@ def out_of_bounds(subfault_params,bounds):
     # check if subfaults are outside bounds
     lats = np.array(subfault_params['latitude'])
     lons = np.array(subfault_params['longitude'])
-    edge1 = displace(lats,lons,strike,length/2,R)
-    edge2 = displace(lats,lons,strike-180,length/2,R)
-    corner1 = displace(edge1[0],edge1[1],strike+90,width/2)
-    corner2 = displace(edge1[0],edge1[1],strike-90,width/2)
-    corner3 = displace(edge2[0],edge2[1],strike+90,width/2)
-    corner4 = displace(edge2[0],edge2[1],strike-90,width/2)
+    strikes = np.array(subfault_params['strike'])
+    lengths = np.array(subfault_params['length'])
+    widths = np.array(subfault_params['width'])
+    edge1 = displace(lats,lons,strikes,lengths/2)
+    edge2 = displace(lats,lons,strikes-180,lengths/2)
+    corner1 = displace(edge1[0],edge1[1],strikes+90,widths/2)
+    corner2 = displace(edge1[0],edge1[1],strikes-90,widths/2)
+    corner3 = displace(edge2[0],edge2[1],strikes+90,widths/2)
+    corner4 = displace(edge2[0],edge2[1],strikes-90,widths/2)
     corners = np.hstack((corner1,corner2,corner3,corner4))
     if np.any(corners[0] < bounds['lat_min']) or np.any(corners[0] > bounds['lat_max']):
         return True

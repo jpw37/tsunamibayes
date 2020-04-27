@@ -147,7 +147,6 @@ class BaseFault:
         subfault_params : pandas DataFrame
             DataFrame containing the Okada parameters for each subfault
         """
-        R = self.R
         n_steps = 8
         length_step = length/(m*n_steps)
         width_step = width/(n*n_steps)
@@ -169,8 +168,8 @@ class BaseFault:
         lat2,lon2 = lat,lon
         for i in range(1,mid_l+1):
             for j in range(n_steps):
-                lat1,lon1 = displace(lat1,lon1,bearing1,length_step,R)
-                lat2,lon2 = displace(lat2,lon2,bearing2,length_step,R)
+                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)
+                lat2,lon2 = displace(lat2,lon2,bearing2,length_step)
                 bearing1 = self.strike_map(lat1, lon1)
                 bearing2 = (self.strike_map(lat2, lon2)-180)%360
             lats[mid_l+i],lons[mid_l+i] = lat1,lon1
@@ -195,8 +194,8 @@ class BaseFault:
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,mid_w+1):
             for j in range(n_steps):
-                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)),R)
-                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)),R)
+                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
+                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
                 tempdips1 = self.dip_map(templats1,templons1)
                 tempdips2 = self.dip_map(templats2,templons2)
             Lats[:,mid_w+i],Lons[:,mid_w+i] = templats1,templons1
@@ -211,6 +210,7 @@ class BaseFault:
         X,Y = np.meshgrid(np.arange(m),np.arange(n),indexing='ij')
         Slips = dist.pdf(np.array([X,Y]).T).T
         Slips *= slip/Slips.mean()
+        # Slips = slip*np.ones_like(Lats)
 
         Depths = self.depth_map(Lats.flatten(),Lons.flatten()) + depth_offset
         data = [Lats,Lons,Strikes,Dips,Depths,Slips]
@@ -218,7 +218,11 @@ class BaseFault:
         subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth','slip'])
         subfault_params['length'] = sublength
         subfault_params['width'] = subwidth
-        subfault_params['rake'] = rake
+
+        #central strike
+        central_strike = self.strike_map(lat,lon)
+        subfault_params['rake'] = 90-central_strike+Strikes.flatten()
+        # subfault_params['rake'] = rake
 
         return subfault_params
 

@@ -15,7 +15,7 @@ class BaseScenario:
     sample_cols = None
     model_param_cols = None
 
-    def __init__(self,name,prior,forward_model,data_path):
+    def __init__(self,name,prior,forward_model,output_path):
 
         if self.sample_cols is None or self.model_param_cols is None:
             raise NotImplementedError("sample_cols and model_param_cols must be \
@@ -24,7 +24,7 @@ class BaseScenario:
         self.name = name
         self.prior = prior
         self.forward_model = forward_model
-        self.data_path = data_path
+        self.output_path = output_path
         self.model_output_cols = forward_model.model_output_cols
 
         # generate column labels for debug dataframe
@@ -121,19 +121,42 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
-    def restart(self,restart_path):
-        self.samples = pd.read_csv(restart_path+"samples.csv",index_col=0)
-        self.model_params = pd.read_csv(restart_path+"model_params.csv",index_col=0)
-        self.model_output = pd.read_csv(restart_path+"model_output.csv",index_col=0)
-        self.debug = pd.read_csv(restart_path+"debug.csv",index_col=0)
+    def seq_reinit(self,output_path):
+        self.resume_chain(output_path)
+        n = len(self.samples)
+        if n != len(self.model_params) + 1:
+            raise Exception()
 
-    def save_data(self,save_path):
-        self.samples.to_csv(save_path+"samples.csv")
-        self.model_params.to_csv(save_path+"model_params.csv")
-        self.model_output.to_csv(save_path+"model_output.csv")
-        self.debug.to_csv(save_path+"debug.csv")
+        prior_logpdf = self.prior.logpdf(self.samples.iloc[-1])
 
-    def sample(self,nsamples,save_freq=10,verbose=False):
+        # evaluate forward model and compute log-likelihood
+        model_params = self.map_to_model_params(self.samples.iloc[-1])
+        self.model_params.loc[n] = model_params
+
+        model_output = self.forward_model.run(model_params)
+        self.model_output.loc[n] = model_output
+
+        llh = self.forward_model.llh(model_output)
+
+        # save prior logpdf, log-likelihood, and posterior logpdf
+        bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
+        self.bayes_data.loc[n] = bayes_data
+
+    def resume_chain(self,output_path):
+        self.samples = pd.read_csv(output_path+"samples.csv",index_col=0)
+        self.model_params = pd.read_csv(output_path+"model_params.csv",index_col=0)
+        self.model_output = pd.read_csv(output_path+"model_output.csv",index_col=0)
+        self.bayes_data = pd.read_csv(output_path+"bayes_data.csv",index_col=0)
+        self.debug = pd.read_csv(output_path+"debug.csv",index_col=0)
+
+    def save_data(self,output_path):
+        self.samples.to_csv(output_path+"samples.csv")
+        self.model_params.to_csv(output_path+"model_params.csv")
+        self.model_output.to_csv(output_path+"model_output.csv")
+        self.bayes_data.to_csv(output_path+"bayes_data.csv")
+        self.debug.to_csv(output_path+"debug.csv")
+
+    def sample(self,nsamples,output_path=None,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -150,7 +173,7 @@ class BaseScenario:
         """
         if not hasattr(self,'samples'):
             raise AttributeError("Chain must first be initialized with \
-            {}.init_chain() or {}.restart()".format(type(self).__name__,type(self).__name__))
+            {}.init_chain() or {}.resume_chain()".format(type(self).__name__,type(self).__name__))
 
         for i in range(len(self.samples),len(self.samples)+nsamples):
             # propose new sample from previous
@@ -212,9 +235,10 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
-            if not i%save_freq:
-                self.save_data(data_path)
+            if not i%save_freq and (output_path is not None):
+                self.save_data(output_path)
 
+        if output_path is not None: self.save_data(output_path)
         return self.samples
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
@@ -232,7 +256,8 @@ class BaseScenario:
             Row for the debug Dataframe
         """
         proposal = pd.Series(proposal).rename(lambda x:'p_'+x)
-        proposal_model_params = pd.Series(proposal_model_params).rename(lambda x:'p_'+x)
+        sample_model_params = pd.Series(sample_model_params).rename(lambda x:'m_'+x if x in self.sample_cols else x)
+        proposal_model_params = pd.Series(proposal_model_params).rename(lambda x:'p_m_'+x if x in self.sample_cols else 'p_'+x)
         proposal_bayes = pd.Series(proposal_bayes).rename(lambda x:'p_'+x)
         return pd.concat((sample,
                           proposal,
