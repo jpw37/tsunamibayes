@@ -1,1 +1,0 @@
-scp $1 sgiddens@computeserver.byu.edu:/Volumes/Hearthom/tsunami/sgiddens/$2

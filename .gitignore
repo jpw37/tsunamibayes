@@ -9,3 +9,12 @@
 
 # egg files
 tsunamibayes.egg*
+
+# data files
+*.xyz
+*.zip
+*.json
+*.npz
+
+# Test jupyter notebooks
+*/testing_notebooks/*
