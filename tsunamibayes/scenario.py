@@ -15,16 +15,15 @@ class BaseScenario:
     sample_cols = None
     model_param_cols = None
 
-    def __init__(self,name,prior,forward_model,output_path):
+    def __init__(self,prior,forward_model,output_dir):
 
         if self.sample_cols is None or self.model_param_cols is None:
             raise NotImplementedError("sample_cols and model_param_cols must be \
                                       defined in inherited classes")
 
-        self.name = name
         self.prior = prior
         self.forward_model = forward_model
-        self.output_path = output_path
+        self.output_dir = output_dir
         self.model_output_cols = forward_model.model_output_cols
 
         # generate column labels for debug dataframe
@@ -121,8 +120,8 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
-    def seq_reinit(self,output_path):
-        self.resume_chain(output_path)
+    def seq_reinit(self,output_dir):
+        self.resume_chain(output_dir)
         n = len(self.samples)
         if n != len(self.model_params) + 1:
             raise Exception()
@@ -142,21 +141,21 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[n] = bayes_data
 
-    def resume_chain(self,output_path):
-        self.samples = pd.read_csv(output_path+"samples.csv",index_col=0)
-        self.model_params = pd.read_csv(output_path+"model_params.csv",index_col=0)
-        self.model_output = pd.read_csv(output_path+"model_output.csv",index_col=0)
-        self.bayes_data = pd.read_csv(output_path+"bayes_data.csv",index_col=0)
-        self.debug = pd.read_csv(output_path+"debug.csv",index_col=0)
+    def resume_chain(self,output_dir):
+        self.samples = pd.read_csv(output_dir+"samples.csv",index_col=0)
+        self.model_params = pd.read_csv(output_dir+"model_params.csv",index_col=0)
+        self.model_output = pd.read_csv(output_dir+"model_output.csv",index_col=0)
+        self.bayes_data = pd.read_csv(output_dir+"bayes_data.csv",index_col=0)
+        self.debug = pd.read_csv(output_dir+"debug.csv",index_col=0)
 
-    def save_data(self,output_path):
-        self.samples.to_csv(output_path+"samples.csv")
-        self.model_params.to_csv(output_path+"model_params.csv")
-        self.model_output.to_csv(output_path+"model_output.csv")
-        self.bayes_data.to_csv(output_path+"bayes_data.csv")
-        self.debug.to_csv(output_path+"debug.csv")
+    def save_data(self,output_dir):
+        self.samples.to_csv(output_dir+"samples.csv")
+        self.model_params.to_csv(output_dir+"model_params.csv")
+        self.model_output.to_csv(output_dir+"model_output.csv")
+        self.bayes_data.to_csv(output_dir+"bayes_data.csv")
+        self.debug.to_csv(output_dir+"debug.csv")
 
-    def sample(self,nsamples,output_path=None,save_freq=10,verbose=False):
+    def sample(self,nsamples,output_dir=None,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -235,10 +234,10 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
-            if not i%save_freq and (output_path is not None):
-                self.save_data(output_path)
+            if not i%save_freq and (output_dir is not None):
+                self.save_data(output_dir)
 
-        if output_path is not None: self.save_data(output_path)
+        if output_dir is not None: self.save_data(output_dir)
         return self.samples
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,

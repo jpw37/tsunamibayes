@@ -1,6 +1,8 @@
 import numpy as np
 from clawpack.geoclaw import dtopotools
 
+# !!! Check if geoclaw interface needs to be rebuilt !!!
+
 def make_fault_dtopo(subfault_params,bounds,verbose=False):
     """Create GeoClaw fault object and dtopo for deformation of sea floor due to earthquake.
     Uses the Okada model with fault parameters and mesh specified below.

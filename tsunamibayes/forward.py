@@ -147,8 +147,8 @@ class GeoClawForwardModel(BaseForwardModel):
         with open(fgmax_params['fgmax_grid_path'],'w') as f:
             f.write(str(fgmax_params['tstart_max'])+'\t# tstart_max\n')
             f.write(str(fgmax_params['tend_max'])+'\t# tend_max\n')
-            f.write(str(fgmax_params['dt_check'])+'\t# dt_check\n')
-            f.write(str(fgmax_params['min_level_check'])+'\t# min_level_check\n')
+            f.write(str(fgmax_params['dt_check'])+'\t# dt_check\n') # drop this?
+            f.write(str(fgmax_params['min_level_check'])+'\t# min_level_check\n') # set to maxlevel somehow
             f.write(str(fgmax_params['arrival_tol'])+'\t# arrival_tol\n')
             f.write('0'+'\t# point_style\n')
             f.write(str(npts)+'\t# n_pts\n')
