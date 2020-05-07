@@ -104,7 +104,7 @@ class Config:
     def read(self, file):
         """Reads a config file, overwriting any currently set values."""
         section_pattern = re.compile(r"^\[(\w*)\]")
-        param_pattern = re.compile(r"^([^\s]*)\s*=\s*([^\s]*)$")
+        param_pattern = re.compile(r"^([^\s]*)\s*=\s*([^\s].*)")
         with open(file,'r') as f:
             lines = f.readlines()
         for line in lines:
@@ -113,6 +113,7 @@ class Config:
                 if sec[0] not in self.dict.keys():
                     section = dict()
                     self.dict[sec[0]] = section
+                    setattr(self,sec[0],section)
                 else:
                     section = self.dict[sec[0]]
 
@@ -120,10 +121,16 @@ class Config:
             if param:
                 section[param[0][0]] = literal_eval(param[0][1])
 
-core_parser = argparse.ArgumentParser(description='Run a tsunamibayes {} scenario.')
-core_parser.add_argument('--cfg', dest='config', help="config file path")
-core_parser.add_argument('--outdir', dest='output_dir', default="output/",
-                         help="output directory")
-core_parser.add_argument('-r', dest='resume', action='store_true',
-                         help="flag for resuming an in-progress chain")
-core_parser.add_argument('nsamp', dest='n_samples', help="number of samples to draw")
+parser = argparse.ArgumentParser(description='Run a tsunamibayes {} scenario.')
+parser.add_argument('--cfg', dest='config_path', help="config file path", type=str)
+parser.add_argument('--outdir', dest='output_dir', default="output/", type=str,
+                    help="output directory")
+parser.add_argument('--resdir', dest='resume_dir', type=str,
+                    help="directory for resuming an in-progress chain")
+parser.add_argument('--seqdir', dest='seq_reinit_dir', type=str,
+                    help="directory for reinitializing with sequential MCMC")
+parser.add_argument('--savf', dest='save_freq', type=int, default=10,
+                    help="frequency for saving output")
+parser.add_argument('-v', dest='verbose', action='store_true',
+                    help="flag for verbose logging")
+parser.add_argument('n_samples', help="number of samples to draw", type=int)

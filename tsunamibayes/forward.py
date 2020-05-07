@@ -47,7 +47,7 @@ class CompositeForwardModel(BaseForwardModel):
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
-    def __init__(self,gauges,fault,fgmax_params,dtopo_path,bathy_path):
+    def __init__(self,gauges,fault,fgmax_params,dtopo_path):
         if not isinstance(fault,BaseFault):
             raise TypeError("fault must be an instance of BaseFault or an \
                             inherited class.")
@@ -56,8 +56,8 @@ class GeoClawForwardModel(BaseForwardModel):
         self.dtopo_path = dtopo_path
         self.fgmax_params = fgmax_params
         self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
-        self.fgmax_out_path = fgmax_params['fgmax_out_path']
-        self.bathy_path = bathy_path
+        self.valuemax_path = fgmax_params['valuemax_path']
+        self.aux1_path = fgmax_params['aux1_path']
         self.write_fgmax_grid(self.gauges,self.fgmax_params)
 
     def run(self,model_params,verbose=False):
@@ -85,8 +85,8 @@ class GeoClawForwardModel(BaseForwardModel):
         os.system('make .output')
 
         # load fgmax and bathymetry data
-        fgmax_data = np.loadtxt(self.fgmax_out_path)
-        bath_data  = np.loadtxt(self.bathy_path)
+        fgmax_data = np.loadtxt(self.valuemax_path)
+        bath_data  = np.loadtxt(self.aux1_path)
 
         # this is the arrival time of the first wave, not the maximum wave
         # converting from seconds to minutes
@@ -154,7 +154,7 @@ class GeoClawForwardModel(BaseForwardModel):
             f.write(str(npts)+'\t# n_pts\n')
             for gauge in gauges:
                 if any(obstype in self.obstypes for obstype in gauge.obstypes):
-                    f.write(str(gauge.fg_lon)+' '+str(gauge.fg_lat))
+                    f.write(str(gauge.lon)+' '+str(gauge.lat))
                     f.write('\t# '+gauge.name+'\n')
 
 class TestForwardModel(BaseForwardModel):

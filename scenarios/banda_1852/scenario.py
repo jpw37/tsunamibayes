@@ -9,8 +9,8 @@ class BandaScenario(BaseScenario):
     model_param_cols = ['latitude','longitude','length','width','slip','strike',
                         'dip','depth','rake','depth_offset']
 
-    def __init__(self,prior,forward_model,output_dir,covariance):
-        super().__init__(prior,forward_model,output_dir)
+    def __init__(self,prior,forward_model,covariance):
+        super().__init__(prior,forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
 
