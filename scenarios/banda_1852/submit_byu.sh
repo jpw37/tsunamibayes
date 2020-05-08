@@ -6,23 +6,18 @@
 #SBATCH --ntasks=12
 #SBATCH --time=48:00:00
 #SBATCH --mem-per-cpu=4096M #memory requirement
-#SBATCH --mail-user=whitehead@mathematics.byu.edu   # email address
+#SBATCH --mail-user=hringer@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
 ###SBATCH --qos=test
-#SBATCH -A jpw37
+#SBATCH -A hringer
 #SBATCH -C rhel7
 
 
 #### SETUP ####
-
-
-
-
 ## Load software modules (Customize for VT/BYU) ##
 #module purge; module load Anaconda/5.2.0 parallel
-export PYTHONPATH="/fslgroup/fslg_tsunami/justin/apps/anaconda-5.2.0/lib/python3.6/site-packages"
+export PYTHONPATH="/fslgroup/fslg_tsunami/justin/apps/anaconda-5.2.0/lib/python3.6/site-packages:$PYTHONPATH"
 export PATH="/fslgroup/fslg_tsunami/justin/apps/anaconda-5.2.0/bin:$PATH"
-
 
 #define the TMPFS environment variable if it isn't already defined (e.g., at BYU)
 #[[ -z $TMPFS ]] && export TMPFS=$TMPDIR
@@ -32,18 +27,16 @@ export TMPFS="/tmp/$SLURM_JOB_ID"; mkdir -p $TMPFS
 #e.g., "520404_br"
 jobid="$( echo $SLURM_JOB_ID | sed 's/\..*$//' )_$( hostname | grep -o ^.. )"
 
-
-
 #parse arguments
-[[ -z configfile ]] && configfile="defaults.cfg"
-[[ -z init       ]] && init="manual"
+[[ -z $configfile ]] && configfile="defaults.cfg"
+[[ -z $init       ]] && init="manual"
 #[[ -z long       ]] && long=""
 [[ -z $workdir ]]  && workdir=$( pwd )
 [[ -z $rundir ]]   && rundir="$TMPFS/run"
-[[ -z $finaldir ]] && finaldir="$workdir/../../runs/$jobid"
+# [[ -z $finaldir ]] && finaldir="$workdir/../../runs/$jobid"
+[[ -z $finaldir ]] && finaldir="/fslhome/hringer/fsl_groups/fslg_tsunami/compute/hringer/runs/$jobid"
 
-sbatch --export="pyargs=\"\""
-
+# sbatch --export="pyargs=\"\""
 
 logfile="$TMPFS/run.log"
 #logfile="$finaldir/run.log"

@@ -119,7 +119,7 @@ class BaseFault:
 
         return subfault_params
 
-    def subfault_split2(self,lat,lon,length,width,slip,depth_offset=0,rake=90,m=11,n=3):
+    def subfault_split2(self,lat,lon,length,width,slip,depth_offset=0,m=11,n=3,rake='uniform',slip_dist='uniform'):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
@@ -205,12 +205,14 @@ class BaseFault:
             Dips[:,mid_w+i] = tempdips1
             Dips[:,mid_w-i] = tempdips2
 
-        if mid_w == 0: mid_w = 1
-        dist = multivariate_normal(mean=np.array([mid_l,mid_w]),cov=np.array([[(mid_l/1.5)**2,0],[0,(mid_w/1.5)**2]]))
-        X,Y = np.meshgrid(np.arange(m),np.arange(n),indexing='ij')
-        Slips = dist.pdf(np.array([X,Y]).T).T
-        Slips *= slip/Slips.mean()
-        # Slips = slip*np.ones_like(Lats)
+        if slip_dist == 'elliptical':
+            if mid_w == 0: mid_w = 1
+            dist = multivariate_normal(mean=np.array([mid_l,mid_w]),cov=np.array([[(mid_l/1.8)**2,0],[0,(mid_w/1.5)**2]]))
+            X,Y = np.meshgrid(np.arange(m),np.arange(n),indexing='ij')
+            Slips = dist.pdf(np.array([X,Y]).T).T
+            Slips *= slip/Slips.mean()
+        else:
+            Slips = slip*np.ones_like(Lats)
 
         Depths = self.depth_map(Lats.flatten(),Lons.flatten()) + depth_offset
         data = [Lats,Lons,Strikes,Dips,Depths,Slips]
@@ -220,9 +222,11 @@ class BaseFault:
         subfault_params['width'] = subwidth
 
         #central strike
-        central_strike = self.strike_map(lat,lon)
-        subfault_params['rake'] = 90-central_strike+Strikes.flatten()
-        # subfault_params['rake'] = rake
+        if rake == 'parallel':
+            central_strike = self.strike_map(lat,lon)
+            subfault_params['rake'] = 90-central_strike+Strikes.flatten()
+        else:
+            subfault_params['rake'] = 90
 
         return subfault_params
 

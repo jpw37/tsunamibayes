@@ -2,16 +2,16 @@ import os
 import glob
 from clawpack.clawutil import data
 
-# try:
-#     CLAW = os.environ['CLAW']
-# except:
-#     raise Exception("*** Must first set CLAW enviornment variable")
-#
-# # Scratch directory for storing topo and dtopo files:
-# scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
+try:
+    CLAW = os.environ['CLAW']
+except:
+    raise Exception("*** Must first set CLAW enviornment variable")
+
+# Scratch directory for storing topo and dtopo files:
+scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 
 def make_setrun(config):
-    
+
     def setrun(claw_pkg='geoclaw'):
         assert claw_pkg.lower() == 'geoclaw',  "Expected claw_pkg = 'geoclaw'"
 

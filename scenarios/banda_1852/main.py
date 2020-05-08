@@ -90,7 +90,7 @@ if __name__ == "__main__":
     scenario = setup(config)
 
     # initialize new chain
-    if not (args.restart_dir or args.seq_reinit_dir):
+    if not (args.resume_dir or args.seq_reinit_dir):
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
             scenario.init_chain(u0)
