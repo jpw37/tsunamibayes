@@ -286,7 +286,7 @@ def write_setrun(config_path=None):
         f.write("config = Config()\n")
         f.write("config.read('defaults.cfg')\n")
         if config_path:
-            f.write("config.read({})\n".format(config_path))
+            f.write("config.read('{}')\n".format(config_path))
         f.write("setrun = make_setrun(config)\n\n")
         f.write("if __name__ == '__main__':\n")
         f.write("   rundata = setrun()\n")
