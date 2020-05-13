@@ -4,7 +4,7 @@
 ## Submission flags (Customize for VT/BYU) ##
 #SBATCH --nodes=1
 #SBATCH --ntasks=12
-#SBATCH --time=48:00:00
+#SBATCH --time=0:30:00
 #SBATCH --mem-per-cpu=4096M #memory requirement
 #SBATCH --mail-user=hringer@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
@@ -15,14 +15,11 @@
 
 #### SETUP ####
 ## Load software modules (Customize for VT/BYU) ##
-#module purge; module load Anaconda/5.2.0 parallel
 export PYTHONPATH="/fslgroup/fslg_tsunami/justin/apps/anaconda-5.2.0/lib/python3.6/site-packages:$PYTHONPATH"
 export PATH="/fslgroup/fslg_tsunami/justin/apps/anaconda-5.2.0/bin:$PATH"
 
 #define the TMPFS environment variable if it isn't already defined (e.g., at BYU)
-#[[ -z $TMPFS ]] && export TMPFS=$TMPDIR
 export TMPFS="/tmp/$SLURM_JOB_ID"; mkdir -p $TMPFS
-#export TMPFS="/fslgroup/fslg_tsunami/compute/runs/new_try"; mkdir -p $TMPFS
 
 #e.g., "520404_br"
 jobid="$( echo $SLURM_JOB_ID | sed 's/\..*$//' )_$( hostname | grep -o ^.. )"
@@ -30,23 +27,18 @@ jobid="$( echo $SLURM_JOB_ID | sed 's/\..*$//' )_$( hostname | grep -o ^.. )"
 #parse arguments
 [[ -z $configfile ]] && configfile="defaults.cfg"
 [[ -z $init       ]] && init="manual"
-#[[ -z long       ]] && long=""
 [[ -z $workdir ]]  && workdir=$( pwd )
-[[ -z $rundir ]]   && rundir="$TMPFS/run"
-# [[ -z $finaldir ]] && finaldir="$workdir/../../runs/$jobid"
+[[ -z $rundir ]]   && rundir="$TMPFS/banda_1852"
 [[ -z $finaldir ]] && finaldir="/fslhome/hringer/fsl_groups/fslg_tsunami/compute/hringer/runs/$jobid"
 
 # sbatch --export="pyargs=\"\""
 
 logfile="$TMPFS/run.log"
-#logfile="$finaldir/run.log"
 
 #if being run with gnu parallel, create a subdirectory of finaldir for each
 [[ ! -z $PARALLEL_SEQ ]] && finaldir="$finaldir/$( printf %03d $PARALLEL_SEQ )"
 
-
 #### INSTALL CLAWPACK IN TMPFS ####
-
 clawver=v5.6.0
 #Location of clawpack source (Customize for VT/BYU)
 src=/fslgroup/fslg_tsunami/justin/src/clawpack-$clawver.tar.gz
@@ -54,10 +46,10 @@ export CLAW="$TMPFS/clawpack-$clawver"
 mkdir -p $CLAW
 cd $CLAW
 tar xzf $src -C . --strip=1
-export PYTHONUSERBASE=$CLAW
+export PYTHONUSERBASE="$PYTHONUSERBASE:$CLAW"
 python setup.py install --user
-cd $workdir
-
+cd $rundir
+cp -r $workdir $TMPFS
 
 #### RUN ####
 
@@ -73,34 +65,30 @@ ulimit -s unlimited                ; echo "stack size unlimited"                
 echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 
 #Customize: Set run parameters
-python main.py  $pyargs     \
+python main.py --cfg test.cfg -v 5 | tee -a $logfile
 #TODO: Add command line arguments
 #    --scen    1852mag      \
 #    --mcmc    random_walk  \
 #    --nsamp   500         \
 #    --rundir  $rundir      \
 #    --init manual          \
-    | tee -a $logfile
-
 
 echo "LOG: $( date ): MCMC run complete" | tee -a $logfile
 
-
-
 #### PLOT ####
 
-echo "LOG: $( date ): Plotting/summarizing..." | tee -a $logfile
-#TODO: Add plotting
-#TODO: Add summary (accept/reject ratio, MAP and MLE points, etc)
-echo "LOG: $( date ): Plotting complete" | tee -a $logfile
+# echo "LOG: $( date ): Plotting/summarizing..." | tee -a $logfile
+# #TODO: Add plotting
+# #TODO: Add summary (accept/reject ratio, MAP and MLE points, etc)
+# echo "LOG: $( date ): Plotting complete" | tee -a $logfile
 
 
 #### SAVE RESULTS ####
 
 #copy from rundir to final directory
 mkdir -p $finaldir
-cp -r $rundir/* $finaldir/
-cp $logfile $finaldir/
+cp -r $rundir $finaldir
+cp $logfile $finaldir
 
 #change back to working directory
 cd $workdir
