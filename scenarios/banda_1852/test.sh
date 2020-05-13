@@ -8,9 +8,7 @@
 #SBATCH --mem-per-cpu=4096M #memory requirement
 #SBATCH --mail-user=hringer@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
-###SBATCH --qos=test
-#SBATCH -A hringer
-#SBATCH -C rhel7
+#SBATCH --qos=test
 
 
 #### SETUP ####
@@ -48,8 +46,10 @@ cd $CLAW
 tar xzf $src -C . --strip=1
 export PYTHONUSERBASE="$PYTHONUSERBASE:$CLAW"
 python setup.py install --user
+mkdir $rundir
 cd $rundir
 cp -r $workdir $TMPFS
+ls
 
 #### RUN ####
 
