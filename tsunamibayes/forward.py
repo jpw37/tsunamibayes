@@ -79,10 +79,10 @@ class GeoClawForwardModel(BaseForwardModel):
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
 
         # clear .output
-        # os.system('rm .output')
-        #
-        # # run GeoClaw
-        # os.system('make .output')
+        os.system('rm .output')
+
+        # run GeoClaw
+        os.system('make .output')
 
         # load fgmax and bathymetry data
         fgmax_data = np.loadtxt(self.valuemax_path)
