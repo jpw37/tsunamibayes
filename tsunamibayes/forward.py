@@ -79,10 +79,10 @@ class GeoClawForwardModel(BaseForwardModel):
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
 
         # clear .output
-        os.system('rm .output')
-
-        # run GeoClaw
-        os.system('make .output')
+        # os.system('rm .output')
+        #
+        # # run GeoClaw
+        # os.system('make .output')
 
         # load fgmax and bathymetry data
         fgmax_data = np.loadtxt(self.valuemax_path)
@@ -117,9 +117,9 @@ class GeoClawForwardModel(BaseForwardModel):
 
     def llh(self,model_output,verbose=False):
         llh = 0
-        if verbose: print("Gauge Log\n---------")
+        if verbose: print("\nGauge Log\n---------")
         for gauge in self.gauges:
-            if verbose: print(gauge.name)
+            if verbose: print('\n',gauge.name)
             if 'arrival' in gauge.obstypes:
                 arrival_time = model_output[gauge.name+' arrival']
                 log_p = gauge.dists['arrival'].logpdf(arrival_time)

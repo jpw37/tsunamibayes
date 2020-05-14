@@ -155,11 +155,11 @@ class BaseScenario:
             self.bayes_data.to_csv(output_dir+"bayes_data.csv")
             self.debug.to_csv(output_dir+"debug.csv")
         else:
-            self.samples.iloc[-append_rows:].to_csv(output_dir+"samples.csv",mode='a')
-            self.model_params.iloc[-append_rows:].to_csv(output_dir+"model_params.csv",mode='a')
-            self.model_output.iloc[-append_rows:].to_csv(output_dir+"model_output.csv",mode='a')
-            self.bayes_data.iloc[-append_rows:].to_csv(output_dir+"bayes_data.csv",mode='a')
-            self.debug.iloc[-append_rows:].to_csv(output_dir+"debug.csv",mode='a')
+            self.samples.iloc[-append_rows:].to_csv(output_dir+"samples.csv",mode='a+')
+            self.model_params.iloc[-append_rows:].to_csv(output_dir+"model_params.csv",mode='a+')
+            self.model_output.iloc[-append_rows:].to_csv(output_dir+"model_output.csv",mode='a+')
+            self.bayes_data.iloc[-append_rows:].to_csv(output_dir+"bayes_data.csv",mode='a+')
+            self.debug.iloc[-append_rows:].to_csv(output_dir+"debug.csv",mode='a+')
 
     def sample(self,nsamples,output_dir=None,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
@@ -202,7 +202,7 @@ class BaseScenario:
             # the Metropolis-Hastings acceptance probability
             else:
                 model_output = self.forward_model.run(model_params)
-                llh = self.forward_model.llh(model_output)
+                llh = self.forward_model.llh(model_output,verbose)
 
                 # acceptance probability
                 alpha = prior_logpdf + llh + \
