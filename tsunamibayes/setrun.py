@@ -42,7 +42,7 @@ def make_setrun(config):
         # Refinement settings
         refinement_data = rundata.refinement_data
         refinement_data.variable_dt_refinement_ratios = True
-        refinement_data.wave_tolerance = 1.e-1
+        refinement_data.wave_tolerance = 5.e-1
         refinement_data.deep_depth = 1e2
         refinement_data.max_level_deep = 3
 
@@ -94,7 +94,7 @@ def make_setrun(config):
 
         clawdata.output_style = 1
         # Output nout frames at equally spaced times up to tfinal:
-        clawdata.num_output_times = 3
+        clawdata.num_output_times = 1
         clawdata.tfinal = config.geoclaw['run_time']
         clawdata.output_t0 = True  # output at initial (or restart) time?
 
@@ -191,7 +191,7 @@ def make_setrun(config):
         amrdata = rundata.amrdata
 
         # max number of refinement levels:
-        amrdata.amr_levels_max = len(config.geoclaw['refinement_ratios'])+1  #JW: I'm not sure if this is going to work...check this :)
+        amrdata.amr_levels_max = maxlevel  #JW: I'm not sure if this is going to work...check this :)
 
         # List of refinement ratios at each level (length at least mxnest-1)
         amrdata.refinement_ratios_x = config.geoclaw['refinement_ratios']
@@ -205,7 +205,8 @@ def make_setrun(config):
 
         # Flag using refinement routine flag2refine rather than richardson error
         amrdata.flag_richardson = False    # use Richardson?
-        amrdata.flag2refine = True
+        amrdata.flag2refine = False
+        amrdata.flag2refine_tol = 0.5
 
         # steps to take on each level L between regriddings of level L+1:
         amrdata.regrid_interval = 3
@@ -219,7 +220,7 @@ def make_setrun(config):
         amrdata.clustering_cutoff = 0.700000
 
         # print info about each regridding up to this level:
-        amrdata.verbosity_regrid = 0
+        amrdata.verbosity_regrid = 1
 
         #  ----- For developers -----
         # Toggle debugging print statements:
