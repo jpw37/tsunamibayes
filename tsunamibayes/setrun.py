@@ -58,6 +58,7 @@ def make_setrun(config):
 
         dtopo_data = rundata.dtopo_data
         dtopo_data.dtopofiles.append([3,maxlevel,maxlevel,config.geoclaw['dtopo_path']])
+        dtopo_data.dt_max_dtopo = 0.2
 
         #------------------------------------------------------------------
         # Standard Clawpack parameters to be written to claw.data:
