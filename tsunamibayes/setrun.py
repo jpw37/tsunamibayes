@@ -191,7 +191,7 @@ def make_setrun(config):
         amrdata = rundata.amrdata
 
         # max number of refinement levels:
-        amrdata.amr_levels_max = len(config.geoclaw['refinement_ratios'])  #JW: I'm not sure if this is going to work...check this :)
+        amrdata.amr_levels_max = len(config.geoclaw['refinement_ratios'])+1  #JW: I'm not sure if this is going to work...check this :)
 
         # List of refinement ratios at each level (length at least mxnest-1)
         amrdata.refinement_ratios_x = config.geoclaw['refinement_ratios']
