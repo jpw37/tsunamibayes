@@ -74,15 +74,19 @@ if __name__ == "__main__":
         raise ValueError("flags '-r' and '-s' cannot both be set")
 
     # load defaults and config file
+    if args.verbose: print("Reading defaults.cfg")
     config = Config()
     config.read('defaults.cfg')
     if args.config_path:
+        if args.verbose: print("Reading {}".format(args.config_path))
         config.read(args.config_path)
 
     # write setrun.py file
+    if args.verbose("Writing setrun.py")
     write_setrun(args.config_path)
 
     # copy Makefile
+    if args.verbose("Copying Makefile")
     makefile_path = tb.__file__[:-11]+'Makefile'
     os.system("cp {} Makefile".format(makefile_path))
 
@@ -96,13 +100,16 @@ if __name__ == "__main__":
             scenario.init_chain(u0)
         elif config.init['method'] == 'prior_rvs':
             scenario.init_chain(method='prior_rvs')
+        if args.verbose: print("Initializing chain with initial sample:\n",scenario.samples.iloc[0])
 
     # resume in-progress chain
     if args.resume_dir:
+        if args.verbose: print("Resuming chain from: {}".format(args.resume_dir))
         scenario.resume_chain(args.resume_dir)
 
     # reinitialize with sequential MCMC (after using tsunamibayes.sequential.resample)
     if args.seq_reinit_dir:
+        if args.verbose: print("Reinitializing chain from Sequential MCMC")
         scenario.seq_reinit(args.seq_reinit_dir)
 
     # sample

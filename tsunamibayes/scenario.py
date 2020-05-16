@@ -181,12 +181,16 @@ class BaseScenario:
             {}.init_chain() or {}.resume_chain()".format(type(self).__name__,type(self).__name__))
 
         for i in range(len(self.samples),len(self.samples)+nsamples):
+            if verbose: print("Iteration {}".format(i))
+
             # propose new sample from previous
             proposal = self.propose(self.samples.loc[i-1])
             model_params = self.map_to_model_params(proposal)
+            if verbose: print("Proposal:\n",proposal)
 
             # evaluate prior logpdf
             prior_logpdf = self.prior.logpdf(proposal)
+            if verbose: print("Prior logpdf = {:.3E}")
 
             # if prior logpdf is -infinity, reject proposal and bypass forward model
             if prior_logpdf == np.NINF:
@@ -201,8 +205,11 @@ class BaseScenario:
             # otherwise run the forward model, calculate the log-likelihood, and calculate
             # the Metropolis-Hastings acceptance probability
             else:
+                if verbose: print("Running forward model...")
                 model_output = self.forward_model.run(model_params)
+                if verbose: print("Evaluating log-likelihood:")
                 llh = self.forward_model.llh(model_output,verbose)
+                if verbose: print("llh = {:.3E}".format(llh))
 
                 # acceptance probability
                 alpha = prior_logpdf + llh + \
@@ -211,6 +218,7 @@ class BaseScenario:
                         self.bayes_data.loc[i-1,'llh'] - \
                         self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
+                if verbose: print("alpha = {:.3E}".format(alpha))
 
             # prior, likelihood, and posterior logpdf values
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
@@ -218,11 +226,13 @@ class BaseScenario:
             # accept/reject
             accepted = (np.random.rand() < alpha)
             if accepted:
+                if verbose: print("Proposal accepted")
                 self.samples.loc[i] = proposal
                 self.model_params.loc[i] = model_params
                 self.model_output.loc[i] = model_output
                 self.bayes_data.loc[i] = bayes_data
             else:
+                if verbose: print("Proposal rejected")
                 self.samples.loc[i] = self.samples.loc[i-1]
                 self.model_params.loc[i] = self.model_params.loc[i-1]
                 self.model_output.loc[i] = self.model_output.loc[i-1]
@@ -241,9 +251,12 @@ class BaseScenario:
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
             if not i%save_freq and (output_dir is not None):
+                if verbose: print("Saving data...")
                 self.save_data(output_dir,append_rows=save_freq)
 
         if output_dir is not None: self.save_data(output_dir)
+        if verbose and (output_dir is not None): print("Saving data...")
+        if verbose: print("Chain complete")
         return self.samples
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
