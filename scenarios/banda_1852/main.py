@@ -82,11 +82,11 @@ if __name__ == "__main__":
         config.read(args.config_path)
 
     # write setrun.py file
-    if args.verbose("Writing setrun.py")
+    if args.verbose: print("Writing setrun.py")
     write_setrun(args.config_path)
 
     # copy Makefile
-    if args.verbose("Copying Makefile")
+    if args.verbose: print("Copying Makefile")
     makefile_path = tb.__file__[:-11]+'Makefile'
     os.system("cp {} Makefile".format(makefile_path))
 
