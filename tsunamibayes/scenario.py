@@ -100,7 +100,7 @@ class BaseScenario:
         self.samples.loc[0] = u0
 
 
-        if verbose: print("Initializing chain with initial sample:\n",scenario.samples.iloc[0],flush=True)
+        if verbose: print("Initializing chain with initial sample:\n",self.samples.iloc[0])
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
         if verbose: print("Prior logpdf = {:.3E}")
@@ -110,38 +110,20 @@ class BaseScenario:
             raise ValueError("Initial sample must result in a nonzero prior probabiity density")
 
         # evaluate forward model and compute log-likelihood
+        if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
 
         model_output = self.forward_model.run(model_params)
         self.model_output.loc[0] = model_output
 
-        llh = self.forward_model.llh(model_output)
+        if verbose: print("Evaluating log-likelihood:")
+        llh = self.forward_model.llh(model_output,verbose)
+        if verbose: print("llh = {:.3E}".format(llh))
 
         # save prior logpdf, log-likelihood, and posterior logpdf
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
-
-    def seq_reinit(self,output_dir):
-        self.resume_chain(output_dir)
-        n = len(self.samples)
-        if n != len(self.model_params) + 1:
-            raise Exception()
-
-        prior_logpdf = self.prior.logpdf(self.samples.iloc[-1])
-
-        # evaluate forward model and compute log-likelihood
-        model_params = self.map_to_model_params(self.samples.iloc[-1])
-        self.model_params.loc[n] = model_params
-
-        model_output = self.forward_model.run(model_params)
-        self.model_output.loc[n] = model_output
-
-        llh = self.forward_model.llh(model_output)
-
-        # save prior logpdf, log-likelihood, and posterior logpdf
-        bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
-        self.bayes_data.loc[n] = bayes_data
 
     def resume_chain(self,output_dir):
         self.samples = pd.read_csv(output_dir+"samples.csv",index_col=0)
