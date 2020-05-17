@@ -103,7 +103,7 @@ class BaseScenario:
         if verbose: print("Initializing chain with initial sample:\n",self.samples.iloc[0])
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
-        if verbose: print("Prior logpdf = {:.3E}")
+        if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
 
         # raise error if prior density is zero (-infinty logpdf)
         if prior_logpdf == np.NINF:
