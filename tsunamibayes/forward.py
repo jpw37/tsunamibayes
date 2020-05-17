@@ -60,6 +60,10 @@ class GeoClawForwardModel(BaseForwardModel):
         self.aux1_path = fgmax_params['aux1_path']
         self.write_fgmax_grid(self.gauges,self.fgmax_params)
 
+        # clean up directory
+        os.system('make clean')
+		os.system('make clobber')
+
     def run(self,model_params,verbose=False):
         """
         Run  Model(model_params)
