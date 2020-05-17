@@ -97,10 +97,9 @@ if __name__ == "__main__":
     if not (args.resume_dir or args.seq_reinit_dir):
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
-            scenario.init_chain(u0)
+            scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
-            scenario.init_chain(method='prior_rvs')
-        if args.verbose: print("Initializing chain with initial sample:\n",scenario.samples.iloc[0],flush=True)
+            scenario.init_chain(method='prior_rvs',verbose=args.verbose)
 
     # resume in-progress chain
     if args.resume_dir:

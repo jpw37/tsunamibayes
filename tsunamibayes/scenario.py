@@ -34,7 +34,7 @@ class BaseScenario:
                           + proposal_model_cols + self.bayes_data_cols + \
                           proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
 
-    def init_chain(self,u0=None,method=None,**kwargs):
+    def init_chain(self,u0=None,method=None,verbose=False,**kwargs):
         """Initialize a sampling chain with a given initial sample or a string
         indicating a random initialization method. Creates DataFrames for the
         samples, Okada parameters, simulated observations, and debug information.
@@ -99,8 +99,11 @@ class BaseScenario:
         # save first sample
         self.samples.loc[0] = u0
 
+
+        if verbose: print("Initializing chain with initial sample:\n",scenario.samples.iloc[0],flush=True)
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
+        if verbose: print("Prior logpdf = {:.3E}")
 
         # raise error if prior density is zero (-infinty logpdf)
         if prior_logpdf == np.NINF:
