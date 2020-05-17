@@ -205,7 +205,7 @@ class BaseScenario:
             # otherwise run the forward model, calculate the log-likelihood, and calculate
             # the Metropolis-Hastings acceptance probability
             else:
-                if verbose: print("Running forward model...")
+                if verbose: print("Running forward model...",flush=True)
                 model_output = self.forward_model.run(model_params)
                 if verbose: print("Evaluating log-likelihood:")
                 llh = self.forward_model.llh(model_output,verbose)
@@ -226,13 +226,13 @@ class BaseScenario:
             # accept/reject
             accepted = (np.random.rand() < alpha)
             if accepted:
-                if verbose: print("Proposal accepted")
+                if verbose: print("Proposal accepted",flush=True)
                 self.samples.loc[i] = proposal
                 self.model_params.loc[i] = model_params
                 self.model_output.loc[i] = model_output
                 self.bayes_data.loc[i] = bayes_data
             else:
-                if verbose: print("Proposal rejected")
+                if verbose: print("Proposal rejected",flush=True)
                 self.samples.loc[i] = self.samples.loc[i-1]
                 self.model_params.loc[i] = self.model_params.loc[i-1]
                 self.model_output.loc[i] = self.model_output.loc[i-1]

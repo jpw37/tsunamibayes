@@ -100,16 +100,16 @@ if __name__ == "__main__":
             scenario.init_chain(u0)
         elif config.init['method'] == 'prior_rvs':
             scenario.init_chain(method='prior_rvs')
-        if args.verbose: print("Initializing chain with initial sample:\n",scenario.samples.iloc[0])
+        if args.verbose: print("Initializing chain with initial sample:\n",scenario.samples.iloc[0],flush=True)
 
     # resume in-progress chain
     if args.resume_dir:
-        if args.verbose: print("Resuming chain from: {}".format(args.resume_dir))
+        if args.verbose: print("Resuming chain from: {}".format(args.resume_dir),flush=True)
         scenario.resume_chain(args.resume_dir)
 
     # reinitialize with sequential MCMC (after using tsunamibayes.sequential.resample)
     if args.seq_reinit_dir:
-        if args.verbose: print("Reinitializing chain from Sequential MCMC")
+        if args.verbose: print("Reinitializing chain from Sequential MCMC",flush=True)
         scenario.seq_reinit(args.seq_reinit_dir)
 
     # sample
