@@ -62,7 +62,7 @@ class GeoClawForwardModel(BaseForwardModel):
 
         # clean up directory
         os.system('make clean')
-		os.system('make clobber')
+        os.system('make clobber')
 
     def run(self,model_params,verbose=False):
         """
