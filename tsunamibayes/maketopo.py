@@ -1,6 +1,6 @@
 import numpy as np
-from clawpack.geoclaw import dtopotools
-
+try:
+    from clawpack.geoclaw import dtopotools
 # !!! Check if geoclaw interface needs to be rebuilt !!!
 
 def make_fault_dtopo(subfault_params,bounds,verbose=False):
