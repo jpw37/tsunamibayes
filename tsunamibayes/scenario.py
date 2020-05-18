@@ -165,6 +165,8 @@ class BaseScenario:
             raise AttributeError("Chain must first be initialized with \
             {}.init_chain() or {}.resume_chain()".format(type(self).__name__,type(self).__name__))
 
+        if output_dir is not None: self.save_data(output_dir)
+
         for i in range(len(self.samples),len(self.samples)+nsamples):
             if verbose: print("Iteration {}".format(i))
 
