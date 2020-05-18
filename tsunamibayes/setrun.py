@@ -220,20 +220,20 @@ def make_setrun(config):
         amrdata.clustering_cutoff = 0.700000
 
         # print info about each regridding up to this level:
-        amrdata.verbosity_regrid = 1
+        amrdata.verbosity_regrid = 0
 
         #  ----- For developers -----
         # Toggle debugging print statements:
-        amrdata.dprint = True #False      # print domain flags
-        amrdata.eprint = True #False      # print err est flags
-        amrdata.edebug = True #False      # even more err est flags
-        amrdata.gprint = True #False      # grid bisection/clustering
-        amrdata.nprint = True #False      # proper nesting output
-        amrdata.pprint = True #False      # proj. of tagged points
-        amrdata.rprint = True #False      # print regridding summary
-        amrdata.sprint = True #False      # space/memory output
+        amrdata.dprint = False      # print domain flags
+        amrdata.eprint = False      # print err est flags
+        amrdata.edebug = False      # even more err est flags
+        amrdata.gprint = False      # grid bisection/clustering
+        amrdata.nprint = False      # proper nesting output
+        amrdata.pprint = False      # proj. of tagged points
+        amrdata.rprint = False      # print regridding summary
+        amrdata.sprint = False      # space/memory output
         amrdata.tprint = True       # time step reporting each level
-        amrdata.uprint = True #False      # update/upbnd reporting
+        amrdata.uprint = False      # update/upbnd reporting
 
         # More AMR parameters can be set -- see the defaults in pyclaw/data.py
 
