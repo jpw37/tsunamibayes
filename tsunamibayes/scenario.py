@@ -114,7 +114,7 @@ class BaseScenario:
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
 
-        model_output = self.forward_model.run(model_params)
+        model_output = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
 
         if verbose: print("Evaluating log-likelihood:")

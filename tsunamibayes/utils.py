@@ -5,6 +5,27 @@ import argparse
 
 # Earth's radius, in meters
 R = 6.3781e6
+def convert_rectangular(lat, lon, depth=0):
+    """Converts site coordinates from latitude, longitude, and depth into
+    rectangular coordinates.
+
+    Parameters:
+        lat (float): latitude in degrees
+        lon (float): longitude in degrees
+        depth (float): distance below the surface of the earth (km)
+
+    Returns:
+        ((3,) ndarray): rectangular coordinates of points
+    """
+    #spherical coordinates
+    phi = np.radians(lon)
+    theta = np.radians(90-lat)
+    r = R - depth
+
+    # convert to rectangular
+    return r*np.array([np.sin(theta)*np.cos(phi),
+                       np.sin(theta)*np.sin(phi),
+                       np.cos(theta)])
 
 def haversine(lat1, lon1, lat2, lon2):
     """Computes great-circle distance between lat-lon coordinates on a sphere
@@ -49,11 +70,8 @@ def calc_width(magnitude, delta_logw):
 def calc_slip(magnitude, length, width, mu=4e10):
     return 10**(1.5*magnitude+9.05-np.log10(mu*length*width))
 
-def out_of_bounds(subfault_params, bounds):
-    """Returns true if any subfault lies outside of the bounds, or intersects with
-    the surface"""
-
-    # check if subfaults are outside bounds
+def corners(subfault_params):
+    """Compute the corners of the Okada rectangles specified in subfault_params"""
     lats = np.array(subfault_params['latitude'])
     lons = np.array(subfault_params['longitude'])
     strikes = np.array(subfault_params['strike'])
@@ -65,7 +83,14 @@ def out_of_bounds(subfault_params, bounds):
     corner2 = displace(edge1[0],edge1[1],strikes-90,widths/2)
     corner3 = displace(edge2[0],edge2[1],strikes+90,widths/2)
     corner4 = displace(edge2[0],edge2[1],strikes-90,widths/2)
-    corners = np.hstack((corner1,corner2,corner3,corner4))
+    return np.hstack((corner1,corner2,corner3,corner4))
+
+def out_of_bounds(subfault_params, bounds):
+    """Returns true if any subfault lies outside of the bounds, or intersects with
+    the surface"""
+
+    # check if subfaults are outside bounds
+    corners = corners(subfault_params)
     if np.any(corners[0] < bounds['lat_min']) or np.any(corners[0] > bounds['lat_max']):
         return True
     if np.any(corners[1] < bounds['lon_min']) or np.any(corners[1] > bounds['lon_max']):
