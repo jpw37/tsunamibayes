@@ -70,7 +70,7 @@ def calc_width(magnitude, delta_logw):
 def calc_slip(magnitude, length, width, mu=4e10):
     return 10**(1.5*magnitude+9.05-np.log10(mu*length*width))
 
-def corners(subfault_params):
+def calc_corners(subfault_params):
     """Compute the corners of the Okada rectangles specified in subfault_params"""
     lats = np.array(subfault_params['latitude'])
     lons = np.array(subfault_params['longitude'])
@@ -90,7 +90,7 @@ def out_of_bounds(subfault_params, bounds):
     the surface"""
 
     # check if subfaults are outside bounds
-    corners = corners(subfault_params)
+    corners = calc_corners(subfault_params)
     if np.any(corners[0] < bounds['lat_min']) or np.any(corners[0] > bounds['lat_max']):
         return True
     if np.any(corners[1] < bounds['lon_min']) or np.any(corners[1] > bounds['lon_max']):
