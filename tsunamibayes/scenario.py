@@ -28,9 +28,12 @@ class BaseScenario:
 
         # generate column labels for debug dataframe
         proposal_cols = list(map(lambda x:'p_'+x,self.sample_cols))
-        proposal_model_cols = list(map(lambda x:'p_'+x,self.model_param_cols))
         proposal_bayes_cols = list(map(lambda x:'p_'+x,self.bayes_data_cols))
 
+        debug_mp_cols = list(map(lambda x:'m_'+x if x in self.sample_cols
+                                 else x,self.model_param_cols))
+        debug_pmp_cols = list(map(lambda x:'p_m_'+x if x in self.sample_cols
+                                  else 'p_'+x,self.model_param_cols))
         self.debug_cols = self.sample_cols + proposal_cols + self.model_param_cols \
                           + proposal_model_cols + self.bayes_data_cols + \
                           proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
@@ -188,8 +191,10 @@ class BaseScenario:
                 alpha = 0
 
                 # model_params, model_output and log-likelihood are set to nan values
-                model_params = np.nan
-                model_output = np.nan
+                model_params = self.model_params.iloc[0].copy()
+                model_params[...] = np.nan
+                model_output = self.model_output.iloc[0].copy()
+                model_output[...] = np.nan
                 llh = np.nan
 
             # otherwise run the forward model, calculate the log-likelihood, and calculate
@@ -208,7 +213,8 @@ class BaseScenario:
                         self.bayes_data.loc[i-1,'llh'] - \
                         self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
-                if verbose: print("alpha = {:.3E}".format(alpha))
+
+            if verbose: print("alpha = {:.3E}".format(alpha))
 
             # prior, likelihood, and posterior logpdf values
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
