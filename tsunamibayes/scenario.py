@@ -34,8 +34,8 @@ class BaseScenario:
                                  else x,self.model_param_cols))
         debug_pmp_cols = list(map(lambda x:'p_m_'+x if x in self.sample_cols
                                   else 'p_'+x,self.model_param_cols))
-        self.debug_cols = self.sample_cols + proposal_cols + self.model_param_cols \
-                          + proposal_model_cols + self.bayes_data_cols + \
+        self.debug_cols = self.sample_cols + proposal_cols + debug_mp_cols \
+                          + debug_pmp_cols + self.bayes_data_cols + \
                           proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
 
     def init_chain(self,u0=None,method=None,verbose=False,**kwargs):
