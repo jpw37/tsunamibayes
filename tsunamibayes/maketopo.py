@@ -3,7 +3,6 @@ try:
     from clawpack.geoclaw import dtopotools
 except:
     pass
-# !!! Check if geoclaw interface needs to be rebuilt !!!
 
 def make_fault_dtopo(subfault_params,bounds,verbose=False):
     """Create GeoClaw fault object and dtopo for deformation of sea floor due to earthquake.

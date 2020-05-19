@@ -1,7 +1,8 @@
+import os
+import time
+from datetime import timedelta
 import numpy as np
 import pandas as pd
-from .prior import BasePrior
-from .forward import BaseForwardModel
 
 class BaseScenario:
     """Base class for running a tsunamibayes scenario. Contains the essential
@@ -99,8 +100,7 @@ class BaseScenario:
         # save first sample
         self.samples.loc[0] = u0
 
-
-        if verbose: print("Initializing chain with initial sample:\n",self.samples.iloc[0])
+        if verbose: print("\n----------\nInitializing chain with initial sample:"); print(self.samples.iloc[0])
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
         if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
@@ -119,7 +119,7 @@ class BaseScenario:
 
         if verbose: print("Evaluating log-likelihood:")
         llh = self.forward_model.llh(model_output,verbose)
-        if verbose: print("llh = {:.3E}".format(llh))
+        if verbose: print("Total llh = {:.3E}".format(llh))
 
         # save prior logpdf, log-likelihood, and posterior logpdf
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
@@ -165,19 +165,22 @@ class BaseScenario:
             raise AttributeError("Chain must first be initialized with \
             {}.init_chain() or {}.resume_chain()".format(type(self).__name__,type(self).__name__))
 
-        if output_dir is not None: self.save_data(output_dir)
+        if output_dir is not None:
+            if not os.path.exists(output_dir): os.mkdir(output_dir)
+            self.save_data(output_dir)
 
+        chain_start = time.time()
         for i in range(len(self.samples),len(self.samples)+nsamples):
-            if verbose: print("Iteration {}".format(i))
+            if verbose: print("\n----------\nIteration {}".format(i)); start = time.time()
 
             # propose new sample from previous
             proposal = self.propose(self.samples.loc[i-1])
             model_params = self.map_to_model_params(proposal)
-            if verbose: print("Proposal:\n",proposal)
+            if verbose: print("Proposal:"); print(proposal)
 
             # evaluate prior logpdf
             prior_logpdf = self.prior.logpdf(proposal)
-            if verbose: print("Prior logpdf = {:.3E}")
+            if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
 
             # if prior logpdf is -infinity, reject proposal and bypass forward model
             if prior_logpdf == np.NINF:
@@ -196,7 +199,7 @@ class BaseScenario:
                 model_output = self.forward_model.run(model_params)
                 if verbose: print("Evaluating log-likelihood:")
                 llh = self.forward_model.llh(model_output,verbose)
-                if verbose: print("llh = {:.3E}".format(llh))
+                if verbose: print("Total llh = {:.3E}".format(llh))
 
                 # acceptance probability
                 alpha = prior_logpdf + llh + \
@@ -241,9 +244,15 @@ class BaseScenario:
                 if verbose: print("Saving data...")
                 self.save_data(output_dir,append_rows=save_freq)
 
+            if verbose: print("Iteration elapsed time: {}".format(timedelta(seconds=time.time()-start)))
+
         if output_dir is not None: self.save_data(output_dir)
         if verbose and (output_dir is not None): print("Saving data...")
-        if verbose: print("Chain complete")
+
+        total_time = time.time()-chain_start
+        if verbose: print("Chain complete. total time: {}, time per sample: {}\
+                          ".format(timedelta(seconds=total_time),
+                                   timedelta(seconds=total_time/(len(self.samples)-1))))
         return self.samples
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
@@ -261,8 +270,10 @@ class BaseScenario:
             Row for the debug Dataframe
         """
         proposal = pd.Series(proposal).rename(lambda x:'p_'+x)
-        sample_model_params = pd.Series(sample_model_params).rename(lambda x:'m_'+x if x in self.sample_cols else x)
-        proposal_model_params = pd.Series(proposal_model_params).rename(lambda x:'p_m_'+x if x in self.sample_cols else 'p_'+x)
+        sample_model_params = pd.Series(sample_model_params).rename(
+                              lambda x:'m_'+x if x in self.sample_cols else x)
+        proposal_model_params = pd.Series(proposal_model_params).rename(
+                                lambda x:'p_m_'+x if x in self.sample_cols else 'p_'+x)
         proposal_bayes = pd.Series(proposal_bayes).rename(lambda x:'p_'+x)
         return pd.concat((sample,
                           proposal,

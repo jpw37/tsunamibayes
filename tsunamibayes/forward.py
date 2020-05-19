@@ -121,27 +121,27 @@ class GeoClawForwardModel(BaseForwardModel):
 
     def llh(self,model_output,verbose=False):
         llh = 0
-        if verbose: print("\nGauge Log\n---------")
+        if verbose: print("Gauge Log\n---------")
         for gauge in self.gauges:
-            if verbose: print('\n',gauge.name)
+            if verbose: print(gauge.name)
             if 'arrival' in gauge.obstypes:
                 arrival_time = model_output[gauge.name+' arrival']
                 log_p = gauge.dists['arrival'].logpdf(arrival_time)
                 llh += log_p
-                if verbose: print("arrival: {:.3f}, llh: {:.3e}".format(arrival_time,log_p))
+                if verbose: print("arrival:    {:.3f}\tllh: {:.3e}".format(arrival_time,log_p))
 
             if 'height' in gauge.obstypes:
                 wave_height = model_output[gauge.name+' height']
                 if np.abs(wave_height) > 999999999: log_p = np.NINF
                 else: log_p = gauge.dists['height'].logpdf(wave_height)
                 llh += log_p
-                if verbose: print("height: {:.3f}, llh: {:.3e}".format(wave_height,log_p))
+                if verbose: print("height:     {:.3f}\tllh: {:.3e}".format(wave_height,log_p))
 
             if 'inundation' in gauge.obstypes:
                 inundation = model_output[gauge.name+' inundation']
                 log_p = gauge.dists['inundation'].logpdf(inundation)
                 llh += log_p
-                if verbose: print("inundation: {:.3f}, llh: {:.3e}".format(inundation,log_p))
+                if verbose: print("inundation: {:.3f}\tllh: {:.3e}".format(inundation,log_p))
         return llh
 
     def write_fgmax_grid(self,gauges,fgmax_params):
@@ -151,8 +151,8 @@ class GeoClawForwardModel(BaseForwardModel):
         with open(fgmax_params['fgmax_grid_path'],'w') as f:
             f.write(str(fgmax_params['tstart_max'])+'\t# tstart_max\n')
             f.write(str(fgmax_params['tend_max'])+'\t# tend_max\n')
-            f.write(str(fgmax_params['dt_check'])+'\t# dt_check\n') # drop this?
-            f.write(str(fgmax_params['min_level_check'])+'\t# min_level_check\n') # set to maxlevel somehow
+            f.write(str(fgmax_params['dt_check'])+'\t# dt_check\n')
+            f.write(str(fgmax_params['min_level_check'])+'\t# min_level_check\n')
             f.write(str(fgmax_params['arrival_tol'])+'\t# arrival_tol\n')
             f.write('0'+'\t# point_style\n')
             f.write(str(npts)+'\t# n_pts\n')
