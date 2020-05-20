@@ -171,7 +171,6 @@ class BaseScenario:
         if not hasattr(self,'samples'):
             raise AttributeError("Chain must first be initialized with "
             "{}.init_chain() or {}.resume_chain()".format(type(self).__name__,type(self).__name__))
-
         if output_dir is not None:
             if not os.path.exists(output_dir): os.mkdir(output_dir)
             self.save_data(output_dir)
@@ -262,7 +261,7 @@ class BaseScenario:
         total_time = time.time()-chain_start
         if verbose: print("Chain complete. total time: {}, time per sample: {}\
                           ".format(timedelta(seconds=total_time),
-                                   timedelta(seconds=total_time/(len(self.samples)-1))))
+                                   timedelta(seconds=total_time/nsamples)))
         return self.samples
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
