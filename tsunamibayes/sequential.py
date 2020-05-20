@@ -21,18 +21,10 @@ def resample(output_dirs, verbose=False):
         df_mo.loc[len(df_mo)] = model_output[idx].iloc[-1]
         df_bd.loc[len(df_bd)] = bayes_data[idx].iloc[-1]
         if verbose: print("Chain at {}:\n".format(dir)); print(final_samples[idx],"\n")
-
-    append = ''
-    while append not in ['y','Y','n','N']:
-        append = input("Append new data to csv files? (y/n): ")
-    if append in ['y','Y']:
-        for df_s,df_mp,df_mo,df_bd,dir in zip(samples,model_params,model_output,
-                                              bayes_data,output_dirs):
-            df_s.to_csv(dir+"samples.csv")
-            df_mp.to_csv(dir+"model_params.csv")
-            df_mo.to_csv(dir+"model_output.csv")
-            df_bd.to_csv(dir+"bayes_data.csv")
-            print("Files updated and saved in {}".format(dir))
+        df_s.to_csv(dir+"samples.csv")
+        df_mp.to_csv(dir+"model_params.csv")
+        df_mo.to_csv(dir+"model_output.csv")
+        df_bd.to_csv(dir+"bayes_data.csv")
 
 if __name__ == "__main__":
     from sys import argv
