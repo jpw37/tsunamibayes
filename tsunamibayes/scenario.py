@@ -132,26 +132,26 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
     def resume_chain(self,output_dir):
-        self.samples = pd.read_csv(output_dir+"samples.csv",index_col=0)
-        self.model_params = pd.read_csv(output_dir+"model_params.csv",index_col=0)
-        self.model_output = pd.read_csv(output_dir+"model_output.csv",index_col=0)
-        self.bayes_data = pd.read_csv(output_dir+"bayes_data.csv",index_col=0)
-        self.debug = pd.read_csv(output_dir+"debug.csv",index_col=0)
+        self.samples = pd.read_csv(output_dir+"/samples.csv",index_col=0)
+        self.model_params = pd.read_csv(output_dir+"/model_params.csv",index_col=0)
+        self.model_output = pd.read_csv(output_dir+"/model_output.csv",index_col=0)
+        self.bayes_data = pd.read_csv(output_dir+"/bayes_data.csv",index_col=0)
+        self.debug = pd.read_csv(output_dir+"/debug.csv",index_col=0)
 
     def save_data(self,output_dir,append_rows=None):
         if not append_rows:
-            self.samples.to_csv(output_dir+"samples.csv")
-            self.model_params.to_csv(output_dir+"model_params.csv")
-            self.model_output.to_csv(output_dir+"model_output.csv")
-            self.bayes_data.to_csv(output_dir+"bayes_data.csv")
-            self.debug.to_csv(output_dir+"debug.csv")
+            self.samples.to_csv(output_dir+"/samples.csv")
+            self.model_params.to_csv(output_dir+"/model_params.csv")
+            self.model_output.to_csv(output_dir+"/model_output.csv")
+            self.bayes_data.to_csv(output_dir+"/bayes_data.csv")
+            self.debug.to_csv(output_dir+"/debug.csv")
         else:
             n = -append_rows
-            self.samples.iloc[n:].to_csv(output_dir+"samples.csv",mode='a+',header=False)
-            self.model_params.iloc[n:].to_csv(output_dir+"model_params.csv",mode='a+',header=False)
-            self.model_output.iloc[n:].to_csv(output_dir+"model_output.csv",mode='a+',header=False)
-            self.bayes_data.iloc[n:].to_csv(output_dir+"bayes_data.csv",mode='a+',header=False)
-            self.debug.iloc[n:].to_csv(output_dir+"debug.csv",mode='a+',header=False)
+            self.samples.iloc[n:].to_csv(output_dir+"/samples.csv",mode='a+',header=False)
+            self.model_params.iloc[n:].to_csv(output_dir+"/model_params.csv",mode='a+',header=False)
+            self.model_output.iloc[n:].to_csv(output_dir+"/model_output.csv",mode='a+',header=False)
+            self.bayes_data.iloc[n:].to_csv(output_dir+"/bayes_data.csv",mode='a+',header=False)
+            self.debug.iloc[n:].to_csv(output_dir+"/debug.csv",mode='a+',header=False)
 
     def sample(self,nsamples,output_dir=None,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings

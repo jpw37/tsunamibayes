@@ -69,10 +69,6 @@ if __name__ == "__main__":
     # parse command line arguments
     args = parser.parse_args()
 
-    # break if both resume and sequential reinit flags are set
-    if args.resume_dir and args.seq_reinit_dir:
-        raise ValueError("flags '-r' and '-s' cannot both be set")
-
     # load defaults and config file
     if args.verbose: print("Reading defaults.cfg")
     config = Config()
@@ -93,24 +89,18 @@ if __name__ == "__main__":
     # build scenario
     scenario = setup(config)
 
+    # resume in-progress chain
+    if args.resume:
+        if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
+        scenario.resume_chain(args.output_dir)
+    
     # initialize new chain
-    if not (args.resume_dir or args.seq_reinit_dir):
+    else: 
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
             scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenario.init_chain(method='prior_rvs',verbose=args.verbose)
-
-    # resume in-progress chain
-    if args.resume_dir:
-        if args.verbose: print("Resuming chain from: {}".format(args.resume_dir),flush=True)
-        scenario.resume_chain(args.resume_dir)
-
-    # reinitialize with sequential MCMC (after using tsunamibayes.sequential.resample)
-    if args.seq_reinit_dir:
-        if args.verbose: print("Reinitializing chain from Sequential MCMC",flush=True)
-        scenario.seq_reinit(args.seq_reinit_dir)
-
-    # sample
+  
     scenario.sample(args.n_samples,output_dir=args.output_dir,
                     save_freq=args.save_freq,verbose=args.verbose)
