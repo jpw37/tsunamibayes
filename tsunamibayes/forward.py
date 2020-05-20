@@ -15,12 +15,12 @@ class BaseForwardModel:
                                   if obstype in self.obstypes]
 
     def run(self,model_params,verbose=False):
-        raise NotImplementedError("run() must be implemented in classes \
-                                  inheriting from BaseForwardModel")
+        raise NotImplementedError("run() must be implemented in classes "
+                                  "inheriting from BaseForwardModel")
 
     def llh(self,model_output,verbose=False):
-        raise NotImplementedError("run() must be implemented in classes \
-                                  inheriting from BaseForwardModel")
+        raise NotImplementedError("run() must be implemented in classes "
+                                  "inheriting from BaseForwardModel")
 
 class CompositeForwardModel(BaseForwardModel):
     def __init__(self,submodels):
@@ -48,9 +48,6 @@ class CompositeForwardModel(BaseForwardModel):
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
     def __init__(self,gauges,fault,fgmax_params,dtopo_path):
-        if not isinstance(fault,BaseFault):
-            raise TypeError("fault must be an instance of BaseFault or an \
-                            inherited class.")
         super().__init__(gauges)
         self.fault = fault
         self.dtopo_path = dtopo_path

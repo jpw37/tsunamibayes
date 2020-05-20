@@ -10,16 +10,16 @@ class BaseFault:
         self.bounds = bounds
 
     def depth_map(self,lat,lon):
-        raise NotImplementedError("depth_map must be implemented in classes \
-                                  inheriting from BaseFault")
+        raise NotImplementedError("depth_map must be implemented in classes "
+                                  "inheriting from BaseFault")
 
     def strike_map(self,lat,lon):
-        raise NotImplementedError("strike_map must be implemented in classes \
-                                  inheriting from BaseFault")
+        raise NotImplementedError("strike_map must be implemented in classes "
+                                  "inheriting from BaseFault")
 
     def dip_map(self,lat,lon):
-        raise NotImplementedError("dip_map must be implemented in classes \
-                                  inheriting from BaseFault")
+        raise NotImplementedError("dip_map must be implemented in classes "
+                                  "inheriting from BaseFault")
 
     def subfault_split(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3):
         """Splits a given Okada rectangle into a collection of subfaults fit
