@@ -19,8 +19,8 @@ class BaseScenario:
     def __init__(self,prior,forward_model):
 
         if self.sample_cols is None or self.model_param_cols is None:
-            raise NotImplementedError("sample_cols and model_param_cols must be \
-                                      defined in inherited classes")
+            raise NotImplementedError("sample_cols and model_param_cols must be "
+                                      "defined in inherited classes")
 
         self.prior = prior
         self.forward_model = forward_model
@@ -103,7 +103,10 @@ class BaseScenario:
         # save first sample
         self.samples.loc[0] = u0
 
-        if verbose: print("\n----------\nInitializing chain with initial sample:"); print(self.samples.iloc[0])
+        if verbose:
+            print("\n----------\nInitializing chain with initial sample:")
+            print(self.samples.iloc[0])
+
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
         if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
@@ -129,26 +132,26 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
     def resume_chain(self,output_dir):
-        self.samples = pd.read_csv(output_dir+"samples.csv",index_col=0)
-        self.model_params = pd.read_csv(output_dir+"model_params.csv",index_col=0)
-        self.model_output = pd.read_csv(output_dir+"model_output.csv",index_col=0)
-        self.bayes_data = pd.read_csv(output_dir+"bayes_data.csv",index_col=0)
-        self.debug = pd.read_csv(output_dir+"debug.csv",index_col=0)
+        self.samples = pd.read_csv(output_dir+"/samples.csv",index_col=0)
+        self.model_params = pd.read_csv(output_dir+"/model_params.csv",index_col=0)
+        self.model_output = pd.read_csv(output_dir+"/model_output.csv",index_col=0)
+        self.bayes_data = pd.read_csv(output_dir+"/bayes_data.csv",index_col=0)
+        self.debug = pd.read_csv(output_dir+"/debug.csv",index_col=0)
 
     def save_data(self,output_dir,append_rows=None):
         if not append_rows:
-            self.samples.to_csv(output_dir+"samples.csv")
-            self.model_params.to_csv(output_dir+"model_params.csv")
-            self.model_output.to_csv(output_dir+"model_output.csv")
-            self.bayes_data.to_csv(output_dir+"bayes_data.csv")
-            self.debug.to_csv(output_dir+"debug.csv")
+            self.samples.to_csv(output_dir+"/samples.csv")
+            self.model_params.to_csv(output_dir+"/model_params.csv")
+            self.model_output.to_csv(output_dir+"/model_output.csv")
+            self.bayes_data.to_csv(output_dir+"/bayes_data.csv")
+            self.debug.to_csv(output_dir+"/debug.csv")
         else:
             n = -append_rows
-            self.samples.iloc[n:].to_csv(output_dir+"samples.csv",mode='a+',header=False)
-            self.model_params.iloc[n:].to_csv(output_dir+"model_params.csv",mode='a+',header=False)
-            self.model_output.iloc[n:].to_csv(output_dir+"model_output.csv",mode='a+',header=False)
-            self.bayes_data.iloc[n:].to_csv(output_dir+"bayes_data.csv",mode='a+',header=False)
-            self.debug.iloc[n:].to_csv(output_dir+"debug.csv",mode='a+',header=False)
+            self.samples.iloc[n:].to_csv(output_dir+"/samples.csv",mode='a+',header=False)
+            self.model_params.iloc[n:].to_csv(output_dir+"/model_params.csv",mode='a+',header=False)
+            self.model_output.iloc[n:].to_csv(output_dir+"/model_output.csv",mode='a+',header=False)
+            self.bayes_data.iloc[n:].to_csv(output_dir+"/bayes_data.csv",mode='a+',header=False)
+            self.debug.iloc[n:].to_csv(output_dir+"/debug.csv",mode='a+',header=False)
 
     def sample(self,nsamples,output_dir=None,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
@@ -166,9 +169,8 @@ class BaseScenario:
             (such as when using Scenario.restart())
         """
         if not hasattr(self,'samples'):
-            raise AttributeError("Chain must first be initialized with \
-            {}.init_chain() or {}.resume_chain()".format(type(self).__name__,type(self).__name__))
-
+            raise AttributeError("Chain must first be initialized with "
+            "{}.init_chain() or {}.resume_chain()".format(type(self).__name__,type(self).__name__))
         if output_dir is not None:
             if not os.path.exists(output_dir): os.mkdir(output_dir)
             self.save_data(output_dir)
@@ -259,7 +261,7 @@ class BaseScenario:
         total_time = time.time()-chain_start
         if verbose: print("Chain complete. total time: {}, time per sample: {}\
                           ".format(timedelta(seconds=total_time),
-                                   timedelta(seconds=total_time/(len(self.samples)-1))))
+                                   timedelta(seconds=total_time/nsamples)))
         return self.samples
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
@@ -294,23 +296,23 @@ class BaseScenario:
         """Propose a new sample, perhaps dependent on the current sample. Must
         be implemented in inherited classes.
         """
-        raise NotImplementedError("propose() must be implemented in classes \
-        inheriting from BaseScenario")
+        raise NotImplementedError("propose() must be implemented in classes "
+        "inheriting from BaseScenario")
 
     def proposal_logpdf(self,u,v):
         """Evaluate the logpdf of the proposal kernel, expressed as the
         log-probability-density of proposing 'u' given current sample 'v'. Must
         be implemented in inherited classes.
         """
-        raise NotImplementedError("proposal_logpdf() must be implemented in \
-        classes inheriting from BaseScenario")
+        raise NotImplementedError("proposal_logpdf() must be implemented in "
+        "classes inheriting from BaseScenario")
 
     def map_to_model_params(self,sample):
         """Evaluate the map from sample parameters to forward model parameters.
         Must be implemented in inherited classes.
         """
-        raise NotImplementedError("map_to_model_params() must be implemented in \
-        classes inheriting from BaseScenario")
+        raise NotImplementedError("map_to_model_params() must be implemented in "
+        "classes inheriting from BaseScenario")
 
 class TestScenario(BaseScenario):
     sample_cols = ["magnitude"]

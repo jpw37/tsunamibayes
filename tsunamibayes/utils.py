@@ -150,10 +150,8 @@ parser = argparse.ArgumentParser(description='Run a tsunamibayes {} scenario.')
 parser.add_argument('--cfg', dest='config_path', help="config file path", type=str)
 parser.add_argument('--outdir', dest='output_dir', default="output/", type=str,
                     help="output directory")
-parser.add_argument('--resdir', dest='resume_dir', type=str,
-                    help="directory for resuming an in-progress chain")
-parser.add_argument('--seqdir', dest='seq_reinit_dir', type=str,
-                    help="directory for reinitializing with sequential MCMC")
+parser.add_argument('-r', dest='resume', action='store_true',
+                    help="flag for resuming an in-progress chain")
 parser.add_argument('--savf', dest='save_freq', type=int, default=10,
                     help="frequency for saving output")
 parser.add_argument('-v', dest='verbose', action='store_true',
