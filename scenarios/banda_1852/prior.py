@@ -55,7 +55,9 @@ class LatLonPrior(BasePrior):
                                                     width,
                                                     1,
                                                     sample['depth_offset'])
-
+        
+        if subfault_params.isnull().values.any():
+            return np.NINF
         if out_of_bounds(subfault_params,self.fault.bounds):
             return np.NINF
         else:
