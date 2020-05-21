@@ -119,7 +119,7 @@ class BaseFault:
 
         return subfault_params
 
-    def subfault_split2(self,lat,lon,length,width,slip,depth_offset=0,m=11,n=3,rake='uniform',slip_dist='uniform'):
+    def subfault_split2(self,lat,lon,length,width,slip,depth_offset=0,rake=90,m=11,n=3,rake_type='uniform',slip_dist='uniform'):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
@@ -222,11 +222,11 @@ class BaseFault:
         subfault_params['width'] = subwidth
 
         #central strike
-        if rake == 'parallel':
+        if rake_type == 'parallel':
             central_strike = self.strike_map(lat,lon)
-            subfault_params['rake'] = 90-central_strike+Strikes.flatten()
+            subfault_params['rake'] = rake-central_strike+Strikes.flatten()
         else:
-            subfault_params['rake'] = 90
+            subfault_params['rake'] = rake
 
         return subfault_params
 
