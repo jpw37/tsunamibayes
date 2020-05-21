@@ -39,7 +39,7 @@ def setup(config):
     gauges = build_gauges()
 
     # Forward model
-    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])
+    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
     forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
                                            config.geoclaw['dtopo_path'])
 

@@ -9,7 +9,7 @@ def build_gauges():
     dists = dict()
     dists['height'] = stats.norm(loc=3,scale=0.8)
     gauge = Gauge(name,dists)
-    gauge.lat = -4.5166
+    gauge.lat = -4.5175
     gauge.lon = 129.775
     gauges.append(gauge)
 
@@ -30,7 +30,7 @@ def build_gauges():
     dists['inundation'] = stats.norm(loc=185,scale=65)
     gauge = Gauge(name,dists)
     gauge.lat = -4.5248
-    gauge.lon = 129.896
+    gauge.lon = 129.8965
     gauge.beta = 4.253277987952933
     gauge.n = 0.06
     gauges.append(gauge)
@@ -41,9 +41,18 @@ def build_gauges():
     dists['height'] = stats.chi(df=1.01,loc=0.5,scale=1.5)
     gauge = Gauge(name,dists)
     gauge.lat = -3.3815
-    gauge.lon = 127.115
+    gauge.lon = 127.113
     gauges.append(gauge)
 
+    # Hulaliu
+    name = 'Hulaliu'
+    dists = dict()
+    dists['height'] = stats.chi(df=1.01,loc=0.5,scale=2.0)
+    gauge = Gauge(name,dists)
+    gauge.lat = -3.543
+    gauge.lon = 128.557
+    gauges.append(gauge)
+    
     # Saparua
     name = 'Saparua'
     dists = dict()

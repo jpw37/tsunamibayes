@@ -67,7 +67,7 @@ def calc_width(magnitude, delta_logw):
     logw = mu_logw + delta_logw
     return 10**logw
 
-def calc_slip(magnitude, length, width, mu=4e10):
+def calc_slip(magnitude, length, width, mu=3e10):
     return 10**(1.5*magnitude+9.05-np.log10(mu*length*width))
 
 def calc_corners(subfault_params):
