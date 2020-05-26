@@ -153,7 +153,7 @@ class BaseScenario:
             self.bayes_data.iloc[n:].to_csv(output_dir+"/bayes_data.csv",mode='a+',header=False)
             self.debug.iloc[n:].to_csv(output_dir+"/debug.csv",mode='a+',header=False)
 
-    def sample(self,nsamples,output_dir=None,save_freq=10,verbose=False):
+    def sample(self,nsamples,output_dir=None,save_freq=5,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
