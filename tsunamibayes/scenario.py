@@ -210,11 +210,17 @@ class BaseScenario:
                 if verbose: print("Total llh = {:.3E}".format(llh))
 
                 # acceptance probability
-                alpha = prior_logpdf + llh + \
-                        self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
-                        self.bayes_data.loc[i-1,'prior_logpdf'] - \
-                        self.bayes_data.loc[i-1,'llh'] - \
-                        self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                # catch if both loglikelihoods are -inf
+                if self.bayes_data.loc[i-1,'llh'] == np.NINF and llh == np.NINF:
+                    alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
+                            self.bayes_data.loc[i-1,'prior_logpdf'] - \
+                            self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                else:
+                    alpha = prior_logpdf + llh + \
+                            self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
+                            self.bayes_data.loc[i-1,'prior_logpdf'] - \
+                            self.bayes_data.loc[i-1,'llh'] - \
+                            self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
 
             if verbose: print("alpha = {:.3E}".format(alpha))
