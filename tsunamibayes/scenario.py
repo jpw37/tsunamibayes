@@ -105,7 +105,7 @@ class BaseScenario:
 
         if verbose:
             print("\n----------\nInitializing chain with initial sample:")
-            print(self.samples.iloc[0])
+            print(self.samples.loc[0])
 
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
@@ -132,11 +132,11 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
     def resume_chain(self,output_dir):
-        self.samples = pd.read_csv(output_dir+"/samples.csv",index_col=0)
-        self.model_params = pd.read_csv(output_dir+"/model_params.csv",index_col=0)
-        self.model_output = pd.read_csv(output_dir+"/model_output.csv",index_col=0)
-        self.bayes_data = pd.read_csv(output_dir+"/bayes_data.csv",index_col=0)
-        self.debug = pd.read_csv(output_dir+"/debug.csv",index_col=0)
+        self.samples = pd.read_csv(output_dir+"/samples.csv",index_col=0).reset_index(drop=True)
+        self.model_params = pd.read_csv(output_dir+"/model_params.csv",index_col=0).reset_index(drop=True)
+        self.model_output = pd.read_csv(output_dir+"/model_output.csv",index_col=0).reset_index(drop=True)
+        self.bayes_data = pd.read_csv(output_dir+"/bayes_data.csv",index_col=0).reset_index(drop=True)
+        self.debug = pd.read_csv(output_dir+"/debug.csv",index_col=0).reset_index(drop=True)
 
     def save_data(self,output_dir,append_rows=None):
         if not append_rows:
@@ -153,7 +153,7 @@ class BaseScenario:
             self.bayes_data.iloc[n:].to_csv(output_dir+"/bayes_data.csv",mode='a+',header=False)
             self.debug.iloc[n:].to_csv(output_dir+"/debug.csv",mode='a+',header=False)
 
-    def sample(self,nsamples,output_dir=None,save_freq=5,verbose=False):
+    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -176,6 +176,7 @@ class BaseScenario:
             self.save_data(output_dir)
 
         chain_start = time.time()
+        j = 0
         for i in range(len(self.samples),len(self.samples)+nsamples):
             if verbose: print("\n----------\nIteration {}".format(i)); start = time.time()
 
@@ -255,11 +256,12 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
-            if not i%save_freq and (output_dir is not None):
+            if not j%save_freq and (output_dir is not None):
                 if verbose: print("Saving data...")
                 self.save_data(output_dir,append_rows=save_freq)
 
             if verbose: print("Iteration elapsed time: {}".format(timedelta(seconds=time.time()-start)))
+            j += 1
 
         if output_dir is not None: self.save_data(output_dir)
         if verbose and (output_dir is not None): print("Saving data...")
