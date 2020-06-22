@@ -7,7 +7,10 @@ from .maketopo import write_dtopo
 from . import models
 
 class BaseForwardModel:
+    """ A parent class giving the outline for other subclasses to run the forward model."""
     def __init__(self,gauges):
+        """Initializes the necessary variables for the class.
+        """
         self.gauges = gauges
         self.model_output_cols = [gauge.name + " " + obstype
                                   for gauge in gauges

@@ -7,6 +7,13 @@ from .utils import displace
 class BaseFault:
     """A class for data relating to the fault"""
     def __init__(self,bounds):
+        """Initializes the bounds data member for later use in the class.
+
+        Parameters
+        ----------
+        bounds : (list) of floats
+            The upper and lower limits for latitude and longitude for a given scenario.
+        """
         self.bounds = bounds
 
     def depth_map(self,lat,lon):
@@ -35,6 +42,8 @@ class BaseFault:
             Length of rectangle (meters)
         width : float
             Width of rectangle (meters)
+        slip : float
+            Slip parameter (meters). Total displacement of fault? FIXME: Confirm this. 
         depth_offset : float, optional
             Offset for depth (meters). Defaults to 0.
         rake : float
@@ -133,14 +142,18 @@ class BaseFault:
             Length of rectangle (meters)
         width : float
             Width of rectangle (meters)
+        slip : float
+            Slip parameter (meters) Total displacement of fault
         depth_offset : float, optional
             Offset for depth (meters). Defaults to 0.
-        rake : float
-            Rake parameter (degrees). Defaults to 90.
         m : int, optional
             Number of splits along length. Defaults to 11.
         n : int, optional
             Number of splits along width. Defaults to 3.
+        rake : string
+            The type of orientation of block movement during a fault rupture. Defaults to 'uniform'.
+        slip_dist : string
+            The shape of the slip distribution. Defaults to 'uniform'.
 
         Returns:
         --------
@@ -231,7 +244,31 @@ class BaseFault:
         return subfault_params
 
 class GridFault(BaseFault):
+    """
+    A child class that inherits from Base Fault.  
+    """
     def __init__(self,lat,lon,depth,dip,strike,bounds):
+        """
+        Initializes all the correct variables for the GridFault subclass. 
+
+        Parameters
+        ----------
+        lat : float
+            Latitude coordinate (degrees)
+        lon : float
+            Longitude coordinate (degrees)
+        depth : float
+            Depth of the fault (meters)
+        dip : float
+            Angle in radians at which the plane dips downward from the top edge
+            (a positive angle between 0 and pi/2 radians)
+        strike : float
+            Orientation of the top edge, measured in radians
+            clockwise form North. The fault plane dips downward to the right
+            when moving along the top edge in the strike direction.
+        bounds : (list) of floats
+            The upper and lower limits for latitude and longitude for a given scenario.
+        """
         super().__init__(bounds)
         self.depth_interp = RegularGridInterpolator((lat,lon),depth,bounds_error=False)
         self.dip_interp = RegularGridInterpolator((lat,lon),dip,bounds_error=False)
@@ -244,6 +281,23 @@ class GridFault(BaseFault):
 
     @classmethod
     def from_slab2(cls,depth_file,dip_file,strike_file,bounds):
+        """Creates another class method that accepts keyword arguments (lat, lon, depth, dip, strike).
+
+        Parameters
+        ----------
+        depth_file : txt file of floats
+            The file containing the depth (in meters) readings along the fault. 
+        dip_file : txt file of floats
+            The file containing the angle measurements of dip all along the fault (in radians).
+        strike_file : txt file of floats
+            The file containing the strike orientations in radians along the fault.
+        bounds : (list) of floats
+            The upper and lower limits for latitude and longitude for a given scenario. 
+        
+        Returns
+        -------
+        cls(bounds=bounds,**arrays) : class function
+        """
         arrays = load_slab2_data(depth_file,dip_file,strike_file,bounds)
         return cls(bounds=bounds,**arrays)
 
@@ -269,6 +323,27 @@ class GridFault(BaseFault):
             return arr
 
 def load_slab2_data(depth_file,dip_file,strike_file,bounds):
+    """
+    Loads the depth, dip, and strike data for the fault and returns a dictionary of arrays
+    that contain the 'slices' of this data between a specified set of latitude and longitude bounds.
+    
+    Parameters
+    ----------
+    depth_file : txt file of floats
+        The file containing the depth (in meters) readings along the fault. 
+    dip_file : txt file of floats
+        The file containing the angle measurements of dip all along the fault (in radians).
+    strike_file : txt file of floats
+        The file containing the strike orientations in radians along the fault.
+    bounds : (list) of floats
+        The upper and lower limits for latitude and longitude for a given scenario. 
+
+    Returns
+    -------
+    arrays : dict
+        A dictionary containing lat, lon, depth, dip, strike and their associated 
+        arrays of float values from the lower to the upper bounds of the given latitude and longitude. 
+    """
     # load depth file, extract lat/lon grid, make latitude array in increasing order
     depth = np.loadtxt(depth_file,delimiter=',')
     lat = np.unique(depth[:,1])
@@ -296,6 +371,24 @@ def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     return arrays
 
 def save_slab2_npz(depth_file,dip_file,strike_file,bounds,save_path):
+    """
+    Saves the dictionary of lat, lon, depth, dip, strike and their associated 
+        arrays of float values from the lower to the upper bounds of the given latitude and longitude.
+    
+    Parameters
+    ----------
+    depth_file : txt file of floats
+        The file containing the depth (in meters) readings along the fault. 
+    dip_file : txt file of floats
+        The file containing the angle measurements of dip all along the fault (in radians).
+    strike_file : txt file of floats
+        The file containing the strike orientations in radians along the fault.
+    bounds : (list) of floats
+        The upper and lower limits for latitude and longitude for a given scenario.
+    save_path : string or file
+        The location or path where the data is to be saved.
+
+    """
     arrays = load_slab2_data(depth_file,dip_file,strike_file,bounds)
     np.savez(save_path,**arrays)
 
