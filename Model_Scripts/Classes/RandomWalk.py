@@ -25,9 +25,21 @@ class RandomWalk(MCMC):
         """
         Calculate the acceptance probability given the llh for the current and proposed parameters
 
-        :param prop_prior_llh: proposed parameters likelihood
-        :param cur_prior_llh: current parameters likelihood
-        :return:
+        Parameters
+        ----------
+        prop_prior_llh: float
+            The loglikelyhood of the proposed parameters 
+        cur_prior_llh: float
+            The loglikelyhood of the current parameters 
+        
+        Returns
+        -------
+        min(1, np.exp(new llh + old llh)) : float #FIXME: Are we adding or subtracing in the exponent? 
+            This is the acceptance probability. 
+            If the calculated probability < 1, then it returns this calculated value.
+            However, if that calculation is too high (above 1 and thus not a possible probability), 
+            then we return 1.
+
         """
         change_llh = self.change_llh_calc()
 
@@ -42,9 +54,16 @@ class RandomWalk(MCMC):
         Draw with the random walk sampling method, using a multivariate_normal
         distribution with the following specified std deviations to
         get the distribution of the step size.
+        FIXME: Probaby should find a better description for these 'draw' things
+        Parameters
+        ----------
+        prev_draw : (array)
+            An array of the 9 parameter draws that we obtained previously.
 
-        Returns:
-            draws (array): An array of the 9 parameter draws.
+        Returns
+        -------
+        new_draw : (array)
+            An array of the 9 parameter draws.
         """
         # Std deviations for each parameter, the mean is the current location
         # strike = .375
@@ -106,6 +125,22 @@ class RandomWalk(MCMC):
         of the trench our sample is on. Recognizing when the sample is
         on the wrong side seems nontrivial, so we have not implemented
         a check for this here.
+
+        Parameters
+        ----------
+        longitude(deg) : float
+            The longitude position of a specific fault point 
+        latitude(deg) : float
+            The latitude position of a specific fault point
+        dip(radians) : float
+            Angle at which the plane dips downward from the top edge
+            (a positive angle between 0 and pi/2 radians)
+        
+        Returns
+        ------- 
+        trig correction : (float)
+            The doctored-depth obtained after performing several trig corrections
+
         """
         # set up sample point and fault array
         p1 = np.array([longitude, latitude])
@@ -132,6 +167,19 @@ class RandomWalk(MCMC):
 
         Note, this does not account for the oblateness of the Earth. Not sure if
         this will cause a problem.
+
+        Parameters
+        ----------
+        p1 : ((2,) ndarray) of floats
+            A vector containing the location coordinates (lattitude, longitude) of a certain point.
+        p2 : ((2,) ndarray) of floats
+            Similarly, a vector containing the location coordinates (lattitude, longitude)
+            of a second point to which we seek to find the haversine distance.
+
+        Returns
+        -------
+        2 * r * arc : float
+            The final distance (km) between the two points
         """
         r = 6371000
 

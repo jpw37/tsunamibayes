@@ -30,13 +30,23 @@ class Scenario:
 	def __init__(self, title="Default_Title", use_custom=True, init='manual', adjoint=False, rw_covariance=1.0, method="random_walk", iterations=1):
 		"""
 		Initialize all the correct variables for Running this Scenario
-		:param title: Title for Scinerio (ex: 1852)
-		:param use_custom: Bool: To use the custom methods for MCMC or not
-		:param init: String: (manual, random or restart) How to initialize the parameters
-		:param rw_covariance: float: covariance for the random walk method
-		:param method: String: MCMC Method to use
-		:param iterations: Int: Number of Times to run the model
-		:param adjoint: Boolean: run the adjoint solver first or not
+
+		Parameters
+		----------
+		title : string
+			Title for Scinerio (ex: 1852)
+		use_custom : Bool
+			To use the custom methods for MCMC or not
+		init : String
+			(manual, random or restart) How to initialize the parameters
+		adjoint: Bool
+			Run the adjoint solver first or not
+		rw_covariance : float
+			Covariance for the random walk method
+		method : String
+		    MCMC Method to use
+		iterations: Int
+			Number of Times to run the model
 		"""
 
 		# Clean geoclaw files
@@ -132,7 +142,7 @@ class Scenario:
 	def clean_up(self):
 		"""
 		Cleans up the unnecessary clutter geoclaw outputs
-		:return: None
+		return: None
 		"""
 		os.system('rm ModelOutput/geoclaw/*.data')
 

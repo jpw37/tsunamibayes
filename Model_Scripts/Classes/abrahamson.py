@@ -9,26 +9,57 @@ def abrahamson(mag, dist, V_S30):
 
     Parameters
     ----------
-    M (float): Moment magnitude
-    R (float): Distance to fault (km)
-    V_lin (float): Regression parameter for velocity
-    b (float): Regression parameter for site response scaling
-    thetas (list or ndarray): Period dependent regression parameters
-    C1 (float): Regression parameter
-    deltaC (float): Difference between C1 for slab and interface
-    PGA (float): Median peak ground acceleration for VS30 = 1000
-    VS30 (float): Shear wave velocity in the top 30 meters (m/s)
-    backarc (bool): True for backarc site
-    tau (float): Interevent standard deviation
+    mag : float
+        Earthquake moment magnitude, passed into the run_model function as 'M'
+    dist : float
+        Distance to fault (km), passed into the run_model function as 'R'
+    V_S30 : float
+        Shear wave velocity in the top 30 meters (m/s), passed into run_model as VS30
 
     Returns
     ----------
-    (float): Spectral acceleration in units of g
-    (float): Standard deviation of ln(PSA) in units of g
+    log : float
+        Spectral acceleration in units of g
+    np.sqrt(phi**2 + tau**2) : float
+        Standard deviation of ln(PSA)- the natural log of the peak spectral acceleartion in units of g
+        Given by the root sum squared of the intraevent standard deviations.
 
     """
     def run_model(M, R, PGA, VS30):
+        """Helps determine the value of PGA_100 and computes the spectral acceleration 
+        model of Abrahamson for period specified period.
 
+        Parameters
+        ----------
+        M : float
+            Moment magnitude of earthquake
+        R : float
+            Distance to fault (km)
+        V_lin : float
+            Regression parameter for velocity
+        b : float
+            Regression parameter for site response scaling
+        thetas : (list or ndarray)
+            Period dependent regression parameters
+        C1 : float
+            Regression parameter
+        deltaC : float
+            Difference between C1 for slab and interface
+        PGA : float
+            Median peak ground acceleration for VS30 = 1000
+        VS30 : float
+            Shear wave velocity in the top 30 meters (m/s)
+        backarc : bool
+            True for backarc site
+        tau : float
+            Interevent standard deviation
+
+        Returns
+        -------
+        log : float
+            Spectral acceleration in units of g.
+            
+        """
         # Period-independent coefficients
         n = 1.18
         c = 1.88

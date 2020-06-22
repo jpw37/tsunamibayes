@@ -24,7 +24,6 @@ class IndependentSampler(MCMC):
         change_llh = self.change_llh_calc()
         return min(np.exp(change_llh), 1)
 
-
     """ DEPRECIATED """
     def draw(self, prev_draw):
         """

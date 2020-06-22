@@ -28,10 +28,23 @@ class FeedForward:
         pass
 
     def run_abrahamson(self, gauges, mag, okada_params):
-        """
-        Runs Abrahamson for all observation sites and returns MMI
-        :
-        :return: List of MMIs from all observation points
+        """Runs Abrahamson for all observation sites and returns MMI
+        
+        Parameters
+        ----------
+        gagues : (list) of gague objects
+            The set of "loose" obersvation locations with its associated probability distributions
+            (see the gauge class in tsunamibayes for more details)
+        mag : float
+            Moment magnitude (earthquake intensity on the Richter scale)
+        okada_params : (list) of floats
+            A list of parameters to describe the fault plane location and composition.
+            Incudes: latitude, longitude, depth, strike, rake, dip, etc. 
+
+        Returns
+        -------
+        MMI_list : (list) of float values
+            List of MMIs with their respective standard deviations from all observation points
         """
         MMI_list = []
         for gauge in gauges:
@@ -44,10 +57,17 @@ class FeedForward:
         return MMI_list
 
     def run_geo_claw(self, okada_params):
-        """
-        Runs Geoclaw
-        :param draws: parameters
-        :return:
+        """Runs Geoclaw for a specific fault and its parameters.
+
+        Parameters
+        ----------
+        okada_params : (list) of floats
+            A list of parameters to describe the fault plane location and composition.
+            Incudes: latitude, longitude, depth, strike, rake, dip, etc. 
+        
+        return
+        ------
+        none
         """
         get_topo()
         make_dtopo(okada_params)
@@ -68,9 +88,12 @@ class FeedForward:
         - column 2 is a scaled water height
         - column 5 is the graph that appears in plots
 
-        Parameters:
-            gauges (list): List of integers representing the gauge names
-        Returns:
+        Parameters
+        ----------
+            gauges : (list) of integers representing the gauge names
+
+        Returns
+        -------
             arrivals (array): An array containing the arrival times for the
                 highest wave for each gauge. arrivals[i] corresponds to the
                 arrival time for the wave for gauges[i]
@@ -103,13 +126,18 @@ class FeedForward:
         based on our chosen distributions for maximum wave heights and
         arrival times. Return the sum of these log-likelihoods.
 
-        Parameters:
-            gauges (list): A list of gauge objects
-        Returns:
-            llh (float): The sum of the log-likelihoods of the data of each
-                gauge in gauges.
-            arrivals (list): arrival times at each respective gauge
-            heights (list): arrival heights at each respective gauge
+        Parameters
+        ----------
+            gauges : (list) of gauge objects
+        Returns
+        -------
+            llh : float
+                The sum of the log-likelihoods of the data of each
+                gauge in gauges list.
+            arrivals : (list) of floats
+                arrival times at each respective gauge
+            heights : (list) of floats
+                arrival heights at each respective gauge (km?)
         """
         # names = []
         # for gauge in gauges:
@@ -173,18 +201,23 @@ class FeedForward:
         Calculate the log-likelihood of a sample earthquake
         based on our chosen distributions for MMI at each location.
 
-        Parameters:
-            MMI (list): A list of the MMI for each gauge location
-            gauges (list): A list of gauge objects
-            integrate (bool): True to calculate likelihood using
+        Parameters
+        ----------
+            MMI : (list) of the MMI for each gauge location
+            gauges : (list) of gauge objects
+            integrate : bool
+                True to calculate likelihood using
                 integration of the observation distribution and the
                 MMI distribution, False to calculate without MMI
-                uncertainty
-            sigma_MMI (float): standard deviation for MMI estimates
+                uncertainty. (False is default)
+            sigma_MMI : float
+                standard deviation for MMI estimates
                 (default of .73 from Atkinson-Kaka model)
 
-        Returns:
-            llh (float): The combined log-likelihood of the sample
+        Returns
+        -------
+            llh : float
+                The combined log-likelihood of the sample
                 earthquake.
         """
 

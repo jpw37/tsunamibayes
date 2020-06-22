@@ -73,6 +73,13 @@ class Gauge:
         return cls(name,dists,**kwargs)
 
     def to_json(self):
+        """Encodes the distribution parameters for the gauges in json form
+
+        Returns
+        -------
+        d : dict 
+            Dictionary of distribution parameters in json form.
+        """
         ignore = ['dists','obstypes']
         d = {key:self.__dict__[key] for key in self.__dict__ if key not in ignore}
         d['dist_params'] = {}
@@ -85,6 +92,15 @@ class Gauge:
         return cls.from_shapes(**d)
 
     def plot(self,obstype,ax=None):
+        """Plots the specified observation type for gauges in an appropriate interval.
+
+        Parameters
+        ----------
+        obstype : str
+            The name of the attribute to be graphed (ex. 'arrival', 'height', 'inundation')
+        ax : Axes object
+            Defaults to None. The object used to create axes and axis lables for the plot. 
+        """
         dist = self.dists[obstype]
 
         if obstype in ['arrival','height','inundation']:
@@ -105,6 +121,14 @@ class Gauge:
         ax.set_title(self.name + ' ' + obstype)
 
     def plot_all(self,fig=None):
+        """Plots all of the observation data: arrivals, heights, innundations.
+
+        Parameters
+        ----------
+        fig : Figure object
+            Defaults to None. An object of the matplotlib.pyplot class 
+            used to create the figure on the plot.
+        """
         if fig is None:
             fig = plt.figure()
 

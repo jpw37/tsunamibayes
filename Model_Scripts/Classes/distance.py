@@ -3,9 +3,20 @@ import scipy.linalg as la
 #from cvxopt import solvers, matrix
 
 def rotation_matrix(axis, theta):
-    """
-    Return the rotation matrix associated with counterclockwise rotation about
+    """Creates and returns a rotation matrix associated with counterclockwise rotation about
     the given axis by theta radians.
+
+    Parameters
+    ----------
+    axis : ((3,) ndarray) of floats
+        The vector of rectangular coordinates (x,y,z) that describe the axis of rotation
+    theta : float
+        radians to rotate about the axis
+    
+    Returns
+    -------
+    ((3,3) ndarray) : float values
+        the 3x3 rotation matrix for coordinates after counterclockwise rotation
     """
     axis = axis / np.sqrt(axis @ axis)
     a = np.cos(theta / 2.0)
@@ -20,13 +31,19 @@ def convert_rectangular(lat, lon, depth=0):
     """Converts site coordinates from latitude, longitude, and depth into
     rectangular coordinates.
 
-    Parameters:
-        lat (float): latitude in degrees
-        lon (float): longitude in degrees
-        depth (float): distance below the surface of the earth (km)
+    Parameters
+    ----------
+    lat : float
+        Latitude in degrees
+    lon : float
+        Longitude in degrees
+    depth : float
+        Distance below the surface of the earth (km)
 
-    Returns:
-        ((3,) ndarray): rectangular coordinates of points
+    Returns
+    -------
+    loc : ((3,) ndarray) of floats
+        Vector location of rectangular coordinates of points (x,y,z)
     """
     R_earth = 6371 # radius of the earth in km
 
@@ -44,11 +61,19 @@ def convert_rectangular(lat, lon, depth=0):
 
 
 def basis_change(len_vec, width_vec):
-    """Find change of basis matrix for converting fault plane to the unit square in the x-y plane.
+    """Finds the change of basis matrix for converting fault plane to the unit square in the x-y plane.
 
-    Parameters:
-        len_vec (ndarray): gives top edge of rectangle
-        width_vec (ndarray): gives side edge of rectangle
+    Parameters
+    ----------
+    len_vec : (ndarray) of floats
+        Gives top edge of rectangle
+    width_vec : (ndarray) of floats
+        Gives side edge of rectangle
+    
+    Returns
+    -------
+    S_inv : (ndarray) of floats
+        The change of basis matrix for the length, width, and normal vectors into the standard basis
     """
 
     # find normal vector
@@ -66,23 +91,36 @@ def fault_plane(hypocenter, lat, lon, length, width, strike, dip):
     """ Finds the length and width vectors describing the fault plane as a
     rectangle centered at the hypocenter with given parameters.
 
-    Parameters:
-        lat(deg) - Latitude of the epicenter (centroid) of the earthquake
-        long(deg) - Longitude of the epicenter (centroid) of the earthquke
-        length(km) - Length of top edge of the fault rectangle
-        width(km) - Length of inclined edge of fault rectange
-        strike(radians) - Orientation of the top edge, measured in radians
-            clockwise form North. The fault plane dips downward to the right
-            when moving along the top edge in the strike direction.
-        dip(radians) - Angle at which the plane dips downward from the top edge
-            (a positive angle between 0 and pi/2 radians)
+    Parameters
+    ----------
+    hypocenter : ((3,) ndarray) of floats
+        The vector of rectangular coordinates for the earthquake hypocenter
+    lat(deg) : float
+        Latitude of the epicenter (centroid) of the earthquake
+    long(deg) : float
+        Longitude of the epicenter (centroid) of the earthquke
+    length(km) : float
+        Length of top edge of the fault rectangle
+    width(km) : float
+        Length of inclined edge of fault rectange
+    strike(radians) : float
+        Orientation of the top edge, measured in radians
+        clockwise form North. The fault plane dips downward to the right
+        when moving along the top edge in the strike direction.
+    dip(radians) : float
+        Angle at which the plane dips downward from the top edge
+        (a positive angle between 0 and pi/2 radians)
 
-    Returns:
-        length_vec ((3,) ndarray): the vector between the hypocenter of the
-            fault plane and the center of the short edges
-        width_vec ((3,) ndarray): the vector between the hypocenter of the fault
-            plane and the center of the long edges
-        hypocenter ((3,) ndarray): location of the hypocenter in rectangular coordinates
+    Returns
+    -------
+    length_vec : ((3,) ndarray) of floats
+        The vector between the hypocenter of the
+        fault plane and the center of the short edges
+    width_vec : ((3,) ndarray) of floats
+        The vector between the hypocenter of the fault
+        plane and the center of the long edges
+    hypocenter : ((3,) ndarray) of floats 
+        Location of the hypocenter in rectangular coordinates
     """
     hypocenter_dir = hypocenter / la.norm(hypocenter)
 
@@ -110,23 +148,33 @@ def distance(site_lat, site_lon, length, width, strike, dip, depth, lat, lon):
     a rectangle (Okada) in 3D space.
 
 
-    Parameters:
+    Parameters
     ----------
-    site_lat (float) - Latitude of the observation site (degrees)
-    site_lon (float) - Longitude of the observation site (d)
-    length(km) - Length of top edge of the fault rectangle
-    width(km) - Length of inclined edge of fault rectange
-    strike(deg) - Orientation of the top edge, measured in degrees clockwise form North. The
+    site_lat(deg) : float
+        Latitude of the observation site 
+    site_lon(deg) : float
+        Longitude of the observation site 
+    length(km) : float
+        Length of top edge of the fault rectangle
+    width(km) : float
+        Length of inclined edge of fault rectange
+    strike(deg) : float
+        Orientation of the top edge, measured in degrees clockwise form North. The
         fault plane dips downward to the right when moving along the top edge in the strike direction.
-    dip(deg) - Angle at which the plane dips downward from the top edge
+    dip(deg) : float
+        Angle at which the plane dips downward from the top edge
         a positive angle between 0 and 90 degrees.
-    depth(km) - Depth below sea level (positive) of the hypocenter of the earthquake
-    lat(deg) - Latitude of the epicenter (centroid) of the earthquake
-    Long(deg) - Longitude of the epicenter (centroid) of the earthquke
+    depth(km) : float
+        Depth below sea level (positive) of the hypocenter of the earthquake
+    lat(deg) : float
+        Latitude of the epicenter (centroid) of the earthquake
+    Long(deg) : float
+        Longitude of the epicenter (centroid) of the earthquke
 
-    Returns:
-    ----------
-    distance(float) - The shortest distance between site and earthquake
+    Returns
+    -------
+    distance : float
+        The shortest distance between site and earthquake in (km)
     """
     #convert strike and dip to radians
     strike_rad = np.radians(strike)

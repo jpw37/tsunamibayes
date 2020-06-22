@@ -26,15 +26,21 @@ class MCMC:
     def set_samples(self, Samples):
         """
         Sets the samples loading class
-        :param Samples: Sample: Sample class
-        :return:
+
+        parameters
+        ----------
+        Samples : (Sample) Sample class
         """
         self.samples = Samples
 
     def change_llh_calc(self):
         """
-        Calculates the change in loglikelihood between the current and the proposed llh
-        :return:
+        Calculates the change in loglikelihood between the current and the proposed llh.
+
+        Returns
+        -------
+        change_llh : float
+            The difference between the proposal and sample loglikelihood
         """
         sample_llh = self.samples.get_sample_llh()
         proposal_llh = self.samples.get_proposal_llh()
@@ -58,9 +64,17 @@ class MCMC:
 
     def accept_reject(self, accept_prob):
         """
-        Decides to accept or reject the proposal. Saves the accepted parameters as new current sample
-        :param accept_prob: float Proposal acceptance probability
-        :return:
+        Decides to accept or reject the proposal. Saves the accepted parameters as new current sample.
+
+        Parameters
+        ----------
+        accept_prob: float 
+            Proposal acceptance probability (between 0.0 and 1.0)
+        
+        Returns
+        -------
+        ar : bool
+            Indicates whether the given proposal was accepted (ar=True) or rejected (ar=False)
         """
         if np.random.random() < accept_prob:
             # Accept and save proposal

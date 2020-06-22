@@ -26,6 +26,12 @@ scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 def get_topo(makeplots=False):
     """
     Retrieve the topo file from the GeoClaw repository.
+
+    Parameters
+    ----------
+    makepots : bool
+        Call functions with makeplots==True to create plots of topo.
+        (Default is false)
     """
     from clawpack.geoclaw import topotools
     topo_fname = 'etopo10min120W60W60S0S.asc'
@@ -47,6 +53,15 @@ def make_dtopo(params, makeplots=False):
     """
     Create dtopo data file for deformation of sea floor due to earthquake.
     Uses the Okada model with fault parameters and mesh specified below.
+
+    Parameters
+    ----------
+    params : (list)
+        This is a general list of geographical parameters (for example, the Okada paramters) that 
+        describe locations, fault characteristics, etc. Made up of various distance and angle floats.
+    makepots : bool
+        Call functions with makeplots==True to create plots of dtopo.
+        (Default is false)
     """
     from clawpack.geoclaw import dtopotools
     import numpy
