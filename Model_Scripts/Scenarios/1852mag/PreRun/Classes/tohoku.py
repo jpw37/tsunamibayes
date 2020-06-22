@@ -8,11 +8,11 @@ from AbstractKDE import AbstractKDE
 
 #tohokuKDE() makes a single KDE for a single column of x and y values
 def tohokuKDE(onHeights, offHeights, transformType='none', bw_method=0.25):
-  #remove points where on or off shore heights are 0 (or less than 0)
-  onHeights  =  onHeights[offHeights > 0.2]
-  offHeights = offHeights[offHeights > 0.2]
-  offHeights = offHeights[ onHeights > 0.2]
-  onHeights  =  onHeights[ onHeights > 0.2]
+  #remove points where on or off shore heights are 0 (or less than 0)...JPW: I bumped the cutoff up to 0.5
+  onHeights  =  onHeights[offHeights > 0.5]
+  offHeights = offHeights[offHeights > 0.5]
+  offHeights = offHeights[ onHeights > 0.5]
+  onHeights  =  onHeights[ onHeights > 0.5]
 
   # #remove points where on or off shore heights are >25.
   # #this is purely for empirical reasons

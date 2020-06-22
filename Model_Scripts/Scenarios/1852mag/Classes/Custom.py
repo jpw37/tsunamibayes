@@ -23,7 +23,7 @@ class Custom(MCMC):
         MCMC.__init__(self)
         self.sample_cols = ['Longitude', 'Latitude', 'Magnitude','DeltaLogL','DeltaLogW','DeltaDepth']
         self.proposal_cols = ['P-Longitude', 'P-Latitude', 'P-Magnitude','P-DeltaLogL','P-DeltaLogW','P-DeltaDepth']
-        self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height']
+        self.observation_cols = ['Mw', 'gauge 0 arrival', 'gauge 0 height', 'gauge 1 arrival', 'gauge 1 height', 'gauge 2 arrival', 'gauge 2 height', 'gauge 3 arrival', 'gauge 3 height', 'gauge 4 arrival', 'gauge 4 height', 'gauge 5 arrival', 'gauge 5 height', 'gauge 6 arrival', 'gauge 6 height', 'gauge 7 arrival', 'gauge 7 height', 'gauge 8 arrival', 'gauge 8 height']
         self.mw = 0
         self.length_split = 11
         self.width_split = 3
@@ -434,7 +434,7 @@ class Custom(MCMC):
         strike = self.fault.strike_from_lat_lon(lat,lon)
 
         #original_rectangle = np.array([strike, length, width, depth, slip, rake, dip, lon, lat])
-        rectangles, sublength, subwidth = self.split_rect(self.fault, lat, lon, length, width, deltadepth, n = self.length_split, m = self.width_split)
+        rectangles, sublength, subwidth = self.split_rect(self.fault, lat, lon, length, width, 1000*deltadepth, n = self.length_split, m = self.width_split)
         temp = []
         for i, rect in enumerate(rectangles):
             temp_lat = rect[0]
@@ -494,9 +494,9 @@ class Custom(MCMC):
             #length =  1.33325981e+05
             #width  =  8.45009646e+04
 
-            lon    =  1.316e+02
+            lon    =  1.32e+02
             lat    = -5.0e+00
-            mag = 9.0
+            mag = 8.5
             dellogl = 0
             dellogw = 0
             deltadepth = 0
@@ -521,10 +521,28 @@ class Custom(MCMC):
 
         return guesses
 
+    def out_of_bounds(self,lat,lon,strike,length,width,minlat,maxlat,minlon,maxlon):
+        """Detects if a given rectangle lies outside of model bounds"""
+        edge1 = Fault.step(lat,lon,strike,length/2,self.fault.R)
+        edge2 = Fault.step(lat,lon,strike-180,length/2,self.fault.R)
+        corner1 = Fault.step(edge1[0],edge1[1],strike+90,width/2,self.fault.R)
+        corner2 = Fault.step(edge1[0],edge1[1],strike-90,width/2,self.fault.R)
+        corner3 = Fault.step(edge2[0],edge2[1],strike+90,width/2,self.fault.R)
+        corner4 = Fault.step(edge2[0],edge2[1],strike-90,width/2,self.fault.R)
+        corners = np.hstack((corner1,corner2,corner3,corner4))
+        if np.any(corners[0] < minlat) or np.any(corners[0] > maxlat):
+            return True
+        elif np.any(corners[1] < minlon) or np.any(corners[1] > maxlon):
+            return True
+        else:
+            return False
+
     def prior_logpdf(self,sample):
         length = self.get_length(sample['DeltaLogL'],sample['Magnitude'])
         width = self.get_width(sample['DeltaLogW'],sample['Magnitude'])
         rects,sublength,subwidth = self.split_rect(self.fault,sample['Latitude'],sample['Longitude'],length,width,sample['DeltaDepth'],n = self.length_split,m = self.width_split)
         if np.any(np.isnan(rects)):
-            return -np.NINF
+            return np.NINF
+        elif self.out_of_bounds(rects[:,0],rects[:,1],rects[:,2],sublength,subwidth,-10,-2,126,133.5):
+            return np.NINF
         return self.prior.logpdf(sample,rects,subwidth)

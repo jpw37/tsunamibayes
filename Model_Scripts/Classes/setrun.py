@@ -132,7 +132,7 @@ def setrun(claw_pkg='geoclaw'):
 
     if clawdata.output_style==1:
         # Output nout frames at equally spaced times up to tfinal:
-        clawdata.num_output_times = 3
+        clawdata.num_output_times = 1 #JPW: change this back to 1 or 2
         clawdata.tfinal = model_bounds['run_time'] * 60.
         clawdata.output_t0 = True  # output at initial (or restart) time?
 
@@ -284,7 +284,7 @@ def setrun(claw_pkg='geoclaw'):
     amrdata = rundata.amrdata
 
     # max number of refinement levels:
-    amrdata.amr_levels_max = len(model_bounds['AMR_levels'])  #JW: I'm not sure if this is going to work...check this :)
+    amrdata.amr_levels_max = len(model_bounds['AMR_levels'])+1  #JW: I'm not sure if this is going to work...check this :)
 
     # List of refinement ratios at each level (length at least mxnest-1)
     amrdata.refinement_ratios_x = model_bounds['AMR_levels']
@@ -302,6 +302,10 @@ def setrun(claw_pkg='geoclaw'):
     # Flag using refinement routine flag2refine rather than richardson error
     amrdata.flag_richardson = False    # use Richardson?
     amrdata.flag2refine = True
+
+    # Flag for refinement using routine flag2refine:
+    amrdata.flag2refine = False      # use this?
+    amrdata.flag2refine_tol = 0.5  # tolerance used in this routine
 
     # steps to take on each level L between regriddings of level L+1:
     amrdata.regrid_interval = 3
@@ -339,6 +343,8 @@ def setrun(claw_pkg='geoclaw'):
     # to specify regions of refinement append lines of the form
     #  [minlevel,maxlevel,t1,t2,x1,x2,y1,y2]
     maxlevel = len(model_bounds["AMR_levels"])+1
+    print("this is maxlevel")
+    print(maxlevel)#JPW: remove this...debug only
     regions_bounds = model_bounds["regions_bounds"]
     for i in range(len(regions_bounds)):
         rundata.regiondata.regions.append([maxlevel,maxlevel]+regions_bounds[i])
@@ -377,8 +383,8 @@ def setrun(claw_pkg='geoclaw'):
 
     # location of adjoint solution, must first be created:                                                                                      
 #    adjointdata.adjoint_outdir = os.path.abspath('./InputData/adjoint/_output')
-#    adjointdata.adjoint_outdir = '/fslgroup/fslg_tsunami/compute/runs/34534103_m8//InputData/adjoint/_output'
-    adjointdata.adjoint_outdir = '/fslgroup/fslg_tsunami/compute/runs/1852jgr_2019-09-03_12.57.53/InputData/adjoint/_output'
+    adjointdata.adjoint_outdir = '/fslgroup/fslg_tsunami/compute/runs/34904110_m8/InputData/adjoint/_output'
+#    adjointdata.adjoint_outdir = '/fslgroup/fslg_tsunami/compute/runs/1852jgr_2019-09-03_12.57.53/InputData/adjoint/_output'
     #adjointdata.adjoint_outdir = '/fslhome/sgiddens/fsl_groups/fslg_tsunami/compute/runs/33053989_m8/InputData/adjoint/_output'
 
     # time period of interest:                                                                                                                  
@@ -432,7 +438,7 @@ def setgeo(rundata):
     # Refinement settings
     refinement_data = rundata.refinement_data
     refinement_data.variable_dt_refinement_ratios = True
-    refinement_data.wave_tolerance = 1.e-1
+    refinement_data.wave_tolerance = 5.e-1
     refinement_data.deep_depth = 1e2
     refinement_data.max_level_deep = 3
 

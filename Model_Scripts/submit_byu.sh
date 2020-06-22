@@ -3,11 +3,12 @@
 
 ## Submission flags (Customize for VT/BYU) ##
 #SBATCH --nodes=1
-#SBATCH --ntasks=12
-#SBATCH --time=00:30:00
-#SBATCH --mem-per-cpu=4096M #memory requirement
+#SBATCH --ntasks=24
+#SBATCH --time=36:00:00
+#SBATCH --mem-per-cpu=8192M #memory requirement
 #SBATCH --mail-user=whitehead@mathematics.byu.edu   # email address
 #SBATCH --mail-type=END
+#SBATCH --job-name=threadingx2
 ###SBATCH --qos=test
 #SBATCH -A jpw37
 #SBATCH -C rhel7
@@ -46,7 +47,9 @@ logfile="$TMPFS/run.log"
 
 clawver=v5.6.0
 #Location of clawpack source (Customize for VT/BYU)
-src=/fslgroup/fslg_tsunami/justin/src/clawpack-$clawver.tar.gz
+#src=/fslgroup/fslg_tsunami/justin/src/clawpack-$clawver.tar.gz
+#The following is a modified clawpack installation that should speed up memory allocation
+src=/fslhome/jpw37/fsl_groups/fslg_tsunami/compute/clawpack-$clawver.tar.gz
 export CLAW="$TMPFS/clawpack-$clawver"
 mkdir -p $CLAW
 cd $CLAW
@@ -62,9 +65,9 @@ cd $workdir
 > $logfile
 
 #set some environment variables for Geoclaw
-export FFLAGS='-O2 -fPIC -fopenmp' ; echo "FFLAGS=$FFLAGS"                          | tee -a $logfile
+export FFLAGS='-O2 -fPIC -fopenmp -fdefault-integer-8' ; echo "FFLAGS=$FFLAGS"                          | tee -a $logfile
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE; echo "OMP_NUM_THREADS=$OMP_NUM_THREADS" | tee -a $logfile
-export OMP_STACKSIZE=16M           ; echo "OMP_STACKSIZE=$OMP_STACKSIZE"            | tee -a $logfile
+export OMP_STACKSIZE=8192M           ; echo "OMP_STACKSIZE=$OMP_STACKSIZE"            | tee -a $logfile
 ulimit -s unlimited                ; echo "stack size unlimited"                    | tee -a $logfile
 
 echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
@@ -73,9 +76,10 @@ echo "LOG: $( date ): MCMC run start"    | tee -a $logfile
 python Main.py             \
     --scen    1852mag      \
     --mcmc    random_walk  \
-    --nsamp   1         \
+    --nsamp   500         \
     --rundir  $rundir      \
     --init manual         \
+    --adjoint            \
     | tee -a $logfile
 
 #    --resdir /fslhome/jpw37/fsl_groups/fslg_tsunami/compute/runs/34319122_m8 \
