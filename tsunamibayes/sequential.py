@@ -3,19 +3,11 @@
 import numpy as np
 import pandas as pd
 
-def resample(output_dirs, overwrite=False,  verbose=False):
-    samples = [pd.read_csv(dir_+"output/samples.csv", index_col=0).reset_index(drop=True) 
-               for dir_ in output_dirs]
-    final_idx = [df.index[-1] for df in samples]
-    model_params = [pd.read_csv(dir_+"output/model_params.csv", index_col=0).reset_index(drop=True)
-                    for dir_ in output_dirs]
-    model_output = [pd.read_csv(dir_+"output/model_output.csv", index_col=0).reset_index(drop=True) 
-                    for dir_ in output_dirs]
-    bayes_data = [pd.read_csv(dir_+"output/bayes_data.csv", index_col=0).reset_index(drop=True) 
-                  for dir_ in output_dirs]
-    debug = [pd.read_csv(dir_+"output/debug.csv", index_col=0).reset_index(drop=True) 
-             for dir_ in output_dirs]
-    final_debug_idx = [df.index[-1] for df in debug]
+def resample(output_dirs, verbose=False):
+    """Reads the sample data, resamples, and then writes the resampling to a .csv file."""
+    sample_data = [pd.read_csv(dir+"samples.csv", index_col=0) for dir in output_dirs]
+    final_samples = [df.iloc[-1] for df in sample_data]
+    bayes_data = [pd.read_csv(dir+"bayes_data.csv", index_col=0) for dir in output_dirs]
 
     p = np.exp(np.array([df['posterior_logpdf'].iloc[-1] for df in bayes_data]))
     p /= p.sum()
