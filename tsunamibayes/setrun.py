@@ -13,6 +13,12 @@ scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 def make_setrun(config):
 
     def setrun(claw_pkg='geoclaw'):
+        """Initializes the necessary parameters and data to use the GeoGlaw module.
+        
+        Returns
+        -------
+        rundata : object of class ClawRunData
+        """
         assert claw_pkg.lower() == 'geoclaw',  "Expected claw_pkg = 'geoclaw'"
 
         num_dim = 2
@@ -282,6 +288,7 @@ def make_setrun(config):
     return setrun
 
 def write_setrun(config_path=None):
+    """Writes the setrun information and path to a file."""
     with open('setrun.py','w') as f:
         f.write("from tsunamibayes.setrun import make_setrun\n")
         f.write("from tsunamibayes.utils import Config\n\n")

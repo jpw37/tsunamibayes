@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 def resample(output_dirs, verbose=False):
+    """Reads the sample data, resamples, and then writes the resampling to a .csv file."""
     sample_data = [pd.read_csv(dir+"samples.csv", index_col=0) for dir in output_dirs]
     final_samples = [df.iloc[-1] for df in sample_data]
     bayes_data = [pd.read_csv(dir+"bayes_data.csv", index_col=0) for dir in output_dirs]
