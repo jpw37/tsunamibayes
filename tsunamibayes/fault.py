@@ -8,7 +8,7 @@ class BaseFault:
     """A class for data relating to the fault"""
     def __init__(self,bounds):
         """Creates and initializes the BaseFault object with specified lat/lon bounds.
-        However, one must use subclasses to call to the functions of this parent class.
+        However, one must use a subclass to call to the functions of this parent class.
 
         Parameters
         ----------
