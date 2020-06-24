@@ -301,7 +301,7 @@ def save_slab2_npz(depth_file,dip_file,strike_file,bounds,save_path):
 
 class ReferenceCurveFault(BaseFault):
     """A class for data relating to the fault"""
-    def __init__(self,latpts,lonpts,strikepts,depth_curve,dip_curve,smoothing=50000,bounds):
+    def __init__(self,latpts,lonpts,strikepts,depth_curve,dip_curve,bounds,smoothing=50000):
         """
         Paramters
         ---------
