@@ -8,7 +8,7 @@ def convert_to_MMI(log_SA, M, D):
     log_SA : float
         logarithm of the spectral acceleration
     M : float
-        magnitude of the earthquake on the Ritcher Scale    
+        Moment magnitude of the earthquake 
     D : float
         The shortest distance between the observation site and earthquake epicenter (km) as computed in distance.py
     

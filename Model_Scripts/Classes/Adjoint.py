@@ -22,10 +22,6 @@ class Adjoint:
     def run_geo_claw(self):
         """
         Runs the adjoint Geoclaw
-        :param draws: parameters
-        :return:
-        """
-        """
         This needs to set up the correct directory for the adjoint...this is the part I don't quite know what to do.  To be specific we need to have access to the fixed_grid.txt file to create the proper topography file.
         """
 

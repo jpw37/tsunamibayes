@@ -32,11 +32,11 @@ class FeedForward:
         
         Parameters
         ----------
-        gagues : (list) of gague objects
+        gagues : (list) of Gague objects
             The set of "loose" obersvation locations with its associated probability distributions
             (see the gauge class in tsunamibayes for more details)
         mag : float
-            Moment magnitude (earthquake intensity on the Richter scale)
+            Moment magnitude
         okada_params : (list) of floats
             A list of parameters to describe the fault plane location and composition.
             Incudes: latitude, longitude, depth, strike, rake, dip, etc. 
@@ -89,18 +89,16 @@ class FeedForward:
         - column 2 is a scaled water height
         - column 5 is the graph that appears in plots
 
-        Parameters
-        ----------
-            gauges : (list) of integers representing the gauge names
-
         Returns
         -------
-            arrivals (array): An array containing the arrival times for the
-                highest wave for each gauge. arrivals[i] corresponds to the
-                arrival time for the wave for gauges[i]
-            max_heights (array): An array containing the maximum heights
-                for each gauge. max_heights[i] corresponds to the maximum
-                height for gauges[i]
+        arrivals : ndarray of floats
+            An array containing the arrival times for the
+            highest wave for each gauge. arrivals[i] corresponds to the
+            arrival time for the wave for gauges[i]
+        max_heights : ndarray of floats
+            An array containing the maximum heights
+            for each gauge. max_heights[i] corresponds to the maximum
+            height for gauges[i]
         """
         # data = np.loadtxt("./ModelOutput/geoclaw/fort.FG1.valuemax")
         # bath_data = np.loadtxt("./ModelOutput/geoclaw/fort.FG1.aux1")
@@ -129,7 +127,8 @@ class FeedForward:
 
         Parameters
         ----------
-            gauges : (list) of gauge objects
+            gauges : (list) of Gauge objects
+        
         Returns
         -------
             llh : float

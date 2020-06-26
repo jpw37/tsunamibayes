@@ -16,7 +16,15 @@ class BaseScenario:
     model_param_cols = None
 
     def __init__(self,prior,forward_model):
-
+    """Initializes variables for the base class.
+    
+    Parameters
+    ----------
+    prior : Prior object
+        The prior distribution for the scenario. 
+    forward_model : Forward Model object
+        This is usually the GeoClawForward model.
+    """
         if self.sample_cols is None or self.model_param_cols is None:
             raise NotImplementedError("sample_cols and model_param_cols must be \
                                       defined in inherited classes")
@@ -120,6 +128,16 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
     def seq_reinit(self,output_dir):
+        """Resumes the chain from it's last staring position,
+        evaluates the forward model and computes the log-likelihood,
+        then saves the prior's logpdf, log-likelihood, and posterior logpdf.
+        
+        Parameters
+        ----------
+        output_dir : string
+            The name of the output directory from which the function pulls
+            data to resume.
+        """
         self.resume_chain(output_dir)
         n = len(self.samples)
         if n != len(self.model_params) + 1:
@@ -141,6 +159,16 @@ class BaseScenario:
         self.bayes_data.loc[n] = bayes_data
 
     def resume_chain(self,output_dir):
+        """Reads DataFrames from the .csv files housing the samples, model info,
+        bayes data, and debugging information that have already been stored before
+        the program was paused.
+        
+        Parameters
+        ----------
+        output_dir : string
+            The name of the output directory from which the function pulls
+            data to resume.
+        """
         self.samples = pd.read_csv(output_dir+"samples.csv",index_col=0)
         self.model_params = pd.read_csv(output_dir+"model_params.csv",index_col=0)
         self.model_output = pd.read_csv(output_dir+"model_output.csv",index_col=0)
@@ -148,6 +176,18 @@ class BaseScenario:
         self.debug = pd.read_csv(output_dir+"debug.csv",index_col=0)
 
     def save_data(self,output_dir,append_rows=None):
+        """Writes the DataFrames for the samples, model parameters & ouput,
+        bayes data, and debugging info into .csv files and stores them in the 
+        specified directory.
+
+        Parameters
+        ----------
+        output_dir : string
+            The name of the output directory to which the files will be stored.
+        append_rows : int -or- None
+            Default is None. If an integer is passed in, then this is 
+            the number of rows to append to the end of the .csv files to be written.
+        """
         if not append_rows:
             self.samples.to_csv(output_dir+"samples.csv")
             self.model_params.to_csv(output_dir+"model_params.csv")
@@ -169,6 +209,7 @@ class BaseScenario:
         ----------
         nsamples : int
             number of samples to draw
+        
 
         Returns
         -------

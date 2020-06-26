@@ -28,6 +28,18 @@ class BandaScenario(BaseScenario):
 
     def map_to_model_params(self,sample):
         """Evaluate the map from sample parameters to forward model parameters.
+
+        Parameters
+        ----------
+        sample : dict
+            The simple dictionary containing the sample's earthquake data as keys:
+            lat, long, magnitude, etc. and the associated float values.
+        
+        Returns
+        -------
+        model_params : dict
+            A dictionary that builds off of the sample dictionary, adding the newly calculated
+            keys and float values such as length, width, slip, strike, etc. 
         """
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])

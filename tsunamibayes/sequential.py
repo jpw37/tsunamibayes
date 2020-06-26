@@ -2,7 +2,15 @@ import numpy as np
 import pandas as pd
 
 def resample(output_dirs, verbose=False):
-    """Reads the sample data, resamples, and then writes the resampling to a .csv file."""
+    """Reads the sample data, takes another random sample, and then writes the resampling to a .csv file.
+    
+    Parameters
+    ----------
+    output_dirs : (list) of strings
+        The list of the output directories specified in the command line that store the sample's output data. 
+    verbose : bool
+        The verbose flag that prints the resample results when True. Default is false. 
+    """
     sample_data = [pd.read_csv(dir+"samples.csv", index_col=0) for dir in output_dirs]
     final_samples = [df.iloc[-1] for df in sample_data]
     bayes_data = [pd.read_csv(dir+"bayes_data.csv", index_col=0) for dir in output_dirs]
@@ -17,5 +25,6 @@ def resample(output_dirs, verbose=False):
         df.to_csv(path+"samples.csv")
 
 if __name__ == "__main__":
+    """Executes the resampling function with the list of command line prompts."""
     from sys import argv
     resample(argv[1:])

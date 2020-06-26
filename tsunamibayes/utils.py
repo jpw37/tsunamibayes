@@ -7,22 +7,75 @@ import argparse
 R = 6.3781e6
 
 def haversine(lat1, lon1, lat2, lon2):
-    """Computes great-circle distance between lat-lon coordinates on a sphere
-    with radius R"""
+    """Computes great-circle distance between sets of lat-lon coordinates on a sphere
+    with radius R
+    
+    Parameters
+    ----------
+    lat1 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the initial latitude. 
+    lon1 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the initial longitude.
+    lat2 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the terminal latitude. 
+    lon1 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the terminal latitude. 
+
+    Returns
+    -------
+    distance : float -or- ndarray of floats
+        The computed distance (in meters) between the given point(s). 
+        Returns object of the same dimension as the lat/lon parameters.
+
+    """
     phi1,phi2,lam1,lam2 = np.deg2rad(lat1),np.deg2rad(lat2),np.deg2rad(lon1),np.deg2rad(lon2)
     term = np.sin(.5*(phi2-phi1))**2+np.cos(phi1)*np.cos(phi2)*np.sin(.5*(lam2-lam1))**2
     return 2*R*np.arcsin(np.sqrt(term))
 
 def bearing(lat1, lon1, lat2, lon2):
-    """Compute the bearing between two points"""
+    """Compute the bearing between two points
+    
+    Parameters
+    ----------
+    lat1 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the initial latitude. 
+    lon1 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the initial longitude.
+    lat2 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the terminal latitude. 
+    lon1 : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the terminal latitude.
+    
+    Returns
+    -------
+    bearing : float -or- ndarray of floats
+        The computed bearing (in degrees) between the given point(s). 
+        Returns object of the same dimension as the lat/lon parameters.
+    """
     lat1,lon1,lat2,lon2 = np.deg2rad([lat1,lon1,lat2,lon2])
     x = np.cos(lat2)*np.sin(lon2-lon1)
     y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
     return np.degrees(np.arctan2(x,y))%360
 
 def displace(lat, lon, bearing, distance):
-    """Compute the lat-lon coordinates of a point given another point, a
-    bearing, and a distance. R = radius of the earth."""
+    """Compute the lat-lon coordinates of a point on a sphere after the displacement of a given point
+    along a specified bearing and distance. R = radius of the earth.
+    
+    lat : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the initial latitude. 
+    lon : float -or- array_like of floats
+        The coordinate or array of coordinates associated with the initial longitude.
+    bearing : float -or- array_like of floats
+        The orientation(s) of the desired displacement in (degrees).
+        Must be either a single float value, or an ndarray with the same dimension as lat, and lon.
+    distance : float
+        The distance (in meteres) of displacement from the initial point.
+
+    displacement lat, lon : float -or- array_like of floats
+        The float value or ndarray of the new latitude coordiantes after displacement (in degrees),
+        followed by the float value or ndarray of the new longitude coordiantes.
+
+    """
     lat,lon,bearing = np.deg2rad(lat),np.deg2rad(lon),np.deg2rad(bearing)
     delta = distance/R
     lat2 = np.arcsin(np.sin(lat)*np.cos(delta)+np.cos(lat)*np.sin(delta)*np.cos(bearing))
@@ -31,6 +84,21 @@ def displace(lat, lon, bearing, distance):
     return np.degrees(lat2),np.degrees(lon2)
 
 def calc_length(magnitude, delta_logl):
+    """Computes the rupture length of the fault based on an earthquake's moment magnitude
+    using a regression formula.
+    
+    Parameters FIXME: IS this is meters or KM?
+    ----------
+    magnitude : float
+        The moment magnitude of the earthquake event. 
+    delta_logl : float
+        An offset factor for the log of the rupture length.
+
+    Returns
+    -------
+    length : float
+        The rupter length in (meters? km?) 
+    """
     a = 0.5233956445903871     # slope
     b = 1.0974498706605313     # intercept
 
@@ -39,6 +107,21 @@ def calc_length(magnitude, delta_logl):
     return 10**logl
 
 def calc_width(magnitude, delta_logw):
+    """Computes the rupture width of the fault based on an earthquake's moment magnitude
+    using a regression formula.
+    
+    Parameters FIXME: IS this is meters or KM?
+    ----------
+    magnitude : float
+        The moment magnitude of the earthquake event. 
+    delta_logw : float
+        An offset factor for the log of the rupture width.
+
+    Returns
+    -------
+    length : float
+        The rupter width in (meters? km?) 
+    """
     m = 0.29922483873212863   # slope
     c = 2.608734705074858     # y intercept
 
@@ -47,11 +130,46 @@ def calc_width(magnitude, delta_logw):
     return 10**logw
 
 def calc_slip(magnitude, length, width, mu=4e10):
+    """Computes the slip (or displacement) of the fault from the earthquake's magnitude
+    and the rupture area using a regression forula.
+
+    Parameters FIXME: IS this is meters or KM?
+    ----------
+    magnitude : float
+        The moment magnitude of the earthquake event.
+    length : float
+        The length of the fault rupture
+    width : float
+        The width of the fault rupture
+    mu : float
+        A scaling factor for the area of the fault rupture. 
+   
+    Returns
+    -------
+    slip : float
+        The total displacement of the fault plates after rupture event.  
+    """
     return 10**(1.5*magnitude+9.05-np.log10(mu*length*width))
 
 def out_of_bounds(subfault_params, bounds):
     """Returns true if any subfault lies outside of the bounds, or intersects with
-    the surface"""
+    the surface
+    
+    Parameters
+    ----------
+    subfault_params : pandas DataFrame
+        The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
+        and whose rows contain the associated data (float values)  for each subfault.
+    bounds : dict
+        The dictionary of the upper and lower limits for latitude/longitude.
+        Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
+
+    Returns
+    -------
+    out_of_bounds : bool
+        Returns True if the subfaults surpass or intersect the bounds/surface.
+        Returns False, if the subfaults satisfies the given bounds.
+    """
 
     # check if subfaults are outside bounds
     lats = np.array(subfault_params['latitude'])
@@ -79,7 +197,8 @@ def out_of_bounds(subfault_params, bounds):
     return False
 
 class Config:
-    """Class for configuration file parsing. Configuration files follow this format:
+    """Class for configuration file parsing. Intitializes parser arguments.
+    Configuration files follow this format:
 
     # inline comments follow normal python conventions
     # sections are on their own line, enclosed in square brackets
@@ -96,13 +215,22 @@ class Config:
     x0 = [1,2,3,4]
     """
     def __init__(self):
+        """Initializes a dictionary object for the class."""
         self.dict = dict()
 
     def __getitem__(self, key):
+        """Returns the value associated with a key in the object's dictionary"""
         return self.dict[key]
 
     def read(self, file):
-        """Reads a config file, overwriting any currently set values."""
+        """Reads a config file's sections and parameters, then adds the config file data to
+        several dictionary objects.
+        
+        Parameters
+        ----------
+        file : .cfg file
+            The file containing the default value information and the paths to other data files.
+        """
         section_pattern = re.compile(r"^\[(\w*)\]")
         param_pattern = re.compile(r"^([^\s]*)\s*=\s*([^\s].*)")
         with open(file,'r') as f:

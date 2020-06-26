@@ -2,6 +2,12 @@ from tsunamibayes import Gauge, dump_gauges
 import scipy.stats as stats
 
 def build_gauges():
+    """Creates gauge objects for each observation points, and appends each to a list.
+    
+    Returns
+    -------
+    gagues : (list) of Gauge objects
+    """
     gauges = list()
 
     # Pulu Ai
