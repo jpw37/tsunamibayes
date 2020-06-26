@@ -13,6 +13,19 @@ class TestPrior(BasePrior):
     def __init__(self):
         0
     def logpdf(self,sample):
+        """Computes the log of the probability density function for the sample's magnitude.
+        
+        Parameters
+        ----------
+        sample : pandas Series of floats
+            The series that contains the float value associated with the sample's "magnitude".
+
+        Returns
+        -------
+        logpdf : float
+            The log of the probability density function for the sample.
+        """
         return stats.halfnorm.logpdf(sample['magnitude'])
     def rvs(self):
+        """Returns a float value for a halfnormal random variate."""
         return [stats.halfnorm.rvs()]
