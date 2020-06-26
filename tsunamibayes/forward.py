@@ -9,8 +9,7 @@ from . import models
 class BaseForwardModel:
     """ A parent class giving the outline for other subclasses to run the forward model."""
     def __init__(self,gauges):
-        """Initializes the necessary variables for the class.
-        """
+        """Initializes the necessary variables for the class."""
         self.gauges = gauges
         self.model_output_cols = [gauge.name + " " + obstype
                                   for gauge in gauges
@@ -27,7 +26,7 @@ class BaseForwardModel:
 
 class CompositeForwardModel(BaseForwardModel):
     def __init__(self,submodels):
-
+        """Initializes the necessary variables for the subclass."""
         self.submodels = submodels
         self.obstypes = [obstype for submodel in submodels
                          for obstype in submodel.obstypes]
@@ -43,6 +42,7 @@ class CompositeForwardModel(BaseForwardModel):
         return pd.concat(model_output)
 
     def llh(self,model_output,verbose=False):
+        """Returns the total loglikelihood for all the submodels based on the model output"""
         llh = 0
         for submodel in submodels:
             llh += submodel.llh(model_output,verbose)

@@ -391,7 +391,7 @@ def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     Loads the depth, dip, and strike data for the fault and returns a dictionary of arrays
     that contain the 'slices' of this data between a specified set of latitude and longitude bounds.
     
-    Parameters
+    Parameters FIXME: In raidans or degrees? 
     ----------
     depth_file : text file of floats
         The file containing the depth (in meters) readings along the fault. 
@@ -407,7 +407,7 @@ def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     -------
     arrays : dict
         A dictionary containing with keys: lat, lon, depth, dip, strike and their associated 
-        arrays of (float) values within the upper and lower geographical bounds of the fault. 
+        ndarrays of (float) values within the upper and lower geographical bounds of the fault. 
     """
     # load depth file, extract lat/lon grid, make latitude array in increasing order
     depth = np.loadtxt(depth_file,delimiter=',')

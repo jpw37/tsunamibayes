@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 class Gauge:
     plot_bounds = {'arrival':(0,120),'height':(0,10),'inundation':(0,500)}
+
     """Class for managing data related to observations. A Gauge object
     loosely corresponds to an observation location, along with probability
     distributions representing each type of observation associated
@@ -89,6 +90,7 @@ class Gauge:
 
     @classmethod
     def from_json(cls,d):
+        """Descodes/deserializes the data from .json form. Opposite function as to_json """
         return cls.from_shapes(**d)
 
     def plot(self,obstype,ax=None):
@@ -146,10 +148,12 @@ class Gauge:
             self.plot(obstype,ax)
 
 def dump_gauges(gauges,outfile):
+    """Opens the 'outfile' and writes/encodes the gauge data to a .json file to serialize the data"""
     with open(outfile,'w') as f:
         json.dump([gauge.to_json() for gauge in gauges],f)
 
 def load_gauges(infile):
+    """Opens and reads 'infile' and decodes the data from .json form. Performs the opposite as dump_gauges """
     with open(infile,'r') as f:
         lst = json.load(f)
     return [Gauge.from_json(d) for d in lst]

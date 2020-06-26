@@ -26,7 +26,8 @@ def abrahamson(type,mag,dist,V_S30,backarc=False):
         Spectral acceleration in units of g
     np.sqrt(phi**2 + tau**2) : float
         Standard deviation of ln(PSA)- the natural log of the peak spectral acceleartion in units of g
-        Given by the root sum squared of the intraevent standard deviations.
+        Given by the root sum squared of the intraevent's standard deviations 
+        (The variability among observations within an event).
 
     """
     def run_model(M, R, PGA, VS30):

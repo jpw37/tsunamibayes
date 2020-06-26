@@ -1,6 +1,7 @@
 import scipy.stats as stats
 
 class BasePrior:
+    """A base class to define the necessary functions to construct a prior distribution."""
     def __init__(self):
         raise NotImplementedError("__init__() must be implemented in classes inheriting from BasePrior")
     def logpdf(self,sample):

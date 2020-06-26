@@ -11,13 +11,33 @@ except:
 scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 
 def make_setrun(config):
+    """
+    Parameters
+    ----------
+    config : Config object
+        The object that contains the default bounds, initial conditions, 
+        fault information, and topography information from the .cfg files. 
+
+    Returns
+    -------
+    setrun : function
+        The function that prepares the necessary data to use Geoglaw to model the scenario's topography.
+    """
 
     def setrun(claw_pkg='geoclaw'):
-        """Initializes the necessary parameters and data to use the GeoGlaw module.
+        """
+        Initializes the necessary phsyics and topograhpy parameters 
+        in prepare to run Geoclaw.
         
+        Parameters
+        ----------
+        claw_pkg : string
+            The package to use for the setrun. Expected to be 'geoclaw'.
+
         Returns
         -------
         rundata : object of class ClawRunData
+            A data-based object that deals with the topography of the seafloor. 
         """
         assert claw_pkg.lower() == 'geoclaw',  "Expected claw_pkg = 'geoclaw'"
 
@@ -288,7 +308,11 @@ def make_setrun(config):
     return setrun
 
 def write_setrun(config_path=None):
-    """Writes the setrun information and path to a file."""
+    """Writes the setrun data and path to a file.
+    
+    config_path : string
+        The file path name to be inserted, optional. Defaults to None.
+    """
     with open('setrun.py','w') as f:
         f.write("from tsunamibayes.setrun import make_setrun\n")
         f.write("from tsunamibayes.utils import Config\n\n")
