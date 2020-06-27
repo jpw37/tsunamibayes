@@ -20,13 +20,12 @@ def make_setrun(config):
 
     Returns
     -------
-    setrun : function
+    setrun : (function)
         The function that prepares the necessary data to use Geoglaw to model the scenario's topography.
     """
 
     def setrun(claw_pkg='geoclaw'):
-        """
-        Initializes the necessary phsyics and topograhpy parameters 
+        """Initializes the necessary phsyics and topograhpy parameters 
         in prepare to run Geoclaw.
         
         Parameters
@@ -308,10 +307,13 @@ def make_setrun(config):
     return setrun
 
 def write_setrun(config_path=None):
-    """Writes the setrun data and path to a file.
+    """Opens and writes a new setrun.py file for a specific scenario
+    containing the tsunamibayes' setrun.py functions and with code 
+    instructions to read the scenario's default configuration file paths. 
     
     config_path : string
-        The file path name to be inserted, optional. Defaults to None.
+        An additional file path which stores necessary information for the 
+        scenario configuration, optional. Defaults to None.
     """
     with open('setrun.py','w') as f:
         f.write("from tsunamibayes.setrun import make_setrun\n")

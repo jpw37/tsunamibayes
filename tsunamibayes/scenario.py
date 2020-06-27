@@ -221,7 +221,7 @@ class BaseScenario:
         Parameters
         ----------
         nsamples : int
-            Number of samples to draw
+            Number of samples to draw.
         output_dir : string
             The name of the output directory to save the sample data.
         save_freq : int
@@ -388,7 +388,8 @@ class BaseScenario:
                           metro_hastings_data))
 
     def propose(self,sample):
-        """Propose a new sample. Must be implemented in inherited classes.
+        """Propose a new sample, perhaps dependent on the current sample.
+        Must be implemented in inherited classes.
 
         Parameters
         ----------
@@ -471,8 +472,8 @@ class TestScenario(BaseScenario):
         
         Returns
         -------
-        mapped_params : dict
-            The dictionary with key's length, width, and magnitude and their associated float values.
+        params : dict
+            The dictionary with keys 'length', 'width', and 'magnitude' and their associated float values.
         """
         length = 2*sample["magnitude"]**0.5
         width = 0.5*sample["magnitude"]**0.5
