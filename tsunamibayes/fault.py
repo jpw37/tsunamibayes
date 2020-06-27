@@ -13,8 +13,8 @@ class BaseFault:
         Parameters
         ----------
         bounds : dict
-            The dictionary of the upper and lower limits for latitude/longitude.
-            Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
+            The dictionary of the upper and lower limits for latitude/longitude for the model.
+            Keys are 'lon_min','lon_max','lat_min', 'lat_max', with associated (float) values.
         """
         self.bounds = bounds
 
@@ -44,7 +44,7 @@ class BaseFault:
             Length of the original Okada rectangle (meters)
         width : float
             Width of Okada rectangle (meters)
-        slip : 1-d array of floats
+        slip : float
             The slip of the fault (meters). Total displacement of fault.
         depth_offset : float 
             Offset for depth (meters), Optional. Defaults to 0.
@@ -252,8 +252,7 @@ class GridFault(BaseFault):
     """A child class that inherits from Base Fault.  
     """
     def __init__(self,lat,lon,depth,dip,strike,bounds):
-        """
-        Initializes all the correct variables for the GridFault subclass.
+        """Initializes all the correct variables for the GridFault subclass.
         Creates interpolations for depth, dip, and strike 
         which will be used later to determine values at specific points. 
 
@@ -266,11 +265,11 @@ class GridFault(BaseFault):
         depth : array_like of floats
             An ndarray of (floats) containinng data for the depth along the fault line. (meters)
         dip : array_like of floats
-            An ndarray of (floats) containinng data for the dip along the fault line. (radians)
+            An ndarray of (floats) containinng data for the dip along the fault line. (degrees)
             The information for the angles at which the plane dips downward from the top edge
-            (a positive angle between 0 and pi/2 radians)
+            (a positive angle between 0 and 90)
         strike : array_like of floats
-            An ndarray of (floats) containinng data for the strike orientation along the fault. (radians)
+            An ndarray of (floats) containinng data for the strike orientation along the fault. (degrees)
         bounds : dict
             The dictionary of the upper and lower limits for latitude/longitude.
             Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
@@ -296,9 +295,9 @@ class GridFault(BaseFault):
         depth_file : text file of floats
             The file containing the depth (in meters) readings along the fault. 
         dip_file : text file of floats
-            The file containing the angle measurements of dip all along the fault (in radians).
+            The file containing the angle measurements of dip all along the fault (degrees).
         strike_file : text file of floats
-            The file containing the strike orientations in radians along the fault. (in radians)
+            The file containing the strike orientations in radians along the fault. (degrees)
         bounds : dict
             The dictionary of the upper and lower limits for latitude/longitude.
             Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
@@ -317,10 +316,10 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-valued float.
+            The array of latitude values along the fault, or can be single-valued float. (degrees)
         
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-valued float.
+            The array of longitude values along the fault, or can be single-valued float. (degrees)
         
         Returns
         -------
@@ -342,15 +341,15 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-coordinate float.
+            The array of latitude values along the fault, or can be single-coordinate float. (degrees)
         
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-coordinate float.
+            The array of longitude values along the fault, or can be single-coordinate float. (degrees)
         
         Returns
         -------
         arr : ndarray of floats
-            The array of interpolated dip measurements (radians) associated to the pairs of coordinates passed-in.
+            The array of interpolated dip measurements (degrees) associated to the pairs of coordinates passed-in.
         -or-
         arr[0] : float
             The single value interpolated dip, when only a simple coordinate is passed in for lat and lon.
@@ -367,15 +366,15 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-coordinate float.
+            The array of latitude values along the fault, or can be single-coordinate float. (degrees)
         
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-coordinate float.
+            The array of longitude values along the fault, or can be single-coordinate float. (degrees)
         
         Returns
         -------
         arr : ndarray of floats
-            The array of interpolated strike (radians) associated to the pairs of coordinates passed-in.
+            The array of interpolated strike (degrees) associated to the pairs of coordinates passed-in.
         -or-
         arr[0] : float
             The single value interpolated strike, when only a simple coordinate is passed in for lat and lon.
@@ -387,18 +386,17 @@ class GridFault(BaseFault):
             return arr
 
 def load_slab2_data(depth_file,dip_file,strike_file,bounds):
-    """
-    Loads the depth, dip, and strike data for the fault and returns a dictionary of arrays
+    """Loads the depth, dip, and strike data for the fault and returns a dictionary of arrays
     that contain the 'slices' of this data between a specified set of latitude and longitude bounds.
     
-    Parameters FIXME: In raidans or degrees? 
+    Parameters
     ----------
     depth_file : text file of floats
         The file containing the depth (in meters) readings along the fault. 
     dip_file : text file of floats
-        The file containing the angle measurements of dip all along the fault (in radians).
+        The file containing the angle measurements of dip all along the fault (degrees).
     strike_file : text file of floats
-        The file containing the strike orientations in radians along the fault. (in radians)
+        The file containing the strike orientations in radians along the fault. (degrees)
     bounds : dict
             The dictionary of the upper and lower limits for latitude/longitude.
             Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values. 
@@ -444,9 +442,9 @@ def save_slab2_npz(depth_file,dip_file,strike_file,bounds,save_path):
     depth_file : text file of floats
         The file containing the depth (in meters) readings along the fault. 
     dip_file : text file of floats
-        The file containing the angle measurements of dip all along the fault (in radians).
+        The file containing the angle measurements of dip all along the fault (degrees).
     strike_file : text file of floats
-        The file containing the strike orientations in radians along the fault. (in radians)
+        The file containing the strike orientations in radians along the fault. (degrees)
     bounds : dict
         The dictionary of the upper and lower limits for latitude/longitude.
         Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values. 

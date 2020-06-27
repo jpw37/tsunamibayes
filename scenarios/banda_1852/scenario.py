@@ -38,8 +38,10 @@ class BandaScenario(BaseScenario):
         Returns
         -------
         model_params : dict
-            A dictionary that builds off of the sample dictionary, adding the newly calculated
-            keys and float values such as length, width, slip, strike, etc. 
+            A dictionary that builds off of the sample dictionary whose keys are the 
+            okada parameters: 'latitude', 'longitude', 'depth_offset', 'strike','length',
+            'width','slip','depth','dip','rake', 
+            and whose associated values are the newly calculated values from the sample. 
         """
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])

@@ -10,20 +10,22 @@ class Gauge:
     loosely corresponds to an observation location, along with probability
     distributions representing each type of observation associated
     with that location.
-
-    Parameters
-    ----------
-    name : str
-        Name of the observation (for use in output data files)
-    dists : dict, optional
-        Dictionary of scipy.stats frozen_rv objects. Each distribution's key
-        corresponds to which type of observation the distribution is associated
-        with
-    **kwargs : optional
-        Additional arguments to class constructor. Set as class attributes
     """
 
     def __init__(self,name,dists={},**kwargs):
+        """The default constructor. Initializes the necessary variables.
+        
+        Parameters
+        ----------
+        name : str
+            Name of the observation (for use in output data files)
+        dists : dict, optional
+            Dictionary of scipy.stats frozen_rv objects. Each distribution's key
+            corresponds to which type of observation the distribution is associated
+            with.
+        **kwargs : optional
+            Additional arguments to class constructor. Set as class attributes
+        """
         # check if distributions are scipy.stats rv_frozen objects
         for obstype,dist in dists.items():
             if not isinstance(dist,stats._distn_infrastructure.rv_frozen):
@@ -74,12 +76,15 @@ class Gauge:
         return cls(name,dists,**kwargs)
 
     def to_json(self):
-        """Encodes the distribution parameters for the gauges in json form
+        """Encodes the distribution parameters for the gauges in json form.
 
         Returns
         -------
-        d : dict 
-            Dictionary of distribution parameters in json form.
+        d : json object, dict 
+            The gauge object's attributes in .json format.
+            A more compact dictionary with keys associated with the gauges name and
+            distribution parameters. Each key of distribution parameters is associated
+            with another dictionary containig the observation's type and shape.       
         """
         ignore = ['dists','obstypes']
         d = {key:self.__dict__[key] for key in self.__dict__ if key not in ignore}
@@ -90,7 +95,15 @@ class Gauge:
 
     @classmethod
     def from_json(cls,d):
-        """Descodes/deserializes the data from .json form. Opposite function as to_json """
+        """Descodes/deserializes the gauge's attributes from .json form.
+        Passes the .json object into the from_shapes method in order to reorganize the
+        gauge's information into simple name, dists, and **kwargs attributes.
+        
+        Parameters
+        ----------
+        d : .json object, dict 
+            The gauge object's attributes in .json format.
+        """
         return cls.from_shapes(**d)
 
     def plot(self,obstype,ax=None):
@@ -99,9 +112,11 @@ class Gauge:
         Parameters
         ----------
         obstype : str
-            The name of the attribute to be graphed (ex. 'arrival', 'height', 'inundation')
-        ax : Axes object
-            Defaults to None. The object used to create axes and axis lables for the plot. 
+            The name of the observation type to be graphed (ex. 'arrival', 'height', 'inundation')
+        ax : Figure object 
+            Object from matplotlib.pyplot. Defaults to None. 
+            More specifically, a figure with an added subplot and axes
+            which is used to create axes and axis lables for the graph. 
         """
         dist = self.dists[obstype]
 
@@ -128,8 +143,8 @@ class Gauge:
         Parameters
         ----------
         fig : Figure object
-            Defaults to None. An object of the matplotlib.pyplot class 
-            used to create the figure on the plot.
+            An object of the matplotlib.pyplot class 
+            used to create the figure on the plot. Defaults to None. 
         """
         if fig is None:
             fig = plt.figure()
@@ -148,12 +163,32 @@ class Gauge:
             self.plot(obstype,ax)
 
 def dump_gauges(gauges,outfile):
-    """Opens the 'outfile' and writes/encodes the gauge data to a .json file to serialize the data"""
+    """Converts each gauge to .json form and writes all the gauges to the specified file.
+    
+    Parameters
+    ----------
+    gauges : (list) of Gauge objects
+        Which contains all the distribution parameters for each gauge.
+    outfile : string
+        The name of the file to which the gauges will be written.
+    """
     with open(outfile,'w') as f:
         json.dump([gauge.to_json() for gauge in gauges],f)
 
 def load_gauges(infile):
-    """Opens and reads 'infile' and decodes the data from .json form. Performs the opposite as dump_gauges """
+    """Opens and reads the file and decodes the gauge attributes in .json form. 
+    Constructs gauge objects from the deserialized data.
+
+    Parameters
+    ----------
+    infile : string
+        The name of the file where the gauges are stored in .json form.
+
+    Returns
+    -------
+    gauges : (list) of Gauge objects
+        The reconstructed and decoded gauge objects that were extracte from the .json file.
+    """
     with open(infile,'r') as f:
         lst = json.load(f)
     return [Gauge.from_json(d) for d in lst]

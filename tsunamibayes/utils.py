@@ -8,18 +8,20 @@ R = 6.3781e6
 
 def haversine(lat1, lon1, lat2, lon2):
     """Computes great-circle distance between sets of lat-lon coordinates on a sphere
-    with radius R
+    with radius R. 
+    All of the following parameters must have the same dimension.
     
     Parameters
     ----------
     lat1 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the initial latitude. 
+        The coordinate or ndarray of coordinates associated with the initial latitude. 
     lon1 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the initial longitude.
+        The coordinate or ndarray of coordinates associated with the initial longitude.
     lat2 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the terminal latitude. 
+        The coordinate or ndarray of coordinates associated with the terminal latitude. 
     lon1 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the terminal latitude. 
+        The coordinate or ndarray of coordinates associated with the terminal latitude. 
+
 
     Returns
     -------
@@ -33,18 +35,19 @@ def haversine(lat1, lon1, lat2, lon2):
     return 2*R*np.arcsin(np.sqrt(term))
 
 def bearing(lat1, lon1, lat2, lon2):
-    """Compute the bearing between two points
+    """Compute the bearing between two points.
+    All of the following parameters must have the same dimension.
     
     Parameters
     ----------
     lat1 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the initial latitude. 
+        The coordinate or ndarray of coordinates associated with the initial latitude. 
     lon1 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the initial longitude.
+        The coordinate or ndarray of coordinates associated with the initial longitude.
     lat2 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the terminal latitude. 
+        The coordinate or ndarray of coordinates associated with the terminal latitude. 
     lon1 : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the terminal latitude.
+        The coordinate or ndarray of coordinates associated with the terminal latitude.
     
     Returns
     -------
@@ -60,11 +63,12 @@ def bearing(lat1, lon1, lat2, lon2):
 def displace(lat, lon, bearing, distance):
     """Compute the lat-lon coordinates of a point on a sphere after the displacement of a given point
     along a specified bearing and distance. R = radius of the earth.
+    All of the following parameters must have the same dimension.
     
     lat : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the initial latitude. 
+        The coordinate or ndarray of coordinates associated with the initial latitude. 
     lon : float -or- array_like of floats
-        The coordinate or array of coordinates associated with the initial longitude.
+        The coordinate or ndarray of coordinates associated with the initial longitude.
     bearing : float -or- array_like of floats
         The orientation(s) of the desired displacement in (degrees).
         Must be either a single float value, or an ndarray with the same dimension as lat, and lon.
@@ -153,7 +157,7 @@ def calc_slip(magnitude, length, width, mu=4e10):
 
 def out_of_bounds(subfault_params, bounds):
     """Returns true if any subfault lies outside of the bounds, or intersects with
-    the surface
+    the surface.
     
     Parameters
     ----------

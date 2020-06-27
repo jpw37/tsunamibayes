@@ -32,8 +32,8 @@ class FeedForward:
         
         Parameters
         ----------
-        gagues : (list) of Gague objects
-            The set of "loose" obersvation locations with its associated probability distributions
+        gauges : (list) of Gague objects
+            The set of obersvation locations with its associated probability distributions
             (see the gauge class in tsunamibayes for more details)
         mag : float
             Moment magnitude
