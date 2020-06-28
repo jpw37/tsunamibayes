@@ -438,7 +438,7 @@ class TestScenario(BaseScenario):
         Parameters
         ----------
         sample : pandas Series of floats
-            The series that contains the float value associated with the sample's "magnitude".
+            The series that contains the float values for the sample's earthquake magnitude.
         
         Returns
         -------
