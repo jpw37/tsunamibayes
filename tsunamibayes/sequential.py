@@ -28,7 +28,6 @@ def resample(output_dirs, overwrite=False,  verbose=False):
             print("Chain at {}:\n".format(dir))
             print("Resampled from {}".format(output_dirs[idx]))
             print(final_samples[idx],"\n")
-        if overwrite:
             df_d.loc[len(df_d),df_s.columns] = df_s.iloc[-1]
             df_d.loc[len(df_d),p_cols] = final_samples[idx].rename(lambda x:'p_'+x)
             df_d.loc[len(df_d),'accepted'] = 1
@@ -36,6 +35,7 @@ def resample(output_dirs, overwrite=False,  verbose=False):
             df_mp.loc[len(df_mp)] = model_params[idx].iloc[-1]
             df_mo.loc[len(df_mo)] = model_output[idx].iloc[-1]
             df_bd.loc[len(df_bd)] = bayes_data[idx].iloc[-1]
+        if overwrite:
             df_s.to_csv(dir+"output/samples.csv")
             df_mp.to_csv(dir+"output/model_params.csv")
             df_mo.to_csv(dir+"output/model_output.csv")
