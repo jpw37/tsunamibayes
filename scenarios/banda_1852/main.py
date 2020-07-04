@@ -7,20 +7,6 @@ from gauges import build_gauges
 from scenario import BandaScenario
 
 def setup(config):
-    """Extracts the data from the config object to create the BandaFault object, 
-    and then declares the scenario's initial prior, forward model, and covariance 
-    in order to create the BandaScenario. 
-    
-    Parameters
-    ----------
-    config : Config object
-        The config object that contains the default scenario data to use for the sampling.
-        Essentially, this sets all the initial conditions for the bounds, prior, fault, etc.
-    
-    Returns
-    -------
-    BandaScenario : BandaScenario object
-    """
 
     # Banda Arc fault object
     arrays = np.load(config.fault['grid_data_path'])
@@ -53,7 +39,7 @@ def setup(config):
     gauges = build_gauges()
 
     # Forward model
-    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])
+    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
     forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
                                            config.geoclaw['dtopo_path'])
 
@@ -83,42 +69,38 @@ if __name__ == "__main__":
     # parse command line arguments
     args = parser.parse_args()
 
-    # break if both resume and sequential reinit flags are set
-    if args.resume_dir and args.seq_reinit_dir:
-        raise ValueError("flags '-r' and '-s' cannot both be set")
-
     # load defaults and config file
+    if args.verbose: print("Reading defaults.cfg")
     config = Config()
     config.read('defaults.cfg')
     if args.config_path:
+        if args.verbose: print("Reading {}".format(args.config_path))
         config.read(args.config_path)
 
     # write setrun.py file
+    if args.verbose: print("Writing setrun.py")
     write_setrun(args.config_path)
 
     # copy Makefile
+    if args.verbose: print("Copying Makefile")
     makefile_path = tb.__file__[:-11]+'Makefile'
     os.system("cp {} Makefile".format(makefile_path))
 
     # build scenario
     scenario = setup(config)
 
+    # resume in-progress chain
+    if args.resume:
+        if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
+        scenario.resume_chain(args.output_dir)
+    
     # initialize new chain
-    if not (args.resume_dir or args.seq_reinit_dir):
+    else: 
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
-            scenario.init_chain(u0)
+            scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
-            scenario.init_chain(method='prior_rvs')
-
-    # resume in-progress chain
-    if args.resume_dir:
-        scenario.resume_chain(args.resume_dir)
-
-    # reinitialize with sequential MCMC (after using tsunamibayes.sequential.resample)
-    if args.seq_reinit_dir:
-        scenario.seq_reinit(args.seq_reinit_dir)
-
-    # sample
+            scenario.init_chain(method='prior_rvs',verbose=args.verbose)
+  
     scenario.sample(args.n_samples,output_dir=args.output_dir,
                     save_freq=args.save_freq,verbose=args.verbose)

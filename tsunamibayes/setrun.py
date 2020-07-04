@@ -11,33 +11,8 @@ except:
 scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 
 def make_setrun(config):
-    """
-    Parameters
-    ----------
-    config : Config object
-        The object that contains the default bounds, initial conditions, 
-        fault information, and topography information from the .cfg files. 
-
-    Returns
-    -------
-    setrun : (function)
-        The function that prepares the necessary data to use Geoglaw to model the scenario's topography.
-    """
 
     def setrun(claw_pkg='geoclaw'):
-        """Initializes the necessary phsyics and topograhpy parameters 
-        in prepare to run Geoclaw.
-        
-        Parameters
-        ----------
-        claw_pkg : string
-            The package to use for the setrun. Expected to be 'geoclaw'.
-
-        Returns
-        -------
-        rundata : object of class ClawRunData
-            A data-based object that deals with the topography of the seafloor. 
-        """
         assert claw_pkg.lower() == 'geoclaw',  "Expected claw_pkg = 'geoclaw'"
 
         num_dim = 2
@@ -245,20 +220,20 @@ def make_setrun(config):
         amrdata.clustering_cutoff = 0.700000
 
         # print info about each regridding up to this level:
-        amrdata.verbosity_regrid = 1
+        amrdata.verbosity_regrid = 0
 
         #  ----- For developers -----
         # Toggle debugging print statements:
-        amrdata.dprint = True #False      # print domain flags
-        amrdata.eprint = True #False      # print err est flags
-        amrdata.edebug = True #False      # even more err est flags
-        amrdata.gprint = True #False      # grid bisection/clustering
-        amrdata.nprint = True #False      # proper nesting output
-        amrdata.pprint = True #False      # proj. of tagged points
-        amrdata.rprint = True #False      # print regridding summary
-        amrdata.sprint = True #False      # space/memory output
+        amrdata.dprint = False      # print domain flags
+        amrdata.eprint = False      # print err est flags
+        amrdata.edebug = False      # even more err est flags
+        amrdata.gprint = False      # grid bisection/clustering
+        amrdata.nprint = False      # proper nesting output
+        amrdata.pprint = False      # proj. of tagged points
+        amrdata.rprint = False      # print regridding summary
+        amrdata.sprint = False      # space/memory output
         amrdata.tprint = True       # time step reporting each level
-        amrdata.uprint = True #False      # update/upbnd reporting
+        amrdata.uprint = False      # update/upbnd reporting
 
         # More AMR parameters can be set -- see the defaults in pyclaw/data.py
 
@@ -307,14 +282,6 @@ def make_setrun(config):
     return setrun
 
 def write_setrun(config_path=None):
-    """Opens and writes a new setrun.py file for a specific scenario
-    containing the tsunamibayes' setrun.py functions and with code 
-    instructions to read the scenario's default configuration file paths. 
-    
-    config_path : string
-        An additional file path which stores necessary information for the 
-        scenario configuration, optional. Defaults to None.
-    """
     with open('setrun.py','w') as f:
         f.write("from tsunamibayes.setrun import make_setrun\n")
         f.write("from tsunamibayes.utils import Config\n\n")

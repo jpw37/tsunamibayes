@@ -1,87 +1,31 @@
 import numpy as np
 
 def inundation(wave_height,beta,n):
-    """Computes the inundation distance of the tsunami wave based on wave height.
-    
-    Parameters
-    ----------
-    wave_height : float
-        The wave height at the shore (in meters).
-    beta : float
-        The gauge's beta value, the uniform slope of the shoreline (degrees). 
-        (FIXME: What does beta stand for in banda_1852 gauges?).
-    n : float
-        The Manning's coefficient for the surface roughness of the shoreline. 
-    
-    Returns
-    -------
-    val : float
-        The inundation/runup distance (in meters).
-        If the calculation produces a negative value, function returns 0.
-    """
     val = wave_height**(4/3)*0.06*np.cos(np.deg2rad(beta))/(n**2)
     return max(val,0)
 
 def abrahamson(type,mag,dist,V_S30,backarc=False):
-    """Computes PGA_1000 by running the model with VS30 = 1000, PGA = 0 and associated
-    regression parameters (those listed for period = 0 hz.), then uses the computed value
-    to computes the spectral acceleration model of Abrahamson, et al for the specific interface event.
+    """Computes the spectral acceleration model of Abrahamson, et al
+    for an interface event.
+
+    To compute PGA_1000, run the model with VS30 = 1000, PGA = 0 and associated
+    regression parameters (those listed for period = 0 hz.)
 
     Parameters
     ----------
-    type : string
-        The type of the model desired. Generally can be either 'PGA' to calculate
-        the general Peak Ground acceleartion or '1HZ' to run the model when the earthquake's
-        period is 1 HZ.
-    mag : float
-        Moment magnitude
-    dist : float
-        Distance to fault (km). Passed into run_model function as 'R'.
-    V_S30 : float
-        Shear wave velocity in the top 30 meters (m/s).
-        Passed into run_model function as 'VS30'.
-    backarc : bool
-        True if the location of the model is on the backarc side of fault.
-        False for modeling in the forarc side of a fault. Default is False. 
+    type
+    mag (float): Moment magnitude
+    R (float): Distance to fault (km)
+    VS30 (float): Shear wave velocity in the top 30 meters (m/s)
+    backarc (bool): True for backarc site
 
     Returns
     ----------
-    spec_accel : float
-        Spectral acceleration in units of g. (m/s^2)
-    sigma : float
-        Standard deviation of ln(PSA) in units of g. (m/s^2)
-        The root sum squars of the interevent's standard deviations.
-        
-    """
+    (float): Spectral acceleration in units of g
+    (float): Standard deviation of ln(PSA) in units of g
 
+    """
     def run_model(type,M,R,PGA_1000,VS30,backarc):
-        """Computes the spectral acceleration model of Abrahamson, et al
-        for an interface event.
-        
-        Parameters
-        ----------
-        type : string
-            The type of the model desired. Generally can be either 'PGA' to calculate
-            the general Peak Ground acceleartion or '1HZ' to run the model when the earthquake's
-            period is 1 HZ.
-        M : float
-            The earthquake's moment magnitude.
-        R : float
-            Distance to fault (km).
-        PGA_1000 : float
-            The peak ground acceleration (m/s^2) when the shear wave velocity in the top 
-            30 meters (V_S30) is 1000 m/s. 
-        VS30 : float
-            Shear wave velocity in the top 30 meters (m/s).
-        backarc : bool
-            True if the location of the model is on the backarc side of fault.
-            False for modeling in the forarc side of a fault. 
-        
-        Returns
-        -------
-        log : float
-            The calculated spectral acceleration in units of g. (m/s^2)
-        """
 
         # Period-independent coefficients
         n = 1.18

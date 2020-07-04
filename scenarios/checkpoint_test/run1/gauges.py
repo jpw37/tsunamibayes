@@ -7,16 +7,16 @@ def build_gauges():
     # Pulu Ai
     name = 'Pulu Ai'
     dists = dict()
-    dists['height'] = stats.norm(loc=3,scale=0.8)
+    dists['height'] = stats.norm(loc=3,scale=0.2)
     gauge = Gauge(name,dists)
-    gauge.lat = -4.5175
+    gauge.lat = -4.5166
     gauge.lon = 129.775
     gauges.append(gauge)
 
     # Ambon
     name = 'Ambon'
     dists = dict()
-    dists['height'] = stats.norm(loc=1.8,scale=0.4)
+    dists['height'] = stats.norm(loc=1.8,scale=0.1)
     gauge = Gauge(name,dists)
     gauge.lat = -3.691
     gauge.lon = 128.178
@@ -26,50 +26,41 @@ def build_gauges():
     name = 'Banda Neira'
     dists = dict()
     dists['arrival'] = stats.skewnorm(a=2,loc=15,scale=5)
-    dists['height'] = stats.norm(loc=6.5,scale=1.5)
-    dists['inundation'] = stats.norm(loc=185,scale=65)
+    dists['height'] = stats.norm(loc=6.5,scale=1)
+    dists['inundation'] = stats.skewnorm(a=3,loc=231,scale=85)
     gauge = Gauge(name,dists)
     gauge.lat = -4.5248
-    gauge.lon = 129.8965
+    gauge.lon = 129.896
     gauge.beta = 4.253277987952933
-    gauge.n = 0.06
+    gauge.n = 0.03
     gauges.append(gauge)
 
     # Buru
     name = 'Buru'
     dists = dict()
-    dists['height'] = stats.chi(df=1.01,loc=0.5,scale=1.5)
+    dists['height'] = stats.chi(df=1.01,loc=1.0,scale=1.0)
     gauge = Gauge(name,dists)
     gauge.lat = -3.3815
-    gauge.lon = 127.113
+    gauge.lon = 127.115
     gauges.append(gauge)
 
-    # Hulaliu
-    name = 'Hulaliu'
-    dists = dict()
-    dists['height'] = stats.chi(df=1.01,loc=0.5,scale=2.0)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.543
-    gauge.lon = 128.557
-    gauges.append(gauge)
-    
     # Saparua
     name = 'Saparua'
     dists = dict()
     dists['arrival'] = stats.norm(loc=45,scale=5)
-    dists['height'] = stats.norm(loc=5,scale=1)
-    dists['inundation'] = stats.norm(loc=125,scale=40)
+    dists['height'] = stats.norm(loc=5,scale=.75)
+    dists['inundation'] = stats.norm(loc=120,scale=10)
     gauge = Gauge(name,dists)
     gauge.lat = -3.576
     gauge.lon = 128.657
     gauge.beta = 1.1067189507222546
-    gauge.n = 0.06
+    gauge.n = 0.03
     gauges.append(gauge)
 
     # Kulur
     name = 'Kulur'
     dists = dict()
-    dists['height'] = stats.norm(loc=3,scale=1)
+    dists['height'] = stats.norm(loc=2.5,scale=0.7)
     gauge = Gauge(name,dists)
     gauge.lat = -3.501
     gauge.lon = 128.562

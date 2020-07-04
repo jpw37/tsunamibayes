@@ -1,6 +1,6 @@
 # README #
 
-tsunamiBayes is Python code for conducting Bayesian inference on tsunami observations to estimate earthquake parameters.
+tsunamibayes is a Python package for conducting Bayesian inference on tsunami observations to estimate earthquake parameters.
 
 ### What is this repository for? ###
 
