@@ -2,12 +2,6 @@ from tsunamibayes import Gauge, dump_gauges
 import scipy.stats as stats
 
 def build_gauges():
-    """Creates gauge object for each observation point's data and appends each to a list.
-    
-    Returns
-    -------
-    gauges : (list) of Gauge objects
-    """
     gauges = list()
 
     # Pulu Ai
@@ -102,8 +96,6 @@ def build_gauges():
     return gauges
 
 if __name__=="__main__":
-    """Builds the scenario's gauges and stores the data in either a default file,
-    or a file specified by the user in the command line."""
     from sys import argv
 
     if len(argv) == 1:
