@@ -11,14 +11,19 @@ def make_fault_dtopo(subfault_params,bounds,verbose=False):
     Parameters
     ----------
     subfault_params : pandas DataFrame
-        DataFrame containing the 9 Okada parameters for each subfault
+        DataFrame containing the 9 Okada parameters for each subfault.
     bounds : dict
         Dictionary containing the model bounds. Keys are 'lon_min','lon_max',
         'lat_min', 'lat_max'
-    dtopo_path : string
-        Path for writing dtopo file
-    verbose : bool, optional
-        Flag for verbose output
+    verbose : bool
+        Flag for verbose output, optional. Default is False.
+        If true, prints the fault's subfault parameters as well as the
+        momement magnitude and seismic moment of the fault. 
+
+    Returns
+    -------
+    fault : GeoClaw BaseFault Object
+        A GeoClaw fault object describing the topography changes and subfaults.
     """
 
     subfaults = []
@@ -58,5 +63,20 @@ def make_fault_dtopo(subfault_params,bounds,verbose=False):
     return fault
 
 def write_dtopo(subfault_params,bounds,dtopo_path,verbose=False):
+    """Executes the function to create the fault's dtopo object and then 
+    writes the dtopo object to the specified path location.
+    
+    Parameters
+    ----------
+    subfault_params : pandas DataFrame
+        DataFrame containing the 9 Okada parameters for each subfault
+    bounds : dict
+        Dictionary containing the model bounds. Keys are 'lon_min','lon_max',
+        'lat_min', 'lat_max'
+    dtopo_path : string
+        Path for writing dtopo file
+    verbose : bool
+        Flag for verbose output, optional. Default is False.
+    """
     fault = make_fault_dtopo(subfault_params,bounds,verbose=False)
     fault.dtopo.write(dtopo_path)

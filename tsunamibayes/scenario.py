@@ -17,7 +17,15 @@ class BaseScenario:
     model_param_cols = None
 
     def __init__(self,prior,forward_model):
-
+        """Initializes variables for the base class.
+        
+        Parameters
+        ----------
+        prior : Prior object
+            The prior distribution for the scenario. 
+        forward_model : Forward Model object
+            This is usually the GeoClawForward model.
+        """
         if self.sample_cols is None or self.model_param_cols is None:
             raise NotImplementedError("sample_cols and model_param_cols must be "
                                       "defined in inherited classes")
@@ -132,6 +140,16 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
     def resume_chain(self,output_dir):
+         """Reads DataFrames from the .csv files housing the samples, model info,
+        bayes data, and debugging information that have already been stored before
+        the program was paused.
+        
+        Parameters
+        ----------
+        output_dir : string
+            The name of the output directory from which the function pulls
+            data to resume.
+        """
         self.samples = pd.read_csv(output_dir+"/samples.csv",index_col=0).reset_index(drop=True)
         self.model_params = pd.read_csv(output_dir+"/model_params.csv",index_col=0).reset_index(drop=True)
         self.model_output = pd.read_csv(output_dir+"/model_output.csv",index_col=0).reset_index(drop=True)
@@ -139,6 +157,18 @@ class BaseScenario:
         self.debug = pd.read_csv(output_dir+"/debug.csv",index_col=0).reset_index(drop=True)
 
     def save_data(self,output_dir,append_rows=None):
+        """Writes the DataFrames for the samples, model parameters & ouput,
+        bayes data, and debugging info into .csv files and stores them in the 
+        specified directory.
+
+        Parameters
+        ----------
+        output_dir : string
+            The name of the output directory to which the files will be stored.
+        append_rows : int -or- None
+            Default is None. If an integer is passed in, then this is 
+            the number of rows to append to the end of the .csv files to be written.
+        """
         if not append_rows:
             self.samples.to_csv(output_dir+"/samples.csv")
             self.model_params.to_csv(output_dir+"/model_params.csv")
@@ -160,13 +190,21 @@ class BaseScenario:
         Parameters
         ----------
         nsamples : int
-            number of samples to draw
+            Number of samples to draw.
+        output_dir : string
+            The name of the output directory to save the sample data.
+        save_freq : int
+            The integer that sets how frequently the sample data will be saved and written to a file.
+            Default is 10. This also represents the number of rows to appened when 
+            this function calls the save_data function.
+        verbose : bool
+            If true, prints gague data for the loglikelihood of the forward model. Default is false.  
 
         Returns
         -------
-        samples : DataFrame
-            pandas dataframe containing samples, including any from prior runs
-            (such as when using Scenario.restart())
+        samples : pandas DataFrame
+            Pandas dataframe containing the set of samples from all of the accepted proposal generated, 
+            including any from prior runs (such as when using Scenario.restart()).
         """
         if not hasattr(self,'samples'):
             raise AttributeError("Chain must first be initialized with "
@@ -274,17 +312,35 @@ class BaseScenario:
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
                       sample_bayes,proposal_bayes,metro_hastings_data):
-        """Create a Pandas Series object with the given data that is desired to
-        be kept in the debug output.
+        """Combines data from a scenario iteration to be used for debugging puposes, and 
+        stores the combined data in a Pandas Series object.
 
         Parameters
         ----------
-        # TODO: EITHER USE **kwargs OR A BUNCH OF SPECIFIC PARAMETERS?
+        sample : pandas Series of floats
+            The series that contains the float values for the declared sample columns.
+        proposal : pandas Series of floats
+            The series that contains the float values for the declared proposal columns.
+        sample_model_params : dict
+            The dictionary containing the sample's specified parameters and their associated float values. 
+            This differs from subclass to subclass, but generally contains parameters such as 
+            magnitude, length, width, etc. etc.
+        proposal_model_params :  dict
+            The dictionary containing the proposal's specified parameters. This differs from subclass
+            to subclass, but generally contains parameters such as magnitude, length, width, etc. etc.
+        sample_bayes : pandas Series
+            The pandas series that contains labels and float values for 
+            the sample's prior logpdf, loglikelihood, and posterior logpdf.
+        proposal_bayes : pandas Series
+            The pandas series that contains labels and float values for 
+            the prosal's prior logpdf, loglikelihood, and posterior logpdf.
+        metro_hastings_data : pandas Series
+            The series that contains a dictioanry with the acceptace probablity, acceptace state, and acceptance rate.
 
         Returns
         -------
-        Pandas.Series
-            Row for the debug Dataframe
+        debug_row : pandas Series
+            The combined/concatenated series of all the dictionaries and pd.series passed in to the function.
         """
         proposal = pd.Series(proposal).rename(lambda x:'p_'+x)
         sample_model_params = pd.Series(sample_model_params).rename(
@@ -301,8 +357,13 @@ class BaseScenario:
                           metro_hastings_data))
 
     def propose(self,sample):
-        """Propose a new sample, perhaps dependent on the current sample. Must
-        be implemented in inherited classes.
+        """Propose a new sample, perhaps dependent on the current sample.
+        Must be implemented in inherited classes.
+
+        Parameters
+        ----------
+        sample : pandas Series of floats
+            The series that contains the float values for the declared sample columns.
         """
         raise NotImplementedError("propose() must be implemented in classes "
         "inheriting from BaseScenario")
@@ -311,6 +372,13 @@ class BaseScenario:
         """Evaluate the logpdf of the proposal kernel, expressed as the
         log-probability-density of proposing 'u' given current sample 'v'. Must
         be implemented in inherited classes.
+
+        Parameters
+        ----------
+        u : pandas Series of floats
+            The series that contains the float values for a proposal.
+        v : pandas Series of floats
+            The series that contains the float values for the current sample.
         """
         raise NotImplementedError("proposal_logpdf() must be implemented in "
         "classes inheriting from BaseScenario")
@@ -318,6 +386,11 @@ class BaseScenario:
     def map_to_model_params(self,sample):
         """Evaluate the map from sample parameters to forward model parameters.
         Must be implemented in inherited classes.
+
+        Parameters
+        ----------
+        sample : pandas Series of floats
+            The series that contains the float values for the declared sample columns.
         """
         raise NotImplementedError("map_to_model_params() must be implemented in "
         "classes inheriting from BaseScenario")
@@ -327,12 +400,50 @@ class TestScenario(BaseScenario):
     model_param_cols = ["length","width",'magnitude']
 
     def propose(self,sample):
+        """Proposes a new sample by adding a small factor multiplied by a
+        random floats (sampled from a univariate "normal" (Gaussian) distribution of mean 0 and variance 1)
+        to the original sample.
+
+        Parameters
+        ----------
+        sample : pandas Series of floats
+            The series that contains the float values for the sample's earthquake magnitude.
+        
+        Returns
+        -------
+        proposal :  pandas Series of floats
+            The random variant of the passed-in sample.
+        """
         return sample + 0.1*np.random.randn()
 
     def proposal_logpdf(self,u,v):
+        """Evaluate the logpdf of the proposal kernel, expressed as the
+        log-probability-density of proposing 'u' given current sample 'v'.
+        For the random walk proposal, the kernel is symmetric. This function
+        returns 0 for convenience, as k(u,v) - k(v,u) = 0.
+
+        Parameters
+        ----------
+        u : pandas Series of floats
+            The series that contains the float values for a proposal.
+        v : pandas Series of floats
+            The series that contains the float values for the current sample.
+        """
         return 0
 
     def map_to_model_params(self,sample):
+        """Evaluate the map from sample's magnitude to forward model's length and width.
+
+        Parameters
+        ----------
+        sample : pandas Series of floats
+            The series that contains the float values for the declared sample columns.
+        
+        Returns
+        -------
+        params : dict
+            The dictionary with keys 'length', 'width', and 'magnitude' and their associated float values.
+        """
         length = 2*sample["magnitude"]**0.5
         width = 0.5*sample["magnitude"]**0.5
         return {'length':length,'width':width,'magnitude':sample['magnitude']}
