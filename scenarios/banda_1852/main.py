@@ -7,7 +7,20 @@ from gauges import build_gauges
 from scenario import BandaScenario
 
 def setup(config):
-
+    """Extracts the data from the config object to create the BandaFault object, 
+    and then declares the scenario's initial prior, forward model, and covariance 
+    in order to create the BandaScenario. 
+    
+    Parameters
+    ----------
+    config : Config object
+        The config object that contains the default scenario data to use for the sampling.
+        Essentially, this sets all the initial conditions for the bounds, prior, fault, etc.
+    
+    Returns
+    -------
+    BandaScenario : BandaScenario object
+    """
     # Banda Arc fault object
     arrays = np.load(config.fault['grid_data_path'])
     fault = tb.GridFault(bounds=config.model_bounds,**arrays)

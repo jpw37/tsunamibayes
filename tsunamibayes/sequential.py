@@ -4,6 +4,18 @@ import numpy as np
 import pandas as pd
 
 def resample(output_dirs, overwrite=False,  verbose=False):
+    """Reads the sample data, takes another random sample, and then writes the resampling to a .csv file.
+    
+    Parameters
+    ----------
+    output_dirs : (list) of strings
+        The list of the output directories specified in the command line that store the sample's output data. 
+    overwrite : bool
+        The boolean flag that indicates to the function whether to overwrite the current data file or not.
+        Default is false. 
+    verbose : bool
+        The verbose flag that prints the resample results when True. Default is false. 
+    """
     samples = [pd.read_csv(dir_+"output/samples.csv", index_col=0).reset_index(drop=True) 
                for dir_ in output_dirs]
     final_idx = [df.index[-1] for df in samples]
@@ -55,17 +67,35 @@ def resample(output_dirs, overwrite=False,  verbose=False):
 
 def gen_debug_row(sample,proposal,sample_model_params,proposal_model_params,
                       sample_bayes,proposal_bayes,metro_hastings_data):
-        """Create a Pandas Series object with the given data that is desired to
-        be kept in the debug output.
+        """Combines data from a scenario iteration to be used for debugging puposes, and 
+        stores the combined data in a Pandas Series object.
 
         Parameters
         ----------
-        # TODO: EITHER USE **kwargs OR A BUNCH OF SPECIFIC PARAMETERS?
+        sample : pandas Series of floats
+            The series that contains the float values for the declared sample columns.
+        proposal : pandas Series of floats
+            The series that contains the float values for the declared proposal columns.
+        sample_model_params : dict
+            The dictionary containing the sample's specified parameters and their associated float values. 
+            This differs from subclass to subclass, but generally contains parameters such as 
+            magnitude, length, width, etc. etc.
+        proposal_model_params :  dict
+            The dictionary containing the proposal's specified parameters. This differs from subclass
+            to subclass, but generally contains parameters such as magnitude, length, width, etc. etc.
+        sample_bayes : pandas Series
+            The pandas series that contains labels and float values for 
+            the sample's prior logpdf, loglikelihood, and posterior logpdf.
+        proposal_bayes : pandas Series
+            The pandas series that contains labels and float values for 
+            the prosal's prior logpdf, loglikelihood, and posterior logpdf.
+        metro_hastings_data : pandas Series
+            The series that contains a dictioanry with the acceptace probablity, acceptace state, and acceptance rate.
 
         Returns
         -------
-        Pandas.Series
-            Row for the debug Dataframe
+        debug_row : pandas Series
+            The combined/concatenated series of all the dictionaries and pd.series passed in to the function.
         """
         proposal = pd.Series(proposal).rename(lambda x:'p_'+x)
         sample_model_params = pd.Series(sample_model_params).rename(
@@ -82,6 +112,7 @@ def gen_debug_row(sample,proposal,sample_model_params,proposal_model_params,
                           metro_hastings_data))
 
 if __name__ == "__main__":
+    """Executes the resampling function with the list of command line prompts."""
     from sys import argv
     if argv[1] == '-o':
         resample(argv[2:], overwrite=True, verbose=True)
