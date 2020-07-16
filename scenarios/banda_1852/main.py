@@ -106,6 +106,10 @@ if __name__ == "__main__":
     if args.resume:
         if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
         scenario.resume_chain(args.output_dir)
+
+    elif args.custom:
+        u0 = {key:val for key,val in config.init.items()}
+        scenario.gen_custom_data(u0)
     
     # initialize new chain
     else: 
@@ -114,6 +118,7 @@ if __name__ == "__main__":
             scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenario.init_chain(method='prior_rvs',verbose=args.verbose)
-  
-    scenario.sample(args.n_samples,output_dir=args.output_dir,
-                    save_freq=args.save_freq,verbose=args.verbose)
+    
+    if not args.custom:
+        scenario.sample(args.n_samples,output_dir=args.output_dir,
+                        save_freq=args.save_freq,verbose=args.verbose)

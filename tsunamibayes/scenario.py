@@ -46,6 +46,62 @@ class BaseScenario:
                           + debug_pmp_cols + self.bayes_data_cols + \
                           proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
 
+    def gen_custom_data(self,u0,delta,max_iter=1000):
+         """Generate model output data from equal perturbations in different directions of  
+        the samples input. This data will then be used to approximate the derivative dL/dTheta
+        where Theta represents the samples input and L represents the log-likelihood. Essentially
+        this will tell us how the likelihood will change as we change our inputs and allow us to
+        more intelligently propose new samples in the MCMC algorithm instead of the current random
+        walk implementation
+
+        Parameters
+        ----------
+        u0 : dict, list or ndarray
+            Initial sample 
+        delta : dict, list or ndarray
+            Specifies how small of perturbations are desired for each sample value.
+            Must match u0 in size
+        """
+        if len(u0) != len(delta):
+            raise ValueError("Number of delta params does not match number of variables in initial sample")
+        
+        # build dataframes
+        self.samples = pd.DataFrame(columns=self.sample_cols)
+        self.model_params = pd.DataFrame(columns=self.model_param_cols)
+        self.model_output = pd.DataFrame(columns=self.model_output_cols)
+        self.bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
+        self.debug = pd.DataFrame(columns=self.debug_cols)
+
+        for i in range(max_iter):
+            # save sample
+            self.samples.loc[i] = u0
+
+            # evaluate prior logpdf
+            prior_logpdf = self.prior.logpdf(u0)
+            if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
+
+            # raise error if prior density is zero (-infinty logpdf)
+            if prior_logpdf == np.NINF:
+                raise ValueError("Initial sample must result in a nonzero prior probabiity density")
+
+            # evaluate forward model and compute log-likelihood
+            if verbose: print("Running forward model...",flush=True)
+            model_params = self.map_to_model_params(u0)
+            self.model_params.loc[i] = model_params
+
+            model_output = self.forward_model.run(model_params,verbose)
+            self.model_output.loc[i] = model_output
+
+            if verbose: print("Evaluating log-likelihood:")
+            llh = self.forward_model.llh(model_output,verbose)
+            if verbose: print("Total llh = {:.3E}".format(llh))
+
+            # save prior logpdf, log-likelihood, and posterior logpdf
+            bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
+            self.bayes_data.loc[i] = bayes_data
+
+            u0 += delta
+
     def init_chain(self,u0=None,method=None,verbose=False,**kwargs):
         """Initialize a sampling chain with a given initial sample or a string
         indicating a random initialization method. Creates DataFrames for the
