@@ -109,7 +109,8 @@ if __name__ == "__main__":
 
     elif args.custom:
         u0 = {key:val for key,val in config.init.items()}
-        scenario.gen_custom_data(u0)
+        delta = config.delta[delta]
+        scenario.gen_custom_data(u0,delta)
     
     # initialize new chain
     else: 
