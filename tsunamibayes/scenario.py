@@ -196,7 +196,7 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
     def resume_chain(self,output_dir):
-         """Reads DataFrames from the .csv files housing the samples, model info,
+        """Reads DataFrames from the .csv files housing the samples, model info,
         bayes data, and debugging information that have already been stored before
         the program was paused.
         
