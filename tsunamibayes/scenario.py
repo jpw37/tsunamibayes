@@ -46,7 +46,7 @@ class BaseScenario:
                           + debug_pmp_cols + self.bayes_data_cols + \
                           proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
 
-    def gen_custom_data(self,u0,delta,max_iter=1000):
+    def gen_custom_data(self,u0,delta,max_iter=5):
         """Generate model output data from equal perturbations in different directions of  
         the samples input. This data will then be used to approximate the derivative dL/dTheta
         where Theta represents the samples input and L represents the log-likelihood. Essentially
@@ -100,7 +100,9 @@ class BaseScenario:
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
             self.bayes_data.loc[i] = bayes_data
 
+            print("u0 before", u0)
             u0 += delta
+            print("u0 after", u0)
 
     def init_chain(self,u0=None,method=None,verbose=False,**kwargs):
         """Initialize a sampling chain with a given initial sample or a string

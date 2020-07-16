@@ -108,6 +108,7 @@ if __name__ == "__main__":
         scenario.resume_chain(args.output_dir)
 
     elif args.custom:
+        print("Entering custom elif statement")
         u0 = {key:val for key,val in config.init.items()}
         delta = config.delta[delta]
         scenario.gen_custom_data(u0,delta)
