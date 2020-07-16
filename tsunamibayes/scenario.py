@@ -47,7 +47,7 @@ class BaseScenario:
                           proposal_bayes_cols + ["alpha","accepted","acceptance_rate"]
 
     def gen_custom_data(self,u0,delta,max_iter=1000):
-         """Generate model output data from equal perturbations in different directions of  
+        """Generate model output data from equal perturbations in different directions of  
         the samples input. This data will then be used to approximate the derivative dL/dTheta
         where Theta represents the samples input and L represents the log-likelihood. Essentially
         this will tell us how the likelihood will change as we change our inputs and allow us to
