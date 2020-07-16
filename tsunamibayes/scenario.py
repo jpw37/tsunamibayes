@@ -195,7 +195,7 @@ class BaseScenario:
             The name of the output directory to save the sample data.
         save_freq : int
             The integer that sets how frequently the sample data will be saved and written to a file.
-            Default is 10. This also represents the number of rows to appened when 
+            Default is 1. This also represents the number of rows to appened when 
             this function calls the save_data function.
         verbose : bool
             If true, prints gague data for the loglikelihood of the forward model. Default is false.  
