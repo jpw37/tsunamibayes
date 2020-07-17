@@ -43,7 +43,7 @@ def make_fault_dtopo(subfault_params,bounds,verbose=False):
 
     fault = dtopotools.Fault()
     fault.subfaults = subfaults
-    if verbose: print(fault.subfaults)
+    if verbose: print("Fault subfaults"); print(fault.subfaults)
     if verbose: print("Mw = ",fault.Mw())
     if verbose: print("Mo = ",fault.Mo())
 

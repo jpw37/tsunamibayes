@@ -75,10 +75,8 @@ def setup(config,verbose=False):
                              depth_offset_std]))
 
     if verbose :
-        print("Proposal Kernel:")
-        print(config.proposal_kernel)
-        print("Covariance:")
-        print(covariance)
+        print("Proposal Kernel:"); print(config.proposal_kernel)
+        print("Covariance:"); print(covariance)
 
     return BandaScenario(prior,forward_model,covariance)
 

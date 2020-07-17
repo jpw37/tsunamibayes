@@ -159,7 +159,7 @@ class GeoClawForwardModel(BaseForwardModel):
                                                     model_params['slip'],
                                                     model_params['depth_offset'],
                                                     model_params['rake'])
-        if verbose : print("Parameters of the subfaults when running the forward model : {}".format(subfault_params))
+        if verbose : print("Parameters of the subfaults when running the forward model : "); print(subfault_params))
 
         # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)

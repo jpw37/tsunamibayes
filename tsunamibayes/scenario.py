@@ -127,13 +127,13 @@ class BaseScenario:
         if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
-        if verbose : print("with the following model parameters: {} ".format(model_params))
+        if verbose : print("with the following model parameters:"); print(model_params)
 
         model_output = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
-        if verbose: print("Model output after running forward model: {}".format(model_output))
+        if verbose: print("Model output after running forward model:"); print(model_output)
 
-        if verbose: print("Evaluating log-likelihood:")
+        if verbose: print("Evaluating log-likelihood for each gauge location:")
         llh = self.forward_model.llh(model_output,verbose)
         if verbose: print("Total llh = {:.3E}".format(llh))
 
@@ -141,7 +141,7 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
-        if verbose: print("Bayes Data : {}".format(bayes_data))
+        if verbose: print("Bayes Data :"); print(bayes_data)
 
     def resume_chain(self,output_dir):
         """Reads DataFrames from the .csv files housing the samples, model info,
@@ -266,7 +266,7 @@ class BaseScenario:
                             self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
 
-            if verbose: print("alpha = {:.3E}".format(alpha))
+            if verbose: print("The acceptance probablity, alpha = {:.3E}".format(alpha))
 
             # prior, likelihood, and posterior logpdf values
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
@@ -297,6 +297,8 @@ class BaseScenario:
                                                      bayes_data,
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
+
+            if verbose : print("Total debugging information\n--------------"); print(debug)
 
             if not j%save_freq and (output_dir is not None):
                 if verbose: print("Saving data...")
