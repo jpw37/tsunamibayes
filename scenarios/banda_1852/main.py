@@ -6,7 +6,7 @@ from prior import LatLonPrior, BandaPrior
 from gauges import build_gauges
 from scenario import BandaScenario
 
-def setup(config):
+def setup(config,verbose=False):
     """Extracts the data from the config object to create the BandaFault object, 
     and then declares the scenario's initial prior, forward model, and covariance 
     in order to create the BandaScenario. 
@@ -16,6 +16,8 @@ def setup(config):
     config : Config object
         The config object that contains the default scenario data to use for the sampling.
         Essentially, this sets all the initial conditions for the bounds, prior, fault, etc.
+    verbose : bool
+        Flag for verbose output, optional. Default is False.
     
     Returns
     -------
@@ -72,6 +74,11 @@ def setup(config):
                              delta_logw_std,
                              depth_offset_std]))
 
+    if verbose :
+        print(prior)
+        print(forward_model)
+        print(covariance)
+
     return BandaScenario(prior,forward_model,covariance)
 
 if __name__ == "__main__":
@@ -81,7 +88,6 @@ if __name__ == "__main__":
 
     # parse command line arguments
     args = parser.parse_args()
-    if args.verbose: print("This is a test by isaacds2")
 
     # load defaults and config file
     if args.verbose: print("Reading defaults.cfg")
@@ -101,7 +107,8 @@ if __name__ == "__main__":
     os.system("cp {} Makefile".format(makefile_path))
 
     # build scenario
-    scenario = setup(config)
+    if args.verbose: print("Building Scenario")
+    scenario = setup(config, verbose=args.verbose)
 
     # resume in-progress chain
     if args.resume:
