@@ -127,9 +127,11 @@ class BaseScenario:
         if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
+        if verbose : print("with the following model parameters: {} ".format(model_params))
 
         model_output = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
+        if verbose: print("Model output after running forward model: {}".format(model_output))
 
         if verbose: print("Evaluating log-likelihood:")
         llh = self.forward_model.llh(model_output,verbose)
@@ -138,6 +140,8 @@ class BaseScenario:
         # save prior logpdf, log-likelihood, and posterior logpdf
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
+
+        if verbose: print("Bayes Data : {}".format(bayes_data))
 
     def resume_chain(self,output_dir):
         """Reads DataFrames from the .csv files housing the samples, model info,
