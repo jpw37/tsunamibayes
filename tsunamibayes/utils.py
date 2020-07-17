@@ -306,4 +306,3 @@ parser.add_argument('--savf', dest='save_freq', type=int, default=10,
 parser.add_argument('-v', dest='verbose', action='store_true',
                     help="flag for verbose logging")
 parser.add_argument('n_samples', help="number of samples to draw", type=int)
-parser.add_argument('--custom', dest='custom', action='store_true')
