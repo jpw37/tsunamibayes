@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     # parse command line arguments
     args = parser.parse_args()
-    if args.verbose: print("This is a test by isaacds")
+    if args.verbose: print("This is a test by isaacds2")
 
     # load defaults and config file
     if args.verbose: print("Reading defaults.cfg")
