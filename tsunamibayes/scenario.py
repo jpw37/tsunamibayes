@@ -298,7 +298,7 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
-            if verbose : print("Total debugging information\n--------------"); print(debug)
+            if verbose : print("Total debugging information\n--------------"); print(self.debug)
 
             if not j%save_freq and (output_dir is not None):
                 if verbose: print("Saving data...")
