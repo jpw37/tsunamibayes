@@ -61,10 +61,6 @@ class BaseFault:
             The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
             and whose rows contain the associated data (float values)  for each subfault.
         """
-        if verbose : 
-            print ("FLAG: Running subfault_split, with parameters:\n")
-            print (lat)
-
         n_steps = 8
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)
@@ -132,6 +128,10 @@ class BaseFault:
         subfault_params['width'] = subwidth
         subfault_params['slip'] = slip
         subfault_params['rake'] = rake
+
+        if verbose : 
+            print ("FLAG: Running subfault_split, with parameters:")
+            print(subfault_params)
 
         return subfault_params
 
