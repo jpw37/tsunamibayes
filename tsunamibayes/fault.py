@@ -63,7 +63,7 @@ class BaseFault:
         """
         if verbose : 
             print ("FLAG: Running subfault_split, with parameters:\n")
-            print ("lat: " + lat "\nlon: "+ lon + "\nlength: " + length + "\nwidth: " + width + "\nslip: " + slip)
+            print ("lat: " + lat "\nlon: " + lon + "\nlength: " + length + "\nwidth: " + width + "\nslip: " + slip)
 
         n_steps = 8
         length_step = length/(n*n_steps)
