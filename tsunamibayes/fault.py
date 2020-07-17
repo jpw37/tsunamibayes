@@ -30,7 +30,7 @@ class BaseFault:
         raise NotImplementedError("dip_map must be implemented in classes "
                                   "inheriting from BaseFault")
 
-    def subfault_split(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3):
+    def subfault_split(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3,verbose=True):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
@@ -61,6 +61,10 @@ class BaseFault:
             The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
             and whose rows contain the associated data (float values)  for each subfault.
         """
+        if verbose : 
+            print ("FLAG: Running subfault_split, with parameters:\n")
+            print ("lat: " + lat "\nlon: "+ lon + "\nlength: " + length + "\nwidth: " + width + "\nslip: " + slip)
+
         n_steps = 8
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)
