@@ -30,7 +30,7 @@ class BaseFault:
         raise NotImplementedError("dip_map must be implemented in classes "
                                   "inheriting from BaseFault")
 
-    def subfault_split(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3,verbose=True):
+    def subfault_split(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
@@ -128,10 +128,6 @@ class BaseFault:
         subfault_params['width'] = subwidth
         subfault_params['slip'] = slip
         subfault_params['rake'] = rake
-
-        if verbose : 
-            print ("FLAG: Running subfault_split, with parameters:")
-            print(subfault_params)
 
         return subfault_params
 
