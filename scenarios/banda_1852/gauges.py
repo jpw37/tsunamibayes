@@ -99,6 +99,10 @@ def build_gauges():
     gauge.lon = 128.921
     gauges.append(gauge)
 
+    """FIXME"""
+    print("FLAG: Executing build_gauges in gauges.py\nOutput:")
+    print(gauges); print(type(gauges))
+
     return gauges
 
 if __name__=="__main__":

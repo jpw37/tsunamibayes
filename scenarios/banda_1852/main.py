@@ -76,7 +76,11 @@ def setup(config,verbose=False):
 
     if verbose :
         print("Proposal Kernel:"); print(config.proposal_kernel)
-        print("Covariance:"); print(covariance)
+
+    """FIXME"""
+    print("FLAG: Executing setup in main.py\nInput:")
+    print(config); print(type(config))
+    print("Output"); print(type(BandaScenario(prior,forward_model,covariance)))
 
     return BandaScenario(prior,forward_model,covariance)
 

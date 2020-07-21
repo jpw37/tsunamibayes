@@ -30,6 +30,10 @@ class BandaPrior(BasePrior):
         self.delta_logl = delta_logl
         self.delta_logw = delta_logw
         self.depth_offset = depth_offset
+        """FIXME"""
+        print("FLAG: Executing init in prior.py\nInput:")
+        print(type(latlon)); print(type(mag)); print(type(delta_logl)); print(type(delta_logw))
+        print(type(depth_offset))
 
     def logpdf(self,sample):
         """Computes the log of the probability density function. Adds
@@ -60,6 +64,10 @@ class BandaPrior(BasePrior):
         lpdf += self.delta_logl.logpdf(delta_logl)
         lpdf += self.delta_logw.logpdf(delta_logw)
         lpdf += self.depth_offset.logpdf(depth_offset)
+
+        """FIXME"""
+        print("FLAG: Executing logpdf in prior.py\nInput:")
+        print(type(sample)); print("Output:"); print(lpdf); print(type(lpdf))
 
         return lpdf
 
@@ -100,6 +108,9 @@ class LatLonPrior(BasePrior):
         """
         self.fault = fault
         self.depth_dist = depth_dist
+        """FIXME"""
+        print("FLAG: Executing init for LatLonPrior in prior.py\nInput:")
+        print(type(fault)); print(type(depth_dist))
 
     def logpdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
@@ -120,6 +131,9 @@ class LatLonPrior(BasePrior):
             otherwise returns the log of the probability density function 
             for the depth distribution evaluated at the sample's depth. 
         """
+        """FIXME"""
+        print("FLAG: Executing logpdf for LatLonPrior in prior.py\nInput:")
+        print(type(sample))
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
@@ -136,6 +150,9 @@ class LatLonPrior(BasePrior):
             return np.NINF
         else:
             depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
+            """FIXME"""
+            print("FLAG: Output:")
+            print(type(self.depth_dist.logpdf(depth)))
             return self.depth_dist.logpdf(depth)
 
     def pdf(self,sample):
@@ -184,4 +201,9 @@ class LatLonPrior(BasePrior):
         d = self.depth_dist.rvs()
         I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
         idx = np.random.randint(len(I))
+
+        """FIXME"""
+        print("FLAG: Executing rvs for latlon prior\nOutput:")
+        print(type([self.fault.lat[I[idx]])); print(type(self.fault.lon[J[idx]]]))
+        
         return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
