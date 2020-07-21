@@ -101,4 +101,5 @@ class BandaScenario(BaseScenario):
         model_params['dip'] = dip
         model_params['depth'] = depth
         model_params['rake'] = rake
+
         return model_params

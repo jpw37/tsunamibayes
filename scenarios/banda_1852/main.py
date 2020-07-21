@@ -26,6 +26,7 @@ def setup(config,verbose=False):
     # Banda Arc fault object
     arrays = np.load(config.fault['grid_data_path'])
     fault = tb.GridFault(bounds=config.model_bounds,**arrays)
+    if verbose : print("----------\nCreating Banda-Arc fault object with bounds:"); print(bounds)
 
     # Priors
     # latitude/longitude
@@ -73,14 +74,6 @@ def setup(config,verbose=False):
                              delta_logl_std,
                              delta_logw_std,
                              depth_offset_std]))
-
-    if verbose :
-        print("Proposal Kernel:"); print(config.proposal_kernel)
-
-    """FIXME"""
-    print("FLAG: Executing setup in main.py\nInput:")
-    print(config); print(type(config))
-    print("Output"); print(type(BandaScenario(prior,forward_model,covariance)))
 
     return BandaScenario(prior,forward_model,covariance)
 

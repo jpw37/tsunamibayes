@@ -161,9 +161,6 @@ class LatLonPrior(BasePrior):
             The value of the probability density function for the depth distribution
             evaluated at the depth of the sample. 
         """
-        """FIXME:"""
-        print("-------------------\nFLAG: executing pdf for LatLonPrior\nInput:")
-        print(type(sample))
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
@@ -178,7 +175,6 @@ class LatLonPrior(BasePrior):
             return 0
         else:
             depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
-            print("Output"); print(self.depth_dist.pdf(depth)); print(type(self.depth_dist.pdf(depth)))
             return self.depth_dist.pdf(depth)
 
     def rvs(self):

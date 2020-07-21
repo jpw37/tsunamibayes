@@ -60,7 +60,10 @@ class BaseFault:
         subfault_params : pandas DataFrame
             The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
             and whose rows contain the associated data (float values)  for each subfault.
+        FIXME:
         """
+        print("FLAG: subfault_split in fault.py\nInput:");
+        print(type(lat)); print(type(lon)); print(type(length)); print(type(width)); print(type(slip))
         n_steps = 8
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)

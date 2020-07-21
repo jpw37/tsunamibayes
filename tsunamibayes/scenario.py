@@ -62,6 +62,8 @@ class BaseScenario:
         method : str, optional
             String indicating method for choosing a random initial sample. Only
             'prior_rvs' available by default. Ignored if `u0` is given.
+        verbose : bool
+            Flag for verbose output, optional. Default is False.
         **kwargs
             Keyword arguments specifying initial sample parameter values. All
             keyword arguments must be in self.sample_cols. If `method` is given,
@@ -127,11 +129,11 @@ class BaseScenario:
         if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
-        if verbose : print("with the following model parameters:"); print(model_params)
+        if verbose : print("----------\nModel parameters for the forward model:"); print(model_params)
 
         model_output = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
-        if verbose: print("Model output after running forward model:"); print(model_output)
+        if verbose: print("-----------\nModel output after running forward model:"); print(model_output)
 
         if verbose: print("Evaluating log-likelihood for each gauge location:")
         llh = self.forward_model.llh(model_output,verbose)
@@ -301,14 +303,14 @@ class BaseScenario:
             if verbose : print("Total debugging information\n--------------"); print(self.debug)
 
             if not j%save_freq and (output_dir is not None):
-                if verbose: print("Saving data...")
+                if verbose: print("Saving data..."); print("in the file: {}".format(output_dir))
                 self.save_data(output_dir,append_rows=save_freq)
 
             if verbose: print("Iteration elapsed time: {}".format(timedelta(seconds=time.time()-start)))
             j += 1
 
         if output_dir is not None: self.save_data(output_dir)
-        if verbose and (output_dir is not None): print("Saving data...")
+        if verbose and (output_dir is not None): print("Saving data..."); print("in the file: {}".format(output_dir))
 
         total_time = time.time()-chain_start
         if verbose: print("Chain complete. total time: {}, time per sample: {}\
