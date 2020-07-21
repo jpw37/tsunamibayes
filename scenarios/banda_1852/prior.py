@@ -201,9 +201,9 @@ class LatLonPrior(BasePrior):
         d = self.depth_dist.rvs()
         I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
         idx = np.random.randint(len(I))
-
+        rvs_lat_lon = [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
         """FIXME"""
         print("FLAG: Executing rvs for latlon prior\nOutput:")
-        print(type([self.fault.lat[I[idx]])); print(type(self.fault.lon[J[idx]]]))
+        print(type(rvs_lat_lon))
         
-        return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
+        return rvs_lat_lon
