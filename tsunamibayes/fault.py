@@ -326,10 +326,6 @@ class GridFault(BaseFault):
             The ndarray of interpolated depths (meters) associated to the pairs of coordinates passed-in.
             When a simple coordinate is passed in for lat/lon, there is only one float value in the ndarray.
         """
-        """FIXME:"""
-        print("-----------\nFLAG: depth_map for Gridfault\nInput:")
-        print(type(lat)); print(type(lon)); print("Output:"); print(self.depth_interp(np.array([lat,lon]).T))
-        print(type(self.depth_interp(np.array([lat,lon]).T)))
         
         arr = self.depth_interp(np.array([lat,lon]).T)
         if isinstance(lat,float) or isinstance(lat,int):
