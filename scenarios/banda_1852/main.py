@@ -26,7 +26,7 @@ def setup(config,verbose=False):
     # Banda Arc fault object
     arrays = np.load(config.fault['grid_data_path'])
     fault = tb.GridFault(bounds=config.model_bounds,**arrays)
-    if verbose : print("----------\nCreating Banda-Arc fault object with bounds:"); print(bounds)
+    if verbose : print("----------\nCreating Banda-Arc fault object with bounds:"); print(config.model_bounds)
 
     # Priors
     # latitude/longitude
