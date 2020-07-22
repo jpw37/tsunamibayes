@@ -78,5 +78,5 @@ def write_dtopo(subfault_params,bounds,dtopo_path,verbose=False):
     verbose : bool
         Flag for verbose output, optional. Default is False.
     """
-    fault = make_fault_dtopo(subfault_params,bounds,verbose=False)
+    fault = make_fault_dtopo(subfault_params,bounds,verbose)
     fault.dtopo.write(dtopo_path)
