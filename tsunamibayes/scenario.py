@@ -145,7 +145,7 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
         if verbose: print("----------\nBayes Data: {}".format(bayes_data))
-        if verbose: print("-----------\nTable of Samples: {}".format(samples))
+        if verbose: print("-----------\nTable of Samples: {}".format(self.samples))
 
     def resume_chain(self,output_dir,verbose=False):
         """Reads DataFrames from the .csv files housing the samples, model info,
