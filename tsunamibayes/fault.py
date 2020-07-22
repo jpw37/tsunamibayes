@@ -285,6 +285,10 @@ class GridFault(BaseFault):
         self.depth = np.nan_to_num(depth)
         self.dip = dip
         self.strike = strike
+        """FIXME:"""
+        print("-----------\nFLAG: init for GridFault\nInput:")
+        print(type(lat)); print(type(lon)); print(type(depth)); print(type(dip)); 
+        print(type(strike)); print(type(bounds))
 
     @classmethod
     def from_slab2(cls,depth_file,dip_file,strike_file,bounds):
@@ -331,6 +335,11 @@ class GridFault(BaseFault):
         arr[0] : float
             The single value interpolated depth, when only a simple coordinate is passed in for lat and lon.
         """
+        """FIXME:"""
+        print("-----------\nFLAG: depth_map for Gridfault\nInput:")
+        print(type(lat)); print(type(lon)); print("Output:"); print(self.depth_interp(np.array([lat,lon]).T))
+        print(type(self.depth_interp(np.array([lat,lon]).T)))
+        
         arr = self.depth_interp(np.array([lat,lon]).T)
         if isinstance(lat,float) or isinstance(lat,int):
             return arr[0]
