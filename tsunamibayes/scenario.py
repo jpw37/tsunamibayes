@@ -133,9 +133,8 @@ class BaseScenario:
 
         model_output = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
-        if verbose: print("-----------\nModel output after running forward model:"); print(model_output)
 
-        if verbose: print("Evaluating log-likelihood for each gauge location:")
+        if verbose: print("Evaluating log-likelihood for each gauge location:\n------------")
         llh = self.forward_model.llh(model_output,verbose)
         if verbose: print("Total llh = {:.3E}".format(llh))
 
@@ -143,7 +142,7 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
-        if verbose: print("Bayes Data :"); print(bayes_data)
+        if verbose: print("----------\nBayes Data :"); print(bayes_data)
 
     def resume_chain(self,output_dir):
         """Reads DataFrames from the .csv files housing the samples, model info,
@@ -276,13 +275,13 @@ class BaseScenario:
             # accept/reject
             accepted = (np.random.rand() < alpha)
             if accepted:
-                if verbose: print("Proposal accepted",flush=True)
+                if verbose: print("***Proposal accepted***",flush=True)
                 self.samples.loc[i] = proposal
                 self.model_params.loc[i] = model_params
                 self.model_output.loc[i] = model_output
                 self.bayes_data.loc[i] = bayes_data
             else:
-                if verbose: print("Proposal rejected",flush=True)
+                if verbose: print("***Proposal rejected***",flush=True)
                 self.samples.loc[i] = self.samples.loc[i-1]
                 self.model_params.loc[i] = self.model_params.loc[i-1]
                 self.model_output.loc[i] = self.model_output.loc[i-1]

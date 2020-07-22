@@ -44,7 +44,7 @@ class BaseFault:
             Length of the original Okada rectangle (meters)
         width : float
             Width of Okada rectangle (meters)
-        slip : float
+        slip : float or int
             The slip of the fault (meters). Total displacement of fault.
         depth_offset : float 
             Offset for depth (meters), Optional. Defaults to 0.
@@ -60,10 +60,7 @@ class BaseFault:
         subfault_params : pandas DataFrame
             The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
             and whose rows contain the associated data (float values)  for each subfault.
-        FIXME:
         """
-        print("FLAG: subfault_split in fault.py\nInput:");
-        print(type(lat)); print(type(lon)); print(type(length)); print(type(width)); print(type(slip))
         n_steps = 8
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)
@@ -285,10 +282,6 @@ class GridFault(BaseFault):
         self.depth = np.nan_to_num(depth)
         self.dip = dip
         self.strike = strike
-        """FIXME:"""
-        print("-----------\nFLAG: init for GridFault\nInput:")
-        print(type(lat)); print(type(lon)); print(type(depth)); print(type(dip)); 
-        print(type(strike)); print(type(bounds))
 
     @classmethod
     def from_slab2(cls,depth_file,dip_file,strike_file,bounds):
@@ -322,18 +315,16 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-valued float. (degrees)
+            The ndarray of latitude values along the fault, or can be single-valued float. (degrees)
         
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-valued float. (degrees)
+            The ndarray of longitude values along the fault, or can be single-valued float. (degrees)
         
         Returns
         -------
-        arr : ndarray of floats
-            The array of interpolated depths (meters) associated to the pairs of coordinates passed-in.
-        -or-
-        arr[0] : float
-            The single value interpolated depth, when only a simple coordinate is passed in for lat and lon.
+        arr -or- arr[0]: array_like of floats
+            The ndarray of interpolated depths (meters) associated to the pairs of coordinates passed-in.
+            When a simple coordinate is passed in for lat/lon, there is only one float value in the ndarray.
         """
         """FIXME:"""
         print("-----------\nFLAG: depth_map for Gridfault\nInput:")
@@ -352,18 +343,16 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-coordinate float. (degrees)
+            The ndarray of latitude values along the fault, or can be single-coordinate float. (degrees)
         
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-coordinate float. (degrees)
+            The ndarray of longitude values along the fault, or can be single-coordinate float. (degrees)
         
         Returns
         -------
-        arr : ndarray of floats
-            The array of interpolated dip measurements (degrees) associated to the pairs of coordinates passed-in.
-        -or-
-        arr[0] : float
-            The single value interpolated dip, when only a simple coordinate is passed in for lat and lon.
+        arr -or- arr[0]: array_like of floats
+            The ndarray of interpolated dip measurements (degrees) associated to the pairs of coordinates passed-in.
+            When a simple coordinate is passed in for lat/lon, there is only one float value in the ndarray.
         """
         arr = self.dip_interp(np.array([lat,lon]).T)
         if isinstance(lat,float) or isinstance(lat,int):
@@ -377,18 +366,16 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-coordinate float. (degrees)
+            The ndarray of latitude values along the fault, or can be single-coordinate float. (degrees)
         
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-coordinate float. (degrees)
+            The ndarray of longitude values along the fault, or can be single-coordinate float. (degrees)
         
         Returns
         -------
-        arr : ndarray of floats
-            The array of interpolated strike (degrees) associated to the pairs of coordinates passed-in.
-        -or-
-        arr[0] : float
-            The single value interpolated strike, when only a simple coordinate is passed in for lat and lon.
+        arr -or- arr[0]: array_like of floats
+            The ndarray of interpolated strike measurements (degrees) associated to the pairs of coordinates passed-in.
+            When a simple coordinate is passed in for lat/lon, there is only one float value in the ndarray.
         """
         arr = self.strike_interp(np.array([lat,lon]).T)
         if isinstance(lat,float) or isinstance(lat,int):

@@ -42,6 +42,7 @@ class CompositeForwardModel(BaseForwardModel):
             A list of GeoClawForwardModel or TestForwardModel objects that each 
             contain their own respective gauges data member.
         """
+        print("FLAG: init for forward.py, input has {} data type".format(type(submodels)))
         self.submodels = submodels
         self.obstypes = [obstype for submodel in submodels
                          for obstype in submodel.obstypes]
@@ -68,6 +69,7 @@ class CompositeForwardModel(BaseForwardModel):
         all_model_output : pandas Series
             The combined/concatenated series containing the model's output for all the submodels.
         """
+        print("FLAG run in forward.py, input model_params is {}".format(type()))
         model_output = list()
         for submodel in submodels:
             model_output.append(submodel.run(model_params,verbose))
@@ -78,9 +80,9 @@ class CompositeForwardModel(BaseForwardModel):
         
         Parameters
         ----------
-        model_params : dict
-            The dictionary containing the sample's parameters and  whose keys are 
-            the okada parameters, and whose associated values are floats. 
+        model_output : pandas Series
+            A pandas series whose axes labels are the cominations of the scenario's gauges 
+            names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
         verbose : bool
             Flag for verbose output, optional. Default is False.
 
@@ -124,6 +126,7 @@ class GeoClawForwardModel(BaseForwardModel):
         self.valuemax_path = fgmax_params['valuemax_path']
         self.aux1_path = fgmax_params['aux1_path']
         self.write_fgmax_grid(self.gauges,self.fgmax_params)
+        print("FLAG init for GEOCLAW foward, fgmaxparams has data type {}".format(type(fgmax_params)))
 
         # clean up directory
         os.system('make clean')
@@ -151,6 +154,7 @@ class GeoClawForwardModel(BaseForwardModel):
             A pandas series whose axes labels are the cominations of the scenario's gauges 
             names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
         """
+        print("FLAG run in GEOCLAW forward. model_params has data type {}".format(type(model_params)))
         # split fault into subfaults aligning to fault zone geometry
         subfault_params = self.fault.subfault_split(model_params['latitude'],
                                                     model_params['longitude'],
@@ -171,6 +175,7 @@ class GeoClawForwardModel(BaseForwardModel):
         os.system('make .output')
 
         # load fgmax and bathymetry data
+        if verbose : print("Loading fgmax and bathymetry data from files {} and {}".format(self.valuemax_path,self.aux1_path))
         fgmax_data = np.loadtxt(self.valuemax_path)
         bath_data  = np.loadtxt(self.aux1_path)
 
@@ -182,8 +187,13 @@ class GeoClawForwardModel(BaseForwardModel):
         bath_depth = bath_data[:, -1]
 
         # these are locations where the wave never reached the gauge...
+        #FIXME add a flag here to show these locations
         max_heights[max_heights < 1e-15] = -9999
         max_heights[np.abs(max_heights) > 1e15] = -9999
+        if verbose : 
+            print("The wave never reached the gauge in the following location(s)...")
+            print(np.abs(max_heights) > 1e15)
+
 
         bath_depth[max_heights == 0] = 0
         wave_heights = max_heights + bath_depth
