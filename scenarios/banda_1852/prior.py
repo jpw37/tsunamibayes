@@ -86,7 +86,7 @@ class BandaPrior(BasePrior):
                                             "delta_logw",
                                             "depth_offset"])
         """FIXME:"""
-        print("-------------------\nFLAG: executing rvs for BandaPrior\nOutput:")
+        print("-------------------\nComputing random variates for the prior dist.\nVariates:")
         print(random_variates); print(type(random_variates))
         return random_variates
 

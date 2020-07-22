@@ -210,7 +210,7 @@ def calc_corners(subfault_params):
     corner4 = displace(edge2[0],edge2[1],strikes-90,widths/2)
     return np.hstack((corner1,corner2,corner3,corner4))
 
-def out_of_bounds(subfault_params, bounds):
+def out_of_bounds(subfault_params, bounds, verbose=True):
     """Returns true if any subfault lies outside of the bounds, or intersects with
     the surface.
     
@@ -232,13 +232,16 @@ def out_of_bounds(subfault_params, bounds):
     # check if subfaults are outside bounds
     corners = calc_corners(subfault_params)
     if np.any(corners[0] < bounds['lat_min']) or np.any(corners[0] > bounds['lat_max']):
+        if verbose : print("At least one corner of subfault is out of bounds.")
         return True
     if np.any(corners[1] < bounds['lon_min']) or np.any(corners[1] > bounds['lon_max']):
+        if verbose : print("At lease one corner of subfault is out of bounds.")
         return True
 
     # check if subfaults intersect surface
     for _,subfault in subfault_params.iterrows():
         if subfault['depth'] < .5*subfault['width']*np.sin(np.deg2rad(subfault['dip'])):
+            if verbose : print("At least one of the subfaults is intersecting the surface.")
             return True
 
     return False

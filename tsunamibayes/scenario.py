@@ -85,6 +85,7 @@ class BaseScenario:
                 raise ValueError("u0 must have index: {}".format(self.sample_cols))
 
         elif method == 'prior_rvs':
+            if verbose : print("Using random variates for the initial sample.")
             u0 = self.prior.rvs()
             u0 = dict(zip(self.sample_cols,u0))
 
@@ -95,6 +96,7 @@ class BaseScenario:
             missing_kwargs = list(set(self.sample_cols)-set(kwargs.keys()))
 
             if len(missing_kwargs) == 0:
+                if verbose : print("Using manual method for the initial sample.")
                 u0 = kwargs
 
             else:
@@ -142,9 +144,10 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
-        if verbose: print("----------\nBayes Data :"); print(bayes_data)
+        if verbose: print("----------\nBayes Data: {}".format(bayes_data))
+        if verbose: print("-----------\nTable of Samples: {}".format(samples))
 
-    def resume_chain(self,output_dir):
+    def resume_chain(self,output_dir,verbose=False):
         """Reads DataFrames from the .csv files housing the samples, model info,
         bayes data, and debugging information that have already been stored before
         the program was paused.
@@ -154,12 +157,15 @@ class BaseScenario:
         output_dir : string
             The name of the output directory from which the function pulls
             data to resume.
+        verbose : bool
+            Flag for verbose output, optional. Default is False.
         """
         self.samples = pd.read_csv(output_dir+"/samples.csv",index_col=0).reset_index(drop=True)
         self.model_params = pd.read_csv(output_dir+"/model_params.csv",index_col=0).reset_index(drop=True)
         self.model_output = pd.read_csv(output_dir+"/model_output.csv",index_col=0).reset_index(drop=True)
         self.bayes_data = pd.read_csv(output_dir+"/bayes_data.csv",index_col=0).reset_index(drop=True)
         self.debug = pd.read_csv(output_dir+"/debug.csv",index_col=0).reset_index(drop=True)
+        if verbose : print("Resuming chain from {} previous samples.".format(self.samples['latitude'].size))
 
     def save_data(self,output_dir,append_rows=None):
         """Writes the DataFrames for the samples, model parameters & ouput,
@@ -302,7 +308,7 @@ class BaseScenario:
             if verbose : print("Total debugging information\n--------------"); print(self.debug)
 
             if not j%save_freq and (output_dir is not None):
-                if verbose: print("Saving data..."); print("in the file: {}".format(output_dir))
+                if verbose: print("Saving data for this sample...(Save frequency is every {}th sample)".format(save_freq))
                 self.save_data(output_dir,append_rows=save_freq)
 
             if verbose: print("Iteration elapsed time: {}".format(timedelta(seconds=time.time()-start)))
