@@ -230,7 +230,7 @@ class GeoClawForwardModel(BaseForwardModel):
             that model output is when compared to the actual observation data at each gauge.
         """
         llh = 0
-        if verbose: print("Gauge Log\n---------{Location, model output, loglikelihood}\n------------")
+        if verbose: print("Gauge Log\n{Location, model output, loglikelihood}\n------------")
         for gauge in self.gauges:
             if verbose: print(gauge.name)
             if 'arrival' in gauge.obstypes:
