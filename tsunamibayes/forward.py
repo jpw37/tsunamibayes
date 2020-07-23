@@ -126,7 +126,6 @@ class GeoClawForwardModel(BaseForwardModel):
         self.valuemax_path = fgmax_params['valuemax_path']
         self.aux1_path = fgmax_params['aux1_path']
         self.write_fgmax_grid(self.gauges,self.fgmax_params)
-        print("FLAG init for GEOCLAW foward, fgmaxparams has data type {}".format(type(fgmax_params)))
 
         # clean up directory
         os.system('make clean')
@@ -154,7 +153,6 @@ class GeoClawForwardModel(BaseForwardModel):
             A pandas series whose axes labels are the cominations of the scenario's gauges 
             names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
         """
-        print("FLAG run in GEOCLAW forward. model_params has data type {}".format(type(model_params)))
         # split fault into subfaults aligning to fault zone geometry
         subfault_params = self.fault.subfault_split(model_params['latitude'],
                                                     model_params['longitude'],

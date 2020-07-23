@@ -144,8 +144,8 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
-        if verbose: print("----------\nBayes Data: {}".format(bayes_data))
-        if verbose: print("-----------\nTable of Samples: {}".format(self.samples))
+        if verbose: print("----------\nBayes Data: "); print(bayes_data)
+        if verbose: print("-----------\nTable of Samples:"); print(self.samples)
 
     def resume_chain(self,output_dir,verbose=False):
         """Reads DataFrames from the .csv files housing the samples, model info,
@@ -194,7 +194,7 @@ class BaseScenario:
             self.bayes_data.iloc[n:].to_csv(output_dir+"/bayes_data.csv",mode='a+',header=False)
             self.debug.iloc[n:].to_csv(output_dir+"/debug.csv",mode='a+',header=False)
 
-    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False):
+    def sample(self,nsamples,output_dir=None,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -206,7 +206,7 @@ class BaseScenario:
             The name of the output directory to save the sample data.
         save_freq : int
             The integer that sets how frequently the sample data will be saved and written to a file.
-            Default is 1. This also represents the number of rows to appened when 
+            Default is 10. This also represents the number of rows to appened when 
             this function calls the save_data function.
         verbose : bool
             If true, prints gague data for the loglikelihood of the forward model. Default is false.  
