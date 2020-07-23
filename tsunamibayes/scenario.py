@@ -144,7 +144,7 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
         if verbose: print("----------\nBayes Data: "); print(bayes_data)
-        if verbose: print("-----------\nTable of Samples:"); print(self.samples.iloc[:,:6])
+        if verbose: print("-----------\nTable of Samples:"); print(self.samples.iloc[:,:3])
 
     def resume_chain(self,output_dir,verbose=False):
         """Reads DataFrames from the .csv files housing the samples, model info,
@@ -305,7 +305,9 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
-            if verbose : print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,[0,1,38,39]])
+            if verbose : 
+                print("Location and Magnitude Data for the chain\n--------------"); print(self.debug.iloc[:,[:2]])
+                print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,[38:]])
 
             if not j%save_freq and (output_dir is not None):
                 if verbose: print("Saving data for this sample...(Save frequency is every {}th sample)".format(save_freq))
