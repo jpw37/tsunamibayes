@@ -39,7 +39,7 @@ class BandaPrior(BasePrior):
         
         Parameters
         ----------
-        sample : pandas Series of floats FIXME: or dictionary
+        sample : dict -or- pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
             'delta_logw', and 'depth_offset' with their associated float values. 
@@ -86,9 +86,6 @@ class BandaPrior(BasePrior):
                                             "delta_logl",
                                             "delta_logw",
                                             "depth_offset"])
-        """FIXME:"""
-        print("-------------------\nComputing random variates for the prior dist.\nVariates:")
-        print(random_variates); print(type(random_variates))
         return random_variates
 
 class LatLonPrior(BasePrior):
@@ -113,8 +110,7 @@ class LatLonPrior(BasePrior):
         
         Parameters
         ----------
-        FIXME: THIS IS ACTUALLY A DICTIONARY 1st iteration, pandas 2nd iteration
-        sample : pandas Series of floats
+        sample : dict -or- pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
             'delta_logw', and 'depth_offset' with their associated float values.
