@@ -187,8 +187,10 @@ class GeoClawForwardModel(BaseForwardModel):
         max_heights[max_heights < 1e-15] = -9999
         max_heights[np.abs(max_heights) > 1e15] = -9999
         if verbose : 
-            print("The wave never reached the gauge in the following location(s)...")
-            print(np.abs(max_heights) > 1e15)
+            num_times_missed = 0
+            for i in [np.abs(max_heights) > 1e15] :
+                if i == True : num_times_missed +=1
+            print("The wave never reached the gauge in {} location(s)...".format(num_times_missed))
 
 
         bath_depth[max_heights == 0] = 0
