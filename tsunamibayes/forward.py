@@ -42,7 +42,6 @@ class CompositeForwardModel(BaseForwardModel):
             A list of GeoClawForwardModel or TestForwardModel objects that each 
             contain their own respective gauges data member.
         """
-        print("FLAG: init for forward.py, input has {} data type".format(type(submodels)))
         self.submodels = submodels
         self.obstypes = [obstype for submodel in submodels
                          for obstype in submodel.obstypes]
@@ -69,7 +68,6 @@ class CompositeForwardModel(BaseForwardModel):
         all_model_output : pandas Series
             The combined/concatenated series containing the model's output for all the submodels.
         """
-        print("FLAG run in forward.py, input model_params is {}".format(type()))
         model_output = list()
         for submodel in submodels:
             model_output.append(submodel.run(model_params,verbose))
@@ -233,7 +231,7 @@ class GeoClawForwardModel(BaseForwardModel):
             that model output is when compared to the actual observation data at each gauge.
         """
         llh = 0
-        if verbose: print("Gauge Log\n---------")
+        if verbose: print("Gauge Log\n---------{Location, model output, loglikelihood}\n------------")
         for gauge in self.gauges:
             if verbose: print(gauge.name)
             if 'arrival' in gauge.obstypes:

@@ -96,7 +96,6 @@ class BaseScenario:
             missing_kwargs = list(set(self.sample_cols)-set(kwargs.keys()))
 
             if len(missing_kwargs) == 0:
-                if verbose : print("Using manual method for the initial sample.")
                 u0 = kwargs
 
             else:
@@ -115,7 +114,7 @@ class BaseScenario:
         # save first sample
         self.samples.loc[0] = u0
 
-        if verbose:
+        if verbose :
             print("\n----------\nInitializing chain with initial sample:")
             print(self.samples.loc[0])
 
@@ -145,7 +144,7 @@ class BaseScenario:
         self.bayes_data.loc[0] = bayes_data
 
         if verbose: print("----------\nBayes Data: "); print(bayes_data)
-        if verbose: print("-----------\nTable of Samples:"); print(self.samples)
+        if verbose: print("-----------\nTable of Samples:"); print(self.samples.iloc[:,:6])
 
     def resume_chain(self,output_dir,verbose=False):
         """Reads DataFrames from the .csv files housing the samples, model info,
@@ -306,7 +305,7 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
-            if verbose : print("Total debugging information\n--------------"); print(self.debug)
+            if verbose : print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,[0,1,2,38,39,40]])
 
             if not j%save_freq and (output_dir is not None):
                 if verbose: print("Saving data for this sample...(Save frequency is every {}th sample)".format(save_freq))
