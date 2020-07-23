@@ -307,7 +307,8 @@ class BaseScenario:
 
             if verbose : 
                 print("Location and Magnitude Data for the chain\n--------------"); print(self.debug.iloc[:,:3])
-                print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,37:])
+                print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,38:])
+                print("Samples Data within the chain\n--------------"); print(self.samples)
 
             if not j%save_freq and (output_dir is not None):
                 if verbose: print("Saving data for this sample...(Save frequency is every {}th sample)".format(save_freq))
