@@ -242,6 +242,7 @@ class BaseScenario:
             if prior_logpdf == np.NINF:
                 # set acceptance probablity to 0
                 alpha = 0
+                if verbose : print("The logpdf is -infinity, thus we bypass the forward model.")
 
                 # model_params, model_output and log-likelihood are set to nan values
                 model_params = self.model_params.iloc[0].copy()
