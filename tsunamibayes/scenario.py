@@ -305,7 +305,7 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
-            if verbose : print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,[0,1,2,38,39,40]])
+            if verbose : print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,[0,1,38,39]])
 
             if not j%save_freq and (output_dir is not None):
                 if verbose: print("Saving data for this sample...(Save frequency is every {}th sample)".format(save_freq))

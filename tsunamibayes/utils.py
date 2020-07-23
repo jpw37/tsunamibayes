@@ -54,7 +54,6 @@ def haversine(lat1, lon1, lat2, lon2):
         The computed distance (in meters) between the given point(s). 
         Returns object of the same dimension as the lat/lon parameters.
     """
-    print("FLAG haversine in utils.py\nInput:"), print(type(lat1)),print(type(lon2))
     phi1,phi2,lam1,lam2 = np.deg2rad(lat1),np.deg2rad(lat2),np.deg2rad(lon1),np.deg2rad(lon2)
     term = np.sin(.5*(phi2-phi1))**2+np.cos(phi1)*np.cos(phi2)*np.sin(.5*(lam2-lam1))**2
     return 2*R*np.arcsin(np.sqrt(term))
