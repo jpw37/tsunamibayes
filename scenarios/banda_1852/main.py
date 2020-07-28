@@ -102,21 +102,21 @@ if __name__ == "__main__":
     # build scenario
     scenario = setup(config)
 
-    u0 = {key:val for key,val in config.init.items()}
-    delta = config.delta[delta]
-    scenario.gen_custom_data(u0,delta)
+    # u0 = {key:val for key,val in config.init.items()}
+    # delta = config.delta[delta]
+    # scenario.gen_custom_data(u0,delta)
 
-    # # resume in-progress chain
-    # if args.resume:
-    #     if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
-    #     scenario.resume_chain(args.output_dir)
-    # # initialize new chain
-    # else: 
-    #     if config.init['method'] == 'manual':
-    #         u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
-    #         scenario.init_chain(u0,verbose=args.verbose)
-    #     elif config.init['method'] == 'prior_rvs':
-    #         scenario.init_chain(method='prior_rvs',verbose=args.verbose)
+    # resume in-progress chain
+    if args.resume:
+        if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
+        scenario.resume_chain(args.output_dir)
+    # initialize new chain
+    else: 
+        if config.init['method'] == 'manual':
+            u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
+            scenario.init_chain(u0,verbose=args.verbose)
+        elif config.init['method'] == 'prior_rvs':
+            scenario.init_chain(method='prior_rvs',verbose=args.verbose)
     
-    # scenario.sample(args.n_samples,output_dir=args.output_dir,
-    #                 save_freq=args.save_freq,verbose=args.verbose)
+    scenario.sample(args.n_samples,output_dir=args.output_dir,
+                    save_freq=args.save_freq,verbose=args.verbose)

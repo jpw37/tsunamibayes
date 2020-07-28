@@ -43,7 +43,8 @@ class BandaScenario(BaseScenario):
             to produce proposal values for lat, long, mag, etc. 
         """
         proposal = sample.copy()
-        proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
+        proposal['magnitude'] += 0.008080808080807245
+        # proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
         return proposal
 
     def proposal_logpdf(self,u,v):
