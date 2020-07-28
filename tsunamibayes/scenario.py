@@ -326,7 +326,7 @@ class BaseScenario:
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
 
             # accept/reject
-            accepted = (np.random.rand() < alpha)
+            accepted = True #(np.random.rand() < alpha)
             if accepted:
                 if verbose: print("Proposal accepted",flush=True)
                 self.samples.loc[i] = proposal
