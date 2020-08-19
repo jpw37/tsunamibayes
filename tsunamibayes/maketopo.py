@@ -43,7 +43,7 @@ def make_fault_dtopo(subfault_params,bounds,verbose=False):
 
     fault = dtopotools.Fault()
     fault.subfaults = subfaults
-    if verbose: print(fault.subfaults)
+    # if verbose: print("Fault subfaults"); print(subfaults) -> This just outputs a lot of object pointers...
     if verbose: print("Mw = ",fault.Mw())
     if verbose: print("Mo = ",fault.Mo())
 
@@ -59,6 +59,7 @@ def make_fault_dtopo(subfault_params,bounds,verbose=False):
     lon = np.linspace(lon_min, lon_max, n)
     lat = np.linspace(lat_min, lat_max, m)
 
+    if verbose : print("Creating dtopography from subfaults.")
     fault.create_dtopography(lon,lat,times,verbose=verbose)
     return fault
 
@@ -78,5 +79,5 @@ def write_dtopo(subfault_params,bounds,dtopo_path,verbose=False):
     verbose : bool
         Flag for verbose output, optional. Default is False.
     """
-    fault = make_fault_dtopo(subfault_params,bounds,verbose=False)
+    fault = make_fault_dtopo(subfault_params,bounds,verbose=verbose)
     fault.dtopo.write(dtopo_path)

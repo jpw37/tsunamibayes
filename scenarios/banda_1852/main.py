@@ -6,7 +6,7 @@ from prior import LatLonPrior, BandaPrior
 from gauges import build_gauges
 from scenario import BandaScenario
 
-def setup(config):
+def setup(config,verbose=False):
     """Extracts the data from the config object to create the BandaFault object, 
     and then declares the scenario's initial prior, forward model, and covariance 
     in order to create the BandaScenario. 
@@ -16,6 +16,8 @@ def setup(config):
     config : Config object
         The config object that contains the default scenario data to use for the sampling.
         Essentially, this sets all the initial conditions for the bounds, prior, fault, etc.
+    verbose : bool
+        Flag for verbose output, optional. Default is False.
     
     Returns
     -------
@@ -24,6 +26,7 @@ def setup(config):
     # Banda Arc fault object
     arrays = np.load(config.fault['grid_data_path'])
     fault = tb.GridFault(bounds=config.model_bounds,**arrays)
+    if verbose : print("----------\nCreating Banda-Arc fault object with bounds:"); print(config.model_bounds)
 
     # Priors
     # latitude/longitude
@@ -100,12 +103,13 @@ if __name__ == "__main__":
     os.system("cp {} Makefile".format(makefile_path))
 
     # build scenario
-    scenario = setup(config)
+    if args.verbose: print("Building Scenario")
+    scenario = setup(config, verbose=args.verbose)
 
     # resume in-progress chain
     if args.resume:
         if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
-        scenario.resume_chain(args.output_dir)
+        scenario.resume_chain(args.output_dir,verbose=args.verbose)
     
     # initialize new chain
     else: 

@@ -40,7 +40,7 @@ def compute_dtopos(fault,model_params,verbose=False):
                                                row['depth_offset'],
                                                row['rake'])
        
-        if verbose: print(idx,flush=True)
+        if verbose: print("Index of model parameters: "), print(idx,flush=True)
         clawfault = make_fault_dtopo(subfault_params,fault.bounds)
         dtopo = clawfault.dtopo.dZ[0].copy()
         if idx == 0:

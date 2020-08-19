@@ -62,6 +62,8 @@ class BaseScenario:
         method : str, optional
             String indicating method for choosing a random initial sample. Only
             'prior_rvs' available by default. Ignored if `u0` is given.
+        verbose : bool
+            Flag for verbose output, optional. Default is False.
         **kwargs
             Keyword arguments specifying initial sample parameter values. All
             keyword arguments must be in self.sample_cols. If `method` is given,
@@ -83,6 +85,7 @@ class BaseScenario:
                 raise ValueError("u0 must have index: {}".format(self.sample_cols))
 
         elif method == 'prior_rvs':
+            if verbose : print("Using random variates for the initial sample.")
             u0 = self.prior.rvs()
             u0 = dict(zip(self.sample_cols,u0))
 
@@ -111,7 +114,7 @@ class BaseScenario:
         # save first sample
         self.samples.loc[0] = u0
 
-        if verbose:
+        if verbose :
             print("\n----------\nInitializing chain with initial sample:")
             print(self.samples.loc[0])
 
@@ -127,11 +130,12 @@ class BaseScenario:
         if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
+        if verbose : print("----------\nModel parameters for the forward model:"); print(model_params)
 
         model_output = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
 
-        if verbose: print("Evaluating log-likelihood:")
+        if verbose: print("Evaluating log-likelihood for each gauge location:\n------------")
         llh = self.forward_model.llh(model_output,verbose)
         if verbose: print("Total llh = {:.3E}".format(llh))
 
@@ -139,7 +143,10 @@ class BaseScenario:
         bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
-    def resume_chain(self,output_dir):
+        if verbose: print("----------\nBayes Data: "); print(bayes_data)
+        if verbose: print("-----------\nTable of Samples:"); print(self.samples.iloc[:,:3])
+
+    def resume_chain(self,output_dir,verbose=False):
         """Reads DataFrames from the .csv files housing the samples, model info,
         bayes data, and debugging information that have already been stored before
         the program was paused.
@@ -149,12 +156,15 @@ class BaseScenario:
         output_dir : string
             The name of the output directory from which the function pulls
             data to resume.
+        verbose : bool
+            Flag for verbose output, optional. Default is False.
         """
         self.samples = pd.read_csv(output_dir+"/samples.csv",index_col=0).reset_index(drop=True)
         self.model_params = pd.read_csv(output_dir+"/model_params.csv",index_col=0).reset_index(drop=True)
         self.model_output = pd.read_csv(output_dir+"/model_output.csv",index_col=0).reset_index(drop=True)
         self.bayes_data = pd.read_csv(output_dir+"/bayes_data.csv",index_col=0).reset_index(drop=True)
         self.debug = pd.read_csv(output_dir+"/debug.csv",index_col=0).reset_index(drop=True)
+        if verbose : print("Resuming chain from {} previous samples.".format(self.samples['latitude'].size))
 
     def save_data(self,output_dir,append_rows=None):
         """Writes the DataFrames for the samples, model parameters & ouput,
@@ -183,7 +193,7 @@ class BaseScenario:
             self.bayes_data.iloc[n:].to_csv(output_dir+"/bayes_data.csv",mode='a+',header=False)
             self.debug.iloc[n:].to_csv(output_dir+"/debug.csv",mode='a+',header=False)
 
-    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False):
+    def sample(self,nsamples,output_dir=None,save_freq=10,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -231,6 +241,7 @@ class BaseScenario:
             if prior_logpdf == np.NINF:
                 # set acceptance probablity to 0
                 alpha = 0
+                if verbose : print("The logpdf is -infinity, thus we bypass the forward model.")
 
                 # model_params, model_output and log-likelihood are set to nan values
                 model_params = self.model_params.iloc[0].copy()
@@ -262,7 +273,7 @@ class BaseScenario:
                             self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
 
-            if verbose: print("alpha = {:.3E}".format(alpha))
+            if verbose: print("The acceptance probablity, alpha = {:.3E}".format(alpha))
 
             # prior, likelihood, and posterior logpdf values
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
@@ -270,13 +281,13 @@ class BaseScenario:
             # accept/reject
             accepted = (np.random.rand() < alpha)
             if accepted:
-                if verbose: print("Proposal accepted",flush=True)
+                if verbose: print("***Proposal accepted***",flush=True)
                 self.samples.loc[i] = proposal
                 self.model_params.loc[i] = model_params
                 self.model_output.loc[i] = model_output
                 self.bayes_data.loc[i] = bayes_data
             else:
-                if verbose: print("Proposal rejected",flush=True)
+                if verbose: print("***Proposal rejected***",flush=True)
                 self.samples.loc[i] = self.samples.loc[i-1]
                 self.model_params.loc[i] = self.model_params.loc[i-1]
                 self.model_output.loc[i] = self.model_output.loc[i-1]
@@ -294,15 +305,19 @@ class BaseScenario:
                                                      metro_hastings_data)
             self.debug.loc[i-1,'acceptance_rate'] = self.debug["accepted"].mean()
 
+            if verbose : 
+                print("Acceptance Data for the chain\n--------------"); print(self.debug.iloc[:,38:])
+                print("Samples location/magnitude Data within the chain\n--------------"); print(self.samples.iloc[:,:3])
+
             if not j%save_freq and (output_dir is not None):
-                if verbose: print("Saving data...")
+                if verbose: print("Saving data for this sample...(Save frequency is every {}th sample)".format(save_freq))
                 self.save_data(output_dir,append_rows=save_freq)
 
             if verbose: print("Iteration elapsed time: {}".format(timedelta(seconds=time.time()-start)))
             j += 1
 
         if output_dir is not None: self.save_data(output_dir)
-        if verbose and (output_dir is not None): print("Saving data...")
+        if verbose and (output_dir is not None): print("Saving data..."); print("in the file: {}".format(output_dir))
 
         total_time = time.time()-chain_start
         if verbose: print("Chain complete. total time: {}, time per sample: {}\

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from tsunamibayes import BasePrior
 from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 
@@ -38,7 +39,7 @@ class BandaPrior(BasePrior):
         
         Parameters
         ----------
-        sample : pandas Series of floats
+        sample : dict -or- pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
             'delta_logw', and 'depth_offset' with their associated float values. 
@@ -79,12 +80,13 @@ class BandaPrior(BasePrior):
         delta_logw = self.delta_logw.rvs()
         depth_offset = self.depth_offset.rvs()
         params = np.array(latlon+[mag,delta_logl,delta_logw,depth_offset])
-        return pd.Series(params,["latitude",
-                                 "longitude",
-                                 "magnitude",
-                                 "delta_logl",
-                                 "delta_logw",
-                                 "depth_offset"])
+        random_variates = pd.Series(params,["latitude",
+                                            "longitude",
+                                            "magnitude",
+                                            "delta_logl",
+                                            "delta_logw",
+                                            "depth_offset"])
+        return random_variates
 
 class LatLonPrior(BasePrior):
     def __init__(self,fault,depth_dist):
@@ -108,7 +110,7 @@ class LatLonPrior(BasePrior):
         
         Parameters
         ----------
-        sample : pandas Series of floats
+        sample : dict -or- pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
             'delta_logw', and 'depth_offset' with their associated float values.
@@ -184,4 +186,5 @@ class LatLonPrior(BasePrior):
         d = self.depth_dist.rvs()
         I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
         idx = np.random.randint(len(I))
-        return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
+        rvs_lat_lon = [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
+        return rvs_lat_lon

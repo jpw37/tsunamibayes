@@ -78,9 +78,9 @@ class CompositeForwardModel(BaseForwardModel):
         
         Parameters
         ----------
-        model_params : dict
-            The dictionary containing the sample's parameters and  whose keys are 
-            the okada parameters, and whose associated values are floats. 
+        model_output : pandas Series
+            A pandas series whose axes labels are the cominations of the scenario's gauges 
+            names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
         verbose : bool
             Flag for verbose output, optional. Default is False.
 
@@ -159,6 +159,7 @@ class GeoClawForwardModel(BaseForwardModel):
                                                     model_params['slip'],
                                                     model_params['depth_offset'],
                                                     model_params['rake'])
+        if verbose : print("Parameters of the subfaults when running the forward model : "); print(subfault_params)
 
         # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
@@ -170,6 +171,7 @@ class GeoClawForwardModel(BaseForwardModel):
         os.system('make .output')
 
         # load fgmax and bathymetry data
+        if verbose : print("Loading fgmax and bathymetry data from files {} and {}".format(self.valuemax_path,self.aux1_path))
         fgmax_data = np.loadtxt(self.valuemax_path)
         bath_data  = np.loadtxt(self.aux1_path)
 
@@ -183,6 +185,10 @@ class GeoClawForwardModel(BaseForwardModel):
         # these are locations where the wave never reached the gauge...
         max_heights[max_heights < 1e-15] = -9999
         max_heights[np.abs(max_heights) > 1e15] = -9999
+        if verbose : 
+            num_times_missed = sum(np.abs(max_heights) > 1e15)
+            print("The wave never reached the gauge in {} location(s)...".format(num_times_missed))
+
 
         bath_depth[max_heights == 0] = 0
         wave_heights = max_heights + bath_depth
@@ -224,7 +230,7 @@ class GeoClawForwardModel(BaseForwardModel):
             that model output is when compared to the actual observation data at each gauge.
         """
         llh = 0
-        if verbose: print("Gauge Log\n---------")
+        if verbose: print("Gauge Log\n{Location, model output, loglikelihood}\n------------")
         for gauge in self.gauges:
             if verbose: print(gauge.name)
             if 'arrival' in gauge.obstypes:
