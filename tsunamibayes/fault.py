@@ -46,7 +46,7 @@ class BaseFault:
             Width of Okada rectangle (meters)
         slip : float
             The slip of the fault (meters). Total displacement of fault.
-        depth_offset : float 
+        depth_offset : float
             Offset for depth (meters), Optional. Defaults to 0.
         rake : float
             Rake parameter (degrees), Optional. Defaults to 90.
@@ -133,7 +133,7 @@ class BaseFault:
 
     def subfault_split2(self,lat,lon,length,width,slip,depth_offset=0,rake=90,m=11,n=3,rake_type='uniform',slip_dist='uniform'):
         """Splits a given Okada rectangle into a collection of subfaults fit
-        to the geometry of the fault. 
+        to the geometry of the fault.
         Takes into account the type of rake and slip distrubution present in the fault data.
 
         Parameters
@@ -252,8 +252,8 @@ class GridFault(BaseFault):
     """A subclass that inherits from BaseFault.  """
     def __init__(self,lat,lon,depth,dip,strike,bounds):
         """Initializes all the correct variables for the GridFault subclass.
-        Creates interpolations for depth, dip, and strike 
-        which will be used later to determine values at specific points. 
+        Creates interpolations for depth, dip, and strike
+        which will be used later to determine values at specific points.
 
         Parameters
         ----------
@@ -292,7 +292,7 @@ class GridFault(BaseFault):
         Parameters
         ----------
         depth_file : text file of floats
-            The file containing the depth (in meters) readings along the fault. 
+            The file containing the depth (in meters) readings along the fault.
         dip_file : text file of floats
             The file containing the angle measurements of dip all along the fault (degrees).
         strike_file : text file of floats
@@ -300,7 +300,7 @@ class GridFault(BaseFault):
         bounds : dict
             The dictionary of the upper and lower limits for latitude/longitude.
             Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
-        
+
         Returns
         -------
         gridfault : Gridfault
@@ -311,15 +311,15 @@ class GridFault(BaseFault):
 
     def depth_map(self,lat,lon):
         """Interpolates the depth from a specified geographic point.
-        
+
         Parameters
         ----------
         lat : float, array_like of floats
             The array of latitude values along the fault, or can be single-valued float. (degrees)
-        
+
         lon : float, array_like of floats
             The array of longitude values along the fault, or can be single-valued float. (degrees)
-        
+
         Returns
         -------
         arr : ndarray of floats
@@ -336,15 +336,15 @@ class GridFault(BaseFault):
 
     def dip_map(self,lat,lon):
         """Interpolates the dip from a specified geographic point.
-        
+
         Parameters
         ----------
         lat : float, array_like of floats
             The array of latitude values along the fault, or can be single-coordinate float. (degrees)
-        
+
         lon : float, array_like of floats
             The array of longitude values along the fault, or can be single-coordinate float. (degrees)
-        
+
         Returns
         -------
         arr : ndarray of floats
@@ -361,15 +361,15 @@ class GridFault(BaseFault):
 
     def strike_map(self,lat,lon):
         """Interpolates the strike from a specified geographic point.
-        
+
         Parameters
         ----------
         lat : float, array_like of floats
             The array of latitude values along the fault, or can be single-coordinate float. (degrees)
-        
+
         lon : float, array_like of floats
             The array of longitude values along the fault, or can be single-coordinate float. (degrees)
-        
+
         Returns
         -------
         arr : ndarray of floats
@@ -387,24 +387,24 @@ class GridFault(BaseFault):
 def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     """Loads the depth, dip, and strike data for the fault and returns a dictionary of arrays
     that contain the 'slices' of this data between a specified set of latitude and longitude bounds.
-    
+
     Parameters
     ----------
     depth_file : text file of floats
-        The file containing the depth (in meters) readings along the fault. 
+        The file containing the depth (in meters) readings along the fault.
     dip_file : text file of floats
         The file containing the angle measurements of dip all along the fault (degrees).
     strike_file : text file of floats
         The file containing the strike orientations in radians along the fault. (degrees)
     bounds : dict
             The dictionary of the upper and lower limits for latitude/longitude.
-            Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values. 
+            Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
 
     Returns
     -------
     arrays : dict
-        A dictionary containing with keys: lat, lon, depth, dip, strike and their associated 
-        ndarrays of (float) values within the upper and lower geographical bounds of the fault. 
+        A dictionary containing with keys: lat, lon, depth, dip, strike and their associated
+        ndarrays of (float) values within the upper and lower geographical bounds of the fault.
     """
     # load depth file, extract lat/lon grid, make latitude array in increasing order
     depth = np.loadtxt(depth_file,delimiter=',')
@@ -434,18 +434,18 @@ def load_slab2_data(depth_file,dip_file,strike_file,bounds):
 
 def save_slab2_npz(depth_file,dip_file,strike_file,bounds,save_path):
     """Saves the dictionary of arrays for lat, lon, depth, dip, strike to a .npz file.
-    
+
     Parameters
     ----------
     depth_file : text file of floats
-        The file containing the depth (in meters) readings along the fault. 
+        The file containing the depth (in meters) readings along the fault.
     dip_file : text file of floats
         The file containing the angle measurements of dip all along the fault (degrees).
     strike_file : text file of floats
         The file containing the strike orientations in radians along the fault. (degrees)
     bounds : dict
         The dictionary of the upper and lower limits for latitude/longitude.
-        Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values. 
+        Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
     save_path : string or file
         The location or path where the data is to be saved.
     """
@@ -498,13 +498,13 @@ class ReferenceCurveFault(BaseFault):
             The array of 3 x-coordinates (floats) that the curve must pass through.
         y : (3,) ndarray
             The array of 3 y-coordinates (floats) that the curve must pass through.
-        
+
         Returns
         -------
         curve : (3,) ndarray
-            The array of floats who values are the coefficients [a,b,c] for the 
+            The array of floats who values are the coefficients [a,b,c] for the
             quadratic equation ax^2+bx+c that passes through the three points
-            specified in the x and y ndarrays. 
+            specified in the x and y ndarrays.
         """
         A = np.ones((3,3))
         A[:,0] = x**2
@@ -525,7 +525,7 @@ class ReferenceCurveFault(BaseFault):
         surf_dist : float
             Distance from fault reference points to the fault's intersection with
             the Earth's surface
-        
+
         Returns
         -------
         depth_curve : (function)
@@ -543,15 +543,15 @@ class ReferenceCurveFault(BaseFault):
     @staticmethod
     def circmean(angles,weights):
         """Computes the weighted mean of angles.
-        
+
         Parameters
         ----------
         angles : array_like
             The ndarray of angles (in degrees) for which the mean is to be computed.
         weights : array_like
-            The ndarray of weights (floats) associated with the given angles, and 
+            The ndarray of weights (floats) associated with the given angles, and
             hence must have the same dimsion as 'angles'.
-        
+
         Returns
         -------
         mean : float
@@ -585,7 +585,7 @@ class ReferenceCurveFault(BaseFault):
         Returns
         -------
         1 -or- -1 : int
-            1 if dipward of the fault, -1 if antidipward.
+            1 if down-dip of the fault, -1 if up-dip.
         """
         if 0 <= (strike+45)%360 < 90:
             return np.sign((lon-fault_lon+180)%360-180)
@@ -599,25 +599,25 @@ class ReferenceCurveFault(BaseFault):
     def distance(self,lat,lon,retclose=False):
         """Computes the distance from a given lat/lon coordinate to the fault.
         Optionally return the index of the closest point.
-        
+
         Parameters
         ----------
         lat : float
             The latitude coordinate (degrees) near the fault for which the distance
-            is to be calculated. 
+            is to be calculated.
         lon : float
             The latitude coordinate (degrees) near the fault for which the distance
-            is to be calculated. 
+            is to be calculated.
         retclose : bool
             The boolean flag that indicates whether or not to return the index of the
             closest point. Default is false.
-            
+
         Returns
         -------
-        min_distance : float 
+        min_distance : float
             The computed minimum distance (in meters) from the point to the fault.
-        index : int 
-            (Optionally) returns the index of the closest point on the fault. 
+        index : int
+            (Optionally) returns the index of the closest point on the fault.
         """
         distances = Fault.haversine(self.R,lat,lon,self.latpts,self.lonpts)
         if retclose:
@@ -627,12 +627,12 @@ class ReferenceCurveFault(BaseFault):
 
     def strike_from_lat_lon(self,lat,lon):
         """Computes the weighted mean strike angle.
-        
+
         Parameters
         ----------
         lat : float
             The latitude coordinate (degrees) near the fault.
-            is to be calculated. 
+            is to be calculated.
         lon : float
             The latitude coordinate (degrees) near the fault.
 
@@ -648,18 +648,18 @@ class ReferenceCurveFault(BaseFault):
 
     def distance_strike(self,lat,lon):
         """Computes both the distance from the fault, and the weighted mean strike angle.
-        
+
         Parameters
         ----------
         lat : float
             The latitude coordinate (degrees) near the fault.
-            is to be calculated. 
+            is to be calculated.
         lon : float
             The latitude coordinate (degrees) near the fault.
 
         Returns
         -------
-        min_distance : float 
+        min_distance : float
             The computed minimum distance (in meters) from the point to the fault.
         mean : float
             The computed weighted mean for the strike angles. (degrees)
@@ -676,14 +676,14 @@ class ReferenceCurveFault(BaseFault):
         ----------
         lat : float
             The latitude coordinate (degrees) near the fault.
-            is to be calculated. 
+            is to be calculated.
         lon : float
             The latitude coordinate (degrees) near the fault.
         retside : bool
-            A boolean flag that determines whether the function also returns 
-            the side of the given point (dipward or antidipward) when set to True. 
+            A boolean flag that determines whether the function also returns
+            the side of the given point (dipward or antidipward) when set to True.
             Default is False.
-        
+
         Returns
         -------
         depth : float
@@ -711,7 +711,7 @@ class ReferenceCurveFault(BaseFault):
         ----------
         lat : float
             The latitude coordinate (degrees) near the fault.
-            is to be calculated. 
+            is to be calculated.
         lon : float
             The latitude coordinate (degrees) near the fault.
 
@@ -737,16 +737,16 @@ class ReferenceCurveFault(BaseFault):
         ----------
         lat : float
             The latitude coordinate (degrees) near the fault.
-            is to be calculated. 
+            is to be calculated.
         lon : float
             The latitude coordinate (degrees) near the fault.
-        
+
         Returns
         -------
         depth : float
             The interpolated depth (in meters) for the given coordinate.
         dip : float
-            The interpolated dip (in degrees) for the given coordinate. 
+            The interpolated dip (in degrees) for the given coordinate.
         """
         distance,idx = self.distance(lat,lon,retclose=True)
 
