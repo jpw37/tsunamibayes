@@ -29,7 +29,8 @@ class BaseFault:
     def dip_map(self,lat,lon):
         raise NotImplementedError("dip_map must be implemented in classes "
                                   "inheriting from BaseFault")
-
+    
+    #Splits the fault because of the curvature into 11 length pieces and 3 width pieces. 
     def subfault_split(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
@@ -261,13 +262,13 @@ class GridFault(BaseFault):
             An ndarray of (floats) containing the latitude coordinates along the fault line. (degrees)
         lon : array_like of floats
             An ndarray of (floats) containinng the longitude coordinates along the fault line. (degrees)
-        depth : array_like of floats
+        depth : array_like of floats FIXME: Should be a single value
             An ndarray of (floats) containinng data for the depth along the fault line. (meters)
-        dip : array_like of floats
+        dip : array_like of floats  FIXME: Should be a single value 
             An ndarray of (floats) containinng data for the dip along the fault line. (degrees)
             The information for the angles at which the plane dips downward from the top edge
             (a positive angle between 0 and 90)
-        strike : array_like of floats
+        strike : array_like of floats FIXME: Should be a single value
             An ndarray of (floats) containinng data for the strike orientation along the fault. (degrees)
         bounds : dict
             The dictionary of the upper and lower limits for latitude/longitude.

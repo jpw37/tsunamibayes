@@ -93,7 +93,7 @@ if __name__ == "__main__":
         if args.verbose: print("Reading {}".format(args.config_path))
         config.read(args.config_path)
 
-    # write setrun.py file
+    # write setrun.py file. Setrun prepares Geoclaw to run.
     if args.verbose: print("Writing setrun.py")
     write_setrun(args.config_path)
 
