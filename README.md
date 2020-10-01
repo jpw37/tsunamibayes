@@ -10,7 +10,7 @@ tsunamibayes is a Python package for conducting Bayesian inference on tsunami ob
 
 ### How do I get set up? ###
 
-* Summary of set up
+* Installation of the repository can be done via a local python module
 * Configuration
 * Dependencies
 * Database configuration
@@ -25,5 +25,5 @@ tsunamibayes is a Python package for conducting Bayesian inference on tsunami ob
 
 ### Who do I talk to? ###
 
-* Repo owner or admin
+* Jared P. Whitehead, Associate Professor of Mathematics at Brigham Young University
 * Other community or team contact
