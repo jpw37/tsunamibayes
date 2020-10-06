@@ -5,7 +5,8 @@ tsunamibayes is a Python package for conducting Bayesian inference on tsunami ob
 ### What is this repository for? ###
 
 * Quick summary
-* Version
+* First release is located at [![DOI](https://zenodo.org/badge/243090510.svg)](https://zenodo.org/badge/latestdoi/243090510)
+
 * [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
 ### How do I get set up? ###
