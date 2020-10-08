@@ -1,5 +1,6 @@
 import numpy as np
 from .utils import haversine
+from .fault import BaseFault
 
 class MultiFault(BaseFault):
     """A class for data relating to multiple faults. This class should be used
@@ -20,10 +21,7 @@ class MultiFault(BaseFault):
             with associated (float) values.
         """
         super().__init__(bounds)
-        self.num_faults = len(fault_objs)
-        self.faults = []
-        for fault in fault_objs:
-            self.faults.append(fault)
+        self.faults = fault_objs
 
 
     def _find_closest_fault(self, lat, lon):
@@ -34,7 +32,7 @@ class MultiFault(BaseFault):
         length n array containing the indices of each of the closest faults.
         """
         dists_shape = self.num_faults if np.isscalar(lat) else (self.num_faults, len(lat))
-        dists = np.zeros(dists_shape)
+        dists = np.empty(dists_shape)
         for j,fault in enumerate(self.faults):
             if hasattr(fault, 'distance'):
                 dists[j] = fault.distance(lat,lon)
@@ -64,7 +62,7 @@ class MultiFault(BaseFault):
             for j,fault in enumerate(self.faults):
                 idx = np.where(fault_indices == j)[0]
                 depth[idx] = fault.depth_map(lat[idx],lon[idx])
-        return depth
+        return depth.reshape(lat.shape)
 
 
     def strike_map(self,lat,lon):
@@ -76,12 +74,12 @@ class MultiFault(BaseFault):
 
         # Call the depth function on the fault(s).
         if np.isscalar(lat):
-            strike = self.faults[fault_indices].depth_map(lat,lon)
+            strike = self.faults[fault_indices].strike_map(lat,lon)
         else:
             for j,fault in enumerate(self.faults):
                 idx = np.where(fault_indices == j)[0]
-                strike[idx] = fault.depth_map(lat[idx],lon[idx])
-        return strike
+                strike[idx] = fault.strike_map(lat[idx],lon[idx])
+        return strike.reshape(lat.shape)
 
 
     def dip_map(self,lat,lon):
@@ -93,9 +91,9 @@ class MultiFault(BaseFault):
 
         # Call the depth function on the fault(s).
         if np.isscalar(lat):
-            dip = self.faults[fault_indices].depth_map(lat,lon)
+            dip = self.faults[fault_indices].dip_map(lat,lon)
         else:
             for j,fault in enumerate(self.faults):
                 idx = np.where(fault_indices == j)[0]
-                dip[idx] = fault.depth_map(lat[idx],lon[idx])
-        return dip
+                dip[idx] = fault.dip_map(lat[idx],lon[idx])
+        return dip.reshape(lat.shape)
