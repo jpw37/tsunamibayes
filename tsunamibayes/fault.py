@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
-from .utils import displace
+from .utils import displace, haversine
 
 class BaseFault:
     """A class for data relating to the fault"""
@@ -452,10 +452,11 @@ def save_slab2_npz(depth_file,dip_file,strike_file,bounds,save_path):
     arrays = load_slab2_data(depth_file,dip_file,strike_file,bounds)
     np.savez(save_path,**arrays)
 
+
 class ReferenceCurveFault(BaseFault):
     """A class for data relating to the fault"""
     def __init__(self,latpts,lonpts,strikepts,depth_curve,dip_curve,bounds,smoothing=50000):
-        """Initializes all the necessary varialbes for the subclass.
+        """Initializes all the necessary variables for the subclass.
 
         Parameters
         ---------
@@ -596,6 +597,7 @@ class ReferenceCurveFault(BaseFault):
         else:
             return np.sign(lat-fault_lat)
 
+
     def distance(self,lat,lon,retclose=False):
         """Computes the distance from a given lat/lon coordinate to the fault.
         Optionally return the index of the closest point.
@@ -619,11 +621,12 @@ class ReferenceCurveFault(BaseFault):
         index : int
             (Optionally) returns the index of the closest point on the fault.
         """
-        distances = Fault.haversine(self.R,lat,lon,self.latpts,self.lonpts)
+        distances = haversine(lat,lon,self.latpts,self.lonpts)
         if retclose:
             return distances.min(), distances.argmin()
         else:
             return distances.min()
+
 
     def strike_from_lat_lon(self,lat,lon):
         """Computes the weighted mean strike angle.
@@ -641,7 +644,7 @@ class ReferenceCurveFault(BaseFault):
         mean : float
             The computed weighted mean for the strike angles. (degrees)
         """
-        distances = Fault.haversine(self.R,lat,lon,self.latpts,self.lonpts)
+        distances = haversine(lat,lon,self.latpts,self.lonpts)
         weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
         return ReferenceCurveFault.circmean(self.strikepts,weights)%360
@@ -664,7 +667,7 @@ class ReferenceCurveFault(BaseFault):
         mean : float
             The computed weighted mean for the strike angles. (degrees)
         """
-        distances = Fault.haversine(self.R,lat,lon,self.latpts,self.lonpts)
+        distances = haversine(lat,lon,self.latpts,self.lonpts)
         weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
         return distances.min(), ReferenceCurveFault.circmean(self.strikepts,weights)%360
