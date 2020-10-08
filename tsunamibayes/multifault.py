@@ -3,7 +3,8 @@ from .utils import haversine
 
 class MultiFault(BaseFault):
     """A class for data relating to multiple faults. This class should be used
-    when two or more faults want to be examined simultaneously.
+    when two or more faults want to be examined simultaneously (i.e. the fault
+    that originated the earthquake is unknown).
     """
     def __init__(self, fault_objs, bounds):
         """Creates and initializes the MultiFault object with specified lat/lon
