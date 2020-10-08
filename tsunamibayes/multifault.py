@@ -49,15 +49,51 @@ class MultiFault(BaseFault):
 
 
     def depth_map(self,lat,lon):
-        # Find closest fault.
+        """Computes the depth given latitude and longitude coordinates."""
+        depth = np.empty(np.size(lat))
 
-        # Call the depth function on that fault.
-        raise NotImplementedError()
+        # Find closest fault(s).
+        fault_indices = self._find_closest_fault(lat,lon)
+
+        # Call the depth function on the fault(s).
+        if np.isscalar(lat):
+            depth = self.faults[fault_indices].depth_map(lat,lon)
+        else:
+            for j,fault in enumerate(self.faults):
+                idx = np.where(fault_indices == j)[0]
+                depth[idx] = fault.depth_map(lat[idx],lon[idx])
+        return depth
 
 
     def strike_map(self,lat,lon):
-        raise NotImplementedError()
+        """Computes the strike given latitude and longitude coordinates."""
+        strike = np.empty(np.size(lat))
+
+        # Find closest fault(s).
+        fault_indices = self._find_closest_fault(lat,lon)
+
+        # Call the depth function on the fault(s).
+        if np.isscalar(lat):
+            strike = self.faults[fault_indices].depth_map(lat,lon)
+        else:
+            for j,fault in enumerate(self.faults):
+                idx = np.where(fault_indices == j)[0]
+                strike[idx] = fault.depth_map(lat[idx],lon[idx])
+        return strike
 
 
     def dip_map(self,lat,lon):
-        raise NotImplementedError()
+        """Computes the dip given latitude and longitude coordinates."""
+        dip = np.empty(np.size(lat))
+
+        # Find closest fault(s).
+        fault_indices = self._find_closest_fault(lat,lon)
+
+        # Call the depth function on the fault(s).
+        if np.isscalar(lat):
+            dip = self.faults[fault_indices].depth_map(lat,lon)
+        else:
+            for j,fault in enumerate(self.faults):
+                idx = np.where(fault_indices == j)[0]
+                dip[idx] = fault.depth_map(lat[idx],lon[idx])
+        return dip
