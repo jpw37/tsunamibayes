@@ -11,7 +11,8 @@ tsunamibayes is a Python package for conducting Bayesian inference on tsunami ob
 
 ### How do I get set up? ###
 
-* Installation of the repository can be done via a local python module
+* Installation of the repository can be done via a local python module.  Download the package, navigate to the topmost tsunamibayes directory, then on the command line apply:
+>>pip install -e .
 * Configuration
 * Dependencies
 * Database configuration
