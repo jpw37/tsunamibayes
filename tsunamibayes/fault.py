@@ -536,7 +536,7 @@ class ReferenceCurveFault(BaseFault):
             The callable function that accepts one positional arugment (ie. x)
             and returns the quadratic dip curve passing through the 3 specified points.
         """
-        c = Fault.quad_interp(x,y)
+        c = ReferenceCurveFault.quad_interp(x,y)
         depth_curve = lambda x: (c[0]*x**2 + c[1]*x + c[2])*(x > -np.abs(surf_dist))
         dip_curve = lambda x: np.degrees(np.arctan(2*c[0]*x + c[1]))*(x > -np.abs(surf_dist))
         return depth_curve, dip_curve
@@ -628,7 +628,7 @@ class ReferenceCurveFault(BaseFault):
             return distances.min()
 
 
-    def strike_from_lat_lon(self,lat,lon):
+    def strike_map(self,lat,lon):
         """Computes the weighted mean strike angle.
 
         Parameters
@@ -646,33 +646,10 @@ class ReferenceCurveFault(BaseFault):
         """
         distances = haversine(lat,lon,self.latpts,self.lonpts)
         weights = np.exp(-distances/self.smoothing)
-        #weights /= weights.sum()
         return ReferenceCurveFault.circmean(self.strikepts,weights)%360
 
-    def distance_strike(self,lat,lon):
-        """Computes both the distance from the fault, and the weighted mean strike angle.
 
-        Parameters
-        ----------
-        lat : float
-            The latitude coordinate (degrees) near the fault.
-            is to be calculated.
-        lon : float
-            The latitude coordinate (degrees) near the fault.
-
-        Returns
-        -------
-        min_distance : float
-            The computed minimum distance (in meters) from the point to the fault.
-        mean : float
-            The computed weighted mean for the strike angles. (degrees)
-        """
-        distances = haversine(lat,lon,self.latpts,self.lonpts)
-        weights = np.exp(-distances/self.smoothing)
-        #weights /= weights.sum()
-        return distances.min(), ReferenceCurveFault.circmean(self.strikepts,weights)%360
-
-    def depth_from_lat_lon(self,lat,lon,retside=False):
+    def depth_map(self,lat,lon,retside=False):
         """Computes the depth for a given lat-lon coordinate.
 
         Parameters
@@ -704,10 +681,10 @@ class ReferenceCurveFault(BaseFault):
             distance = np.abs(distance)
         depth = self.depth_curve(side*distance)
 
-        if retside: return depth,side
-        else: return depth
+        return ((depth,side) if retside else depth)
 
-    def dip_from_lat_lon(self,lat,lon):
+
+    def dip_map(self,lat,lon):
         """Computes the dip for a given lat-lon coordinate.
 
         Parameters
@@ -732,6 +709,7 @@ class ReferenceCurveFault(BaseFault):
             side = -np.sign(distance)
             distance = np.abs(distance)
         return self.dip_curve(side*distance)
+
 
     def depth_dip(self,lat,lon):
         """Computes both the depth and dip for a given lat-lon coordinate.
@@ -760,3 +738,27 @@ class ReferenceCurveFault(BaseFault):
             side = -np.sign(distance)
             distance = np.abs(distance)
         return self.depth_curve(side*distance),self.dip_curve(side*distance)
+
+
+    def distance_strike(self,lat,lon):
+        """Computes both the distance from the fault, and the weighted mean strike angle.
+
+        Parameters
+        ----------
+        lat : float
+            The latitude coordinate (degrees) near the fault.
+            is to be calculated.
+        lon : float
+            The latitude coordinate (degrees) near the fault.
+
+        Returns
+        -------
+        min_distance : float
+            The computed minimum distance (in meters) from the point to the fault.
+        mean : float
+            The computed weighted mean for the strike angles. (degrees)
+        """
+        distances = haversine(lat,lon,self.latpts,self.lonpts)
+        weights = np.exp(-distances/self.smoothing)
+        #weights /= weights.sum()
+        return distances.min(), ReferenceCurveFault.circmean(self.strikepts,weights)%360
