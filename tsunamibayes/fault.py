@@ -481,7 +481,7 @@ class ReferenceCurveFault(BaseFault):
             The smooting coefficient used later in computing the weighted mean strike angle.
             Default is set to 50000.
         """
-        super.__init__(bounds)
+        super().__init__(bounds)
         self.latpts = latpts
         self.lonpts = lonpts
         self.strikepts = strikepts
