@@ -489,7 +489,7 @@ class ReferenceCurveFault(BaseFault):
         self.dip_curve = dip_curve
         self.smoothing = smoothing
 
-    @staticmethod
+    @staticmethod #Probably obsolete, we shoudn't need this too much...
     def quad_interp(x,y):
         """Computes a quadratic curve for depth passing through three points.
 
