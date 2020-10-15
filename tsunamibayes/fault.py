@@ -605,7 +605,7 @@ class ReferenceCurveFault(BaseFault):
         mask1 = (0 <= (strike+45)%360) & ((strike+45)%360 < 90)
         sides[mask1] = np.sign((lon[mask1]-fault_lon[mask1]+180)%360-180)
 
-        mask2 = (90 <= (strike+45)%360) & ((strike+45)%360) < 180)
+        mask2 = (90 <= (strike+45)%360) & ((strike+45)%360 < 180)
         sides[mask2] = -np.sign(lat[mask2]-fault_lat[mask2])
 
         mask3 = (180 <= (strike+45)%360) & ((strike+45)%360 < 270)
