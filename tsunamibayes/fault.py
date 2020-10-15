@@ -489,7 +489,7 @@ class ReferenceCurveFault(BaseFault):
         self.dip_curve = dip_curve
         self.smoothing = smoothing
 
-    @staticmethod
+    @staticmethod #Probably obsolete, we shoudn't need this too much...
     def quad_interp(x,y):
         """Computes a quadratic curve for depth passing through three points.
 
@@ -621,7 +621,7 @@ class ReferenceCurveFault(BaseFault):
         index : int
             (Optionally) returns the index of the closest point on the fault.
         """
-        distances = haversine(lat,lon,self.latpts,self.lonpts)
+        distances = haversine(lat[:,np.newaxis],lon[:,np.newaxis],self.latpts[np.newaxis,:],self.lonpts[np.newaxis,:])
         if retclose:
             return distances.min(), distances.argmin()
         else:
@@ -762,3 +762,5 @@ class ReferenceCurveFault(BaseFault):
         weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
         return distances.min(), ReferenceCurveFault.circmean(self.strikepts,weights)%360
+
+
