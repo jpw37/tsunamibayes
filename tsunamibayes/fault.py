@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
-from .utils import displace, haversine
+from .utils import displace, haversine, bearing
 
 class BaseFault:
     """A class for data relating to the fault"""
@@ -621,7 +621,12 @@ class ReferenceCurveFault(BaseFault):
         index : int
             (Optionally) returns the index of the closest point on the fault.
         """
-        distances = haversine(lat,lon,self.latpts,self.lonpts)
+        distances = haversine(
+            lat[:,:,np.newaxis],
+            lon[:,:,np.newaxis],
+            self.latpts,
+            self.lonpts
+        )
         if retclose:
             return distances.min(), distances.argmin()
         else:
@@ -672,10 +677,17 @@ class ReferenceCurveFault(BaseFault):
             (Optionally) Returns 1 if the given point is dipward of the fault, -1 if antidipward.
         """
         distance,idx = self.distance(lat,lon,retclose=True)
+        idx = np.unravel_index(idx,(*lat.shape,self.latpts.size))[-1]
 
-        side = ReferenceCurveFault.side(lat,lon,self.latpts[idx],self.lonpts[idx],self.strikepts[idx])
+        side = ReferenceCurveFault.side(
+            lat,
+            lon,
+            self.latpts[idx],
+            self.lonpts[idx],
+            self.strikepts[idx]
+        )
         if idx == 0 or idx == len(self.latpts)-1:
-            bearing = Fault.bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
+            bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
             distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
             side = -np.sign(distance)
             distance = np.abs(distance)
@@ -704,7 +716,7 @@ class ReferenceCurveFault(BaseFault):
 
         side = ReferenceCurveFault.side(lat,lon,self.latpts[idx],self.lonpts[idx],self.strikepts[idx])
         if idx == 0 or idx == len(self.latpts)-1:
-            bearing = Fault.bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
+            bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
             distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
             side = -np.sign(distance)
             distance = np.abs(distance)
@@ -733,7 +745,7 @@ class ReferenceCurveFault(BaseFault):
 
         side = ReferenceCurveFault.side(lat,lon,self.latpts[idx],self.lonpts[idx],self.strikepts[idx])
         if idx == 0 or idx == len(self.latpts)-1:
-            bearing = Fault.bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
+            bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
             distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
             side = -np.sign(distance)
             distance = np.abs(distance)
