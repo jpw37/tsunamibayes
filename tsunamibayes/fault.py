@@ -588,14 +588,33 @@ class ReferenceCurveFault(BaseFault):
         1 -or- -1 : int
             1 if down-dip of the fault, -1 if up-dip.
         """
-        if 0 <= (strike+45)%360 < 90:
-            return np.sign((lon-fault_lon+180)%360-180)
-        elif 90 <= (strike+45)%360 < 180:
-            return -np.sign(lat-fault_lat)
-        elif 180 <= (strike+45)%360 < 270:
-            return -np.sign((lon-fault_lon+180)%360-180)
-        else:
-            return np.sign(lat-fault_lat)
+        # Scalar option.
+        if np.isscalar(strike):
+            if 0 <= (strike+45)%360 < 90:
+                return np.sign((lon-fault_lon+180)%360-180)
+            elif 90 <= (strike+45)%360 < 180:
+                return -np.sign(lat-fault_lat)
+            elif 180 <= (strike+45)%360 < 270:
+                return -np.sign((lon-fault_lon+180)%360-180)
+            else:
+                return np.sign(lat-fault_lat)
+
+        # Vectorized option.
+        sides = np.empty(lat.shape)
+
+        mask1 = (0 <= (strike+45)%360) & ((strike+45)%360 < 90)
+        sides[mask1] = np.sign((lon[mask1]-fault_lon[mask1]+180)%360-180)
+
+        mask2 = (90 <= (strike+45)%360) & ((strike+45)%360) < 180)
+        sides[mask2] = -np.sign(lat[mask2]-fault_lat[mask2])
+
+        mask3 = (180 <= (strike+45)%360) & ((strike+45)%360 < 270)
+        sides[mask3] = -np.sign((lon[mask3]-fault_lon[mask3]+180)%360-180)
+
+        mask4 = ~(mask1 | mask2 | mask3)
+        sides[mask4] = np.sign(lat[mask4]-fault_lat[mask4])
+
+        return sides
 
 
     def distance(self,lat,lon,retclose=False):
@@ -622,15 +641,15 @@ class ReferenceCurveFault(BaseFault):
             (Optionally) returns the index of the closest point on the fault.
         """
         distances = haversine(
-            lat[:,:,np.newaxis],
-            lon[:,:,np.newaxis],
+            lat,
+            lon,
             self.latpts,
             self.lonpts
         )
         if retclose:
-            return distances.min(), distances.argmin()
+            return distances.min(axis=1), distances.argmin(axis=1)
         else:
-            return distances.min()
+            return distances.min(axis=1)
 
 
     def strike_map(self,lat,lon):
@@ -677,7 +696,6 @@ class ReferenceCurveFault(BaseFault):
             (Optionally) Returns 1 if the given point is dipward of the fault, -1 if antidipward.
         """
         distance,idx = self.distance(lat,lon,retclose=True)
-        idx = np.unravel_index(idx,(*lat.shape,self.latpts.size))[-1]
 
         side = ReferenceCurveFault.side(
             lat,
