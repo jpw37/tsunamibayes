@@ -600,6 +600,9 @@ class ReferenceCurveFault(BaseFault):
                 return np.sign(lat-fault_lat)
 
         # Vectorized option.
+        fault_lat = fault_lat.reshape(lat.shape)
+        fault_lon = fault_lon.reshape(lon.shape)
+        strike = strike.reshape(lat.shape)
         sides = np.empty(lat.shape)
 
         mask1 = (0 <= (strike+45)%360) & ((strike+45)%360 < 90)
@@ -704,11 +707,14 @@ class ReferenceCurveFault(BaseFault):
             self.lonpts[idx],
             self.strikepts[idx]
         )
-        if idx == 0 or idx == len(self.latpts)-1:
-            bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
-            distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
-            side = -np.sign(distance)
-            distance = np.abs(distance)
+
+        # Change the distance anywhere idx == 0 or idx == len(self.latpts)-1
+        mask = (idx == 0) | (idx == (len(self.latpts)-1))
+        bear = bearing(lat,lon,self.latpts[idx[mask]],self.lonpts[idx[mask]])
+        distance[idx[mask]] = distance[idx[mask]]*np.sin(np.deg2rad(self.strikepts[idx[mask]]-bear))
+        side[idx[mask]] = -np.sign(distance[idx[mask]])
+        distance[idx[mask]] = np.abs(distance[idx[mask]])
+
         depth = self.depth_curve(side*distance)
 
         return ((depth,side) if retside else depth)
