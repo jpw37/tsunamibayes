@@ -35,23 +35,23 @@ def convert_rectangular(lat, lon, depth=0):
 
 def haversine(lat1, lon1, lat2, lon2):
     """Computes great-circle distance between sets of lat-lon coordinates on a sphere
-    with radius R. 
-    
+    with radius R.
+
     Parameters
     ----------
     lat1 : float -or- array_like of floats
-        The coordinate or ndarray of coordinates associated with the initial latitude. 
+        The coordinate or ndarray of coordinates associated with the initial latitude.
     lon1 : float -or- array_like of floats
         The coordinate or ndarray of coordinates associated with the initial longitude.
     lat2 : float -or- array_like of floats
-        The coordinate or ndarray of coordinates associated with the terminal latitude. 
+        The coordinate or ndarray of coordinates associated with the terminal latitude.
     lon2 : float -or- array_like of floats
-        The coordinate or ndarray of coordinates associated with the terminal latitude. 
+        The coordinate or ndarray of coordinates associated with the terminal latitude.
 
     Returns
     -------
     distance : float -or- ndarray of floats
-        The computed distance (in meters) between the given point(s). 
+        The computed distance (in meters) between the given point(s).
         Returns object of the same dimension as the lat/lon parameters.
     """
     phi1,phi2,lam1,lam2 = np.deg2rad(lat1),np.deg2rad(lat2),np.deg2rad(lon1),np.deg2rad(lon2)
@@ -61,25 +61,28 @@ def haversine(lat1, lon1, lat2, lon2):
 def bearing(lat1, lon1, lat2, lon2):
     """Compute the bearing between two points.
     All of the following parameters must have the same dimension.
-    
+
     Parameters
     ----------
     lat1 : float -or- array_like of floats
-        The coordinate or ndarray of coordinates associated with the initial latitude. 
+        The coordinate or ndarray of coordinates associated with the initial latitude.
     lon1 : float -or- array_like of floats
         The coordinate or ndarray of coordinates associated with the initial longitude.
     lat2 : float -or- array_like of floats
-        The coordinate or ndarray of coordinates associated with the terminal latitude. 
+        The coordinate or ndarray of coordinates associated with the terminal latitude.
     lon1 : float -or- array_like of floats
         The coordinate or ndarray of coordinates associated with the terminal latitude.
-    
+
     Returns
     -------
     bearing : float -or- ndarray of floats
-        The computed bearing (in degrees) between the given point(s). 
+        The computed bearing (in degrees) between the given point(s).
         Returns object of the same dimension as the lat/lon parameters.
     """
-    lat1,lon1,lat2,lon2 = np.deg2rad([lat1,lon1,lat2,lon2])
+    lat1 = np.deg2rad(lat1)
+    lon1 = np.deg2rad(lon1)
+    lat2 = np.deg2rad(lat2)
+    lon2 = np.deg2rad(lon2)
     x = np.cos(lat2)*np.sin(lon2-lon1)
     y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
     return np.degrees(np.arctan2(x,y))%360
@@ -88,11 +91,11 @@ def displace(lat, lon, bearing, distance):
     """Compute the lat-lon coordinates of a point on a sphere after the displacement of a given point
     along a specified bearing and distance. R = radius of the earth.
     All of the following parameters must have the same dimension.
-    
+
     Parameters
     ----------
     lat : float -or- array_like of floats
-        The coordinate or ndarray of coordinates associated with the initial latitude. 
+        The coordinate or ndarray of coordinates associated with the initial latitude.
     lon : float -or- array_like of floats
         The coordinate or ndarray of coordinates associated with the initial longitude.
     bearing : float -or- array_like of floats
@@ -117,18 +120,18 @@ def displace(lat, lon, bearing, distance):
 def calc_length(magnitude, delta_logl):
     """Computes the rupture length of the fault based on an earthquake's moment magnitude
     using a regression formula.
-    
+
     Parameters FIXME: IS this is meters or KM?
     ----------
     magnitude : float
-        The moment magnitude of the earthquake event. 
+        The moment magnitude of the earthquake event.
     delta_logl : float
         An offset factor for the log of the rupture length.
 
     Returns
     -------
     length : float
-        The rupter length in (meters? km?) 
+        The rupter length in (meters? km?)
     """
     a = 0.5233956445903871     # slope
     b = 1.0974498706605313     # intercept
@@ -140,18 +143,18 @@ def calc_length(magnitude, delta_logl):
 def calc_width(magnitude, delta_logw):
     """Computes the rupture width of the fault based on an earthquake's moment magnitude
     using a regression formula.
-    
+
     Parameters FIXME: IS this is meters or KM?
     ----------
     magnitude : float
-        The moment magnitude of the earthquake event. 
+        The moment magnitude of the earthquake event.
     delta_logw : float
         An offset factor for the log of the rupture width.
 
     Returns
     -------
     length : float
-        The rupter width in (meters? km?) 
+        The rupter width in (meters? km?)
     """
     m = 0.29922483873212863   # slope
     c = 2.608734705074858     # y intercept
@@ -173,18 +176,18 @@ def calc_slip(magnitude, length, width, mu=4e10):
     width : float
         The width of the fault rupture
     mu : float
-        A scaling factor for the area of the fault rupture. 
-   
+        A scaling factor for the area of the fault rupture.
+
     Returns
     -------
     slip : float
-        The total displacement of the fault plates after rupture event.  
+        The total displacement of the fault plates after rupture event.
     """
     return 10**(1.5*magnitude+9.05-np.log10(mu*length*width))
 
 def calc_corners(subfault_params):
     """Compute the corners of the Okada rectangles specified in the paramters of a subfault.
-    
+
     Parameters
     ----------
     subfault_params : pandas DataFrame
@@ -213,7 +216,7 @@ def calc_corners(subfault_params):
 def out_of_bounds(subfault_params, bounds):
     """Returns true if any subfault lies outside of the bounds, or intersects with
     the surface.
-    
+
     Parameters
     ----------
     subfault_params : pandas DataFrame
@@ -271,7 +274,7 @@ class Config:
     def read(self, file):
         """Reads a config file's sections and parameters, then adds the config file data to
         several dictionary objects.
-        
+
         Parameters
         ----------
         file : .cfg file
