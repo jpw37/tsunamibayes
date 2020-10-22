@@ -152,6 +152,7 @@ class GeoClawForwardModel(BaseForwardModel):
             names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
         """
         # split fault into subfaults aligning to fault zone geometry
+        #FAULT: Once again, are we going to use some sort of subfault split, or just treat the fault as one Okada Rectangle?
         subfault_params = self.fault.subfault_split(model_params['latitude'],
                                                     model_params['longitude'],
                                                     model_params['length'],
@@ -161,7 +162,7 @@ class GeoClawForwardModel(BaseForwardModel):
                                                     model_params['rake'])
 
         # create and write dtopo file
-        write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
+        write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)  #FAULT: When we call fault.bounds, will this return both fault bounds, which one? How can we differentiate?
 
         # clear .output
         os.system('rm .output')

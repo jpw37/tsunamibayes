@@ -94,12 +94,12 @@ class LatLonPrior(BasePrior):
         ----------
         fault :  GridFault Object
             From the tsunamibayes module in fault.py 
-        depth_dist : scipy.stats rv_frozen object
+        depth_dist : scipy.stats rv_frozen object       
             The truncated continous random variable describing the depth 
             with fixed shape, location and scale parameters.
         """
         self.fault = fault
-        self.depth_dist = depth_dist
+        self.depth_dist = depth_dist        #FAULT: Will we need 2 depth distributions here? How will this interact with fault?
 
     def logpdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
@@ -123,6 +123,9 @@ class LatLonPrior(BasePrior):
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
+        
+        #FAULT: subfault_params is a data frame. We shoudn't need a subfault split function. 
+        #FAULT: What will be our replacement here?
         subfault_params = self.fault.subfault_split(sample['latitude'],
                                                     sample['longitude'],
                                                     length,
@@ -135,7 +138,7 @@ class LatLonPrior(BasePrior):
         if out_of_bounds(subfault_params,self.fault.bounds):
             return np.NINF
         else:
-            depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
+            depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']      #FAULT: WIll this knwo which depth_map to call?
             return self.depth_dist.logpdf(depth)
 
     def pdf(self,sample):
@@ -159,6 +162,8 @@ class LatLonPrior(BasePrior):
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
+
+        #FAULT: What exactly do we need to replace subfault_params?
         subfault_params = self.fault.subfault_split(sample['latitude'],
                                                     sample['longitude'],
                                                     length,
