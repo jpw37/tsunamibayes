@@ -166,7 +166,7 @@ class LatLonPrior(BasePrior):
                                                     1,
                                                     sample['depth_offset'])
 
-        if out_of_bounds(subfault_params,self.fault.bounds):
+        if out_of_bounds(subfault_params,self.fault.bounds):        #FAULT: Which bounds will this call?
             return 0
         else:
             depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']

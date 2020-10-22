@@ -23,8 +23,9 @@ def setup(config):
     """
     # Banda Arc fault object
     arrays = np.load(config.fault['grid_data_path'])
-    fault = tb.GridFault(bounds=config.model_bounds,**arrays)
-
+    fault = tb.GridFault(bounds=config.model_bounds,**arrays)   #FAULT: Pass in bounds, slab2data.
+                                                                #FAULT: Here, we'd need to either pass in two model bounds or create two fault objects.
+                                                                #FAULT: How will our data be stored? Lat/Lon/Strike should be arrays.
     # Priors
     # latitude/longitude
     depth_mu = config.prior['depth_mu']
@@ -33,7 +34,8 @@ def setup(config):
     maxdepth = config.prior['maxdepth']
     a,b = (mindepth - depth_mu) / depth_std, (maxdepth - depth_mu) / depth_std
     depth_dist = stats.truncnorm(a,b,loc=depth_mu,scale=depth_std)
-    latlon = LatLonPrior(fault,depth_dist)
+    latlon = LatLonPrior(fault,depth_dist)                      #FAULT: Check to see if the fault will be able to be passed into the prior.
+                                                                #FAULT: Are we going to pass two fault objects in here, or just one multifault?
 
     # magnitude
     mag = stats.truncexpon(b=config.prior['mag_b'],loc=config.prior['mag_loc'])
