@@ -478,7 +478,8 @@ class ReferenceCurveFault(BaseFault):
             Dictionary containing the model bounds. Keys are 'lon_min','lon_max',
             'lat_min', 'lat_max'
         smoothing : int
-            The smooting coefficient used later in computing the weighted mean strike angle.
+            The smoothing coefficient used later in computing the weighted mean
+            strike angle.
             Default is set to 50000.
         """
         super().__init__(bounds)
@@ -671,7 +672,12 @@ class ReferenceCurveFault(BaseFault):
         mean : float
             The computed weighted mean for the strike angles. (degrees)
         """
-        distances = haversine(lat,lon,self.latpts,self.lonpts)
+        distances = haversine(
+            lat,
+            lon,
+            self.latpts,
+            self.lonpts
+        )
         weights = np.exp(-distances/self.smoothing)
         return ReferenceCurveFault.circmean(self.strikepts,weights)%360
 
@@ -688,7 +694,8 @@ class ReferenceCurveFault(BaseFault):
             The latitude coordinate (degrees) near the fault.
         retside : bool
             A boolean flag that determines whether the function also returns
-            the side of the given point (dipward or antidipward) when set to True.
+            the side of the given point (dipward or antidipward) when set to
+            True.
             Default is False.
 
         Returns
@@ -696,7 +703,8 @@ class ReferenceCurveFault(BaseFault):
         depth : float
             The interpolated depth (in meters) for the given coordinate.
         side : signed int
-            (Optionally) Returns 1 if the given point is dipward of the fault, -1 if antidipward.
+            (Optionally) Returns 1 if the given point is dipward of the fault,
+            -1 if antidipward.
         """
         distance,idx = self.distance(lat,lon,retclose=True)
 
@@ -710,12 +718,19 @@ class ReferenceCurveFault(BaseFault):
 
         # Change the distance anywhere idx == 0 or idx == len(self.latpts)-1
         mask = (idx == 0) | (idx == (len(self.latpts)-1))
-        bear = bearing(lat,lon,self.latpts[idx[mask]],self.lonpts[idx[mask]])
-        distance[idx[mask]] = distance[idx[mask]]*np.sin(np.deg2rad(self.strikepts[idx[mask]]-bear))
-        side[idx[mask]] = -np.sign(distance[idx[mask]])
+        bear = bearing(
+            self.latpts[idx[mask]],
+            self.lonpts[idx[mask]],
+            np.squeeze(lat[idx[mask]]),
+            np.squeeze(lon[idx[mask]])
+        )
+        distance[idx[mask]] = distance[idx[mask]]*np.sin(
+            np.deg2rad(self.strikepts[idx[mask]]-bear)
+        )
+        side[idx[mask]] = -np.sign(distance[idx[mask]][:,np.newaxis])
         distance[idx[mask]] = np.abs(distance[idx[mask]])
 
-        depth = self.depth_curve(side*distance)
+        depth = self.depth_curve(np.squeeze(side)*distance)
 
         return ((depth,side) if retside else depth)
 
@@ -738,13 +753,28 @@ class ReferenceCurveFault(BaseFault):
         """
         distance,idx = self.distance(lat,lon,retclose=True)
 
-        side = ReferenceCurveFault.side(lat,lon,self.latpts[idx],self.lonpts[idx],self.strikepts[idx])
-        if idx == 0 or idx == len(self.latpts)-1:
-            bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
-            distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
-            side = -np.sign(distance)
-            distance = np.abs(distance)
-        return self.dip_curve(side*distance)
+        side = ReferenceCurveFault.side(
+            lat,
+            lon,
+            self.latpts[idx],
+            self.lonpts[idx],
+            self.strikepts[idx]
+        )
+
+        mask = (idx == 0) | (idx == (len(self.latpts)-1))
+        bear = bearing(
+            self.latpts[idx[mask]],
+            self.lonpts[idx[mask]],
+            np.squeeze(lat[idx[mask]]),
+            np.squeeze(lon[idx[mask]])
+        )
+        distance[idx[mask]] = distance[idx[mask]]*np.sin(
+            np.deg2rad(self.strikepts[idx[mask]]-bear)
+        )
+        side[idx[mask]] = -np.sign(distance[idx[mask]][:,np.newaxis])
+        distance[idx[mask]] = np.abs(distance[idx[mask]])
+
+        return self.dip_curve(np.squeeze(side)*distance)
 
 
     def depth_dip(self,lat,lon):

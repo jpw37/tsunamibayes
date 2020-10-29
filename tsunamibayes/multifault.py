@@ -31,14 +31,16 @@ class MultiFault(BaseFault):
         In the case that n latitudes and longitudes are given, it returns a
         length n array containing the indices of each of the closest faults.
         """
-        dists_shape = self.num_faults if np.isscalar(lat) else (self.num_faults, len(lat))
+        dists_shape = (len(self.faults) if np.isscalar(lat) else
+            (len(self.faults), *np.squeeze(lat).shape)
+        )
         dists = np.empty(dists_shape)
         for j,fault in enumerate(self.faults):
             if hasattr(fault, 'distance'):
                 dists[j] = fault.distance(lat,lon)
             else:
                 dists[j] = self._distance(j, lat, lon)
-        return np.min(dists,axis=0)
+        return np.argmin(dists,axis=0)
 
 
     def _distance(self, fault_idx, lat, lon):
