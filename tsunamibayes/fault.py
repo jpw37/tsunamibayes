@@ -248,6 +248,107 @@ class BaseFault:
 
         return subfault_params
 
+    def subfault_split_RefCurve(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3):
+        """Splits a given Okada rectangle into a collection of subfaults fit
+        to the geometry of the fault.
+
+        Parameters
+        ----------
+        lat : float
+            Latitude coordinate for the sample (degrees)
+        lon : float
+            Longitude coordinate for the sample (degrees)
+        length : float
+            Length of the original Okada rectangle (meters)
+        width : float
+            Width of Okada rectangle (meters)
+        slip : float
+            The slip of the fault (meters). Total displacement of fault.
+        depth_offset : float
+            Offset for depth (meters), Optional. Defaults to 0.
+        rake : float
+            Rake parameter (degrees), Optional. Defaults to 90.
+        n : int
+            Number of splits along length, Optional. Defaults to 11.
+        m : int
+            Number of splits along width, Optional. Defaults to 3.
+
+        Returns:
+        --------
+        subfault_params : pandas DataFrame
+            The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
+            and whose rows contain the associated data (float values)  for each subfault.
+        """
+        n_steps = 8
+        length_step = length/(n*n_steps)
+        width_step = width/(m*n_steps)
+        sublength = length/n
+        subwidth = width/m
+
+        lats = np.empty((n,1))              #Added dimension (n,1) to lats/long curves to interface with distance function axes.
+        lons = np.empty((n,1))
+        lats[(n - 1)//2] = lat
+        lons[(n - 1)//2] = lon
+
+        # add strikeward and anti-strikeward centers
+        bearing1 = self.strike_map(lat,lon)
+        bearing2 = (bearing1-180)%360
+        lat1,lon1 = lat,lon
+        lat2,lon2 = lat,lon
+        for i in range(1,(n - 1)//2+1):
+            for j in range(n_steps):
+                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)
+                lat2,lon2 = displace(lat2,lon2,bearing2,length_step)
+                bearing1 = self.strike_map(lat1, lon1)
+                bearing2 = (self.strike_map(lat2, lon2)-180)%360
+            lats[(n-1)//2+i] = lat1
+            lats[(n-1)//2-i] = lat2
+            lons[(n-1)//2+i] = lon1
+            lons[(n-1)//2-i] = lon2
+
+        strikes = self.strike_map(lats,lons)
+        dips = self.dip_map(lats,lons)
+        dipward = (strikes+90)%360
+
+        Lats = np.empty((m,n))
+        Lons = np.empty((m,n))
+        Strikes = np.empty((m,n))
+        Dips = np.empty((m,n))
+        Lats[(m-1)//2] = lats
+        Lons[(m-1)//2] = lons
+        Strikes[(m-1)//2] = strikes
+        Dips[(m-1)//2] = dips
+
+        # add dipward and antidipward centers
+        templats1,templons1 = lats.copy(),lons.copy()
+        templats2,templons2 = lats.copy(),lons.copy()
+        tempdips1,tempdips2 = dips.copy(),dips.copy()
+        for i in range(1,(m - 1)//2+1):
+            for j in range(n_steps):
+                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
+                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
+                tempdips1 = self.dip_map(templats1,templons1)
+                tempdips2 = self.dip_map(templats2,templons2)
+            Lats[(m-1)//2+i] = templats1
+            Lats[(m-1)//2-i] = templats2
+            Lons[(m-1)//2+i] = templons1
+            Lons[(m-1)//2-i] = templons2
+            Strikes[(m-1)//2+i] = self.strike_map(templats1,templons1)
+            Strikes[(m-1)//2-i] = self.strike_map(templats2,templons2)
+            Dips[(m-1)//2+i] = tempdips1
+            Dips[(m-1)//2-i] = tempdips2
+
+        Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset               #Removed .flatten() from Lats and Lons.
+        data = [Lats,Lons,Strikes,Dips,Depths]
+        data = [arr.flatten() for arr in data]
+        subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth'])
+        subfault_params['length'] = sublength
+        subfault_params['width'] = subwidth
+        subfault_params['slip'] = slip
+        subfault_params['rake'] = rake
+
+        return subfault_params    
+
 class GridFault(BaseFault):
     """A subclass that inherits from BaseFault.  """
     def __init__(self,lat,lon,depth,dip,strike,bounds):
@@ -559,7 +660,8 @@ class ReferenceCurveFault(BaseFault):
             The computed weighted mean.
         """
         x,y = np.cos(np.deg2rad(angles)),np.sin(np.deg2rad(angles))
-        return np.degrees(np.arctan2(weights@y,weights@x))
+        mean = np.degrees(np.arctan2(weights@y,weights@x))
+        return mean
 
     @staticmethod
     def side(lat,lon,fault_lat,fault_lon,strike):
@@ -649,6 +751,7 @@ class ReferenceCurveFault(BaseFault):
             self.latpts,
             self.lonpts
         )
+        #I think we need an if statement here for when the distances array doesn't have more than 1 dimension.
         if retclose:
             return distances.min(axis=1), distances.argmin(axis=1)
         else:
@@ -673,7 +776,8 @@ class ReferenceCurveFault(BaseFault):
         """
         distances = haversine(lat,lon,self.latpts,self.lonpts)
         weights = np.exp(-distances/self.smoothing)
-        return ReferenceCurveFault.circmean(self.strikepts,weights)%360
+        strikes = (ReferenceCurveFault.circmean(self.strikepts,weights)%360)
+        return strikes
 
 
     def depth_map(self,lat,lon,retside=False):
@@ -710,9 +814,9 @@ class ReferenceCurveFault(BaseFault):
 
         # Change the distance anywhere idx == 0 or idx == len(self.latpts)-1
         mask = (idx == 0) | (idx == (len(self.latpts)-1))
-        bear = bearing(lat,lon,self.latpts[idx[mask]],self.lonpts[idx[mask]])
+        bear = bearing(self.latpts[idx[mask]],self.lonpts[idx[mask]],np.squeeze(lat[idx[mask]]), np.squeeze(lon[idx[mask]]))
         distance[idx[mask]] = distance[idx[mask]]*np.sin(np.deg2rad(self.strikepts[idx[mask]]-bear))
-        side[idx[mask]] = -np.sign(distance[idx[mask]])
+        side[idx[mask]] = -np.sign(distance[idx[mask]][:,np.newaxis])
         distance[idx[mask]] = np.abs(distance[idx[mask]])
 
         depth = self.depth_curve(side*distance)
@@ -739,6 +843,7 @@ class ReferenceCurveFault(BaseFault):
         distance,idx = self.distance(lat,lon,retclose=True)
 
         side = ReferenceCurveFault.side(lat,lon,self.latpts[idx],self.lonpts[idx],self.strikepts[idx])
+        print(np.shape(idx))
         if idx == 0 or idx == len(self.latpts)-1:
             bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
             distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
@@ -798,3 +903,4 @@ class ReferenceCurveFault(BaseFault):
         weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
         return distances.min(), ReferenceCurveFault.circmean(self.strikepts,weights)%360
+        
