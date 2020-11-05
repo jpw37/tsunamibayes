@@ -61,7 +61,7 @@ class BaseFault:
             The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
             and whose rows contain the associated data (float values)  for each subfault.
         """
-        n_steps = 8
+        n_steps = 8                         #What is this n_steps used for?
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)
         sublength = length/n
@@ -69,64 +69,67 @@ class BaseFault:
 
         lats = np.empty(n)
         lons = np.empty(n)
-        lats[(n - 1)//2] = lat
-        lons[(n - 1)//2] = lon
+        lats[(n - 1)//2] = lat      #index [(n - 1)//2] is the middle of the rectangle split. For default values, this is index 5.
+        lons[(n - 1)//2] = lon      #These assign the lat/lon values to the middle index of the lats/lons arrays.
 
         # add strikeward and anti-strikeward centers
-        bearing1 = self.strike_map(lat,lon)
-        bearing2 = (bearing1-180)%360
-        lat1,lon1 = lat,lon
+        bearing1 = self.strike_map(lat,lon)         #Calculates the strike of the initial lat/lon point. Returns just a scalar value!
+        bearing2 = (bearing1-180)%360               #Calculates the strike angle in the opposite direction, 180 difference from bearing1.
+        lat1,lon1 = lat,lon                         #Creates lat1, lon1 variables to hold each iterative value as we displace the coordinates and add to the lats/lons np.arrays.
         lat2,lon2 = lat,lon
-        for i in range(1,(n - 1)//2+1):
-            for j in range(n_steps):
-                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)
-                lat2,lon2 = displace(lat2,lon2,bearing2,length_step)
-                bearing1 = self.strike_map(lat1, lon1)
-                bearing2 = (self.strike_map(lat2, lon2)-180)%360
-            lats[(n-1)//2+i] = lat1
-            lats[(n-1)//2-i] = lat2
-            lons[(n-1)//2+i] = lon1
-            lons[(n-1)//2-i] = lon2
+        for i in range(1,(n - 1)//2+1):             #For splitting rectangles in the 'n-axis', which is the strike-ward axis.
+            for j in range(n_steps):                #Finds the values of the adjacent subfault split rectangle using iterative steps.
+                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)    #Takes a small step along bearing1.
+                lat2,lon2 = displace(lat2,lon2,bearing2,length_step)    #Takes a small step along bearing2.
+                bearing1 = self.strike_map(lat1, lon1)                  #Calculates new strike angle for bearing1 based on lat/lon of step. Returns just a scalar!
+                bearing2 = (self.strike_map(lat2, lon2)-180)%360        #Calculates new strike angle for bearing2 based on lat/lon of step.
+            lats[(n-1)//2+i] = lat1         #After the loop has taken n_steps, add the calculated lat coordinate to the index for the above split.                
+            lats[(n-1)//2-i] = lat2         #Same as above, adds the lat coordinate to the index of the split below the center point.
+            lons[(n-1)//2+i] = lon1         #Same as above, just for lon. Notice how we are layering around the center point as we move away.
+            lons[(n-1)//2-i] = lon2         #THESE ARRAYS ARE ALL size (n,)
 
-        strikes = self.strike_map(lats,lons)
-        dips = self.dip_map(lats,lons)
-        dipward = (strikes+90)%360
+        strikes = self.strike_map(lats,lons)        #Computes the strikes for all of the subfault splits alogn the strikeward (n) axis. Has dimension (n,)
+        dips = self.dip_map(lats,lons)              #The dip will all be the same for this axis??
+        dipward = (strikes+90)%360                  #Creates an array of angles perpendicular (+90) to the strike angels for each point. Has dimension (n,)
 
-        Lats = np.empty((m,n))
+        Lats = np.empty((m,n))                      #WE SHOULD REALLY RENAME THESE VECTORS, THIS MAKES IT CONFUSING
         Lons = np.empty((m,n))
-        Strikes = np.empty((m,n))
+        Strikes = np.empty((m,n))                   #YEAH LET'S NOT JUST CAPATILZE THIS STUFF...
         Dips = np.empty((m,n))
-        Lats[(m-1)//2] = lats
-        Lons[(m-1)//2] = lons
-        Strikes[(m-1)//2] = strikes
+        Lats[(m-1)//2] = lats                       #Assigns array of lats from the strikeward (n-axis) calculations to middle row of Lats.                      
+        Lons[(m-1)//2] = lons                       #Same as above, same action for Lats, Lons, Strikes, and Dips.
+        Strikes[(m-1)//2] = strikes                 #These np.arrays are size (n,)
         Dips[(m-1)//2] = dips
 
         # add dipward and antidipward centers
-        templats1,templons1 = lats.copy(),lons.copy()
+
+        #WHY DO WE CALCULATE THE DIP HERE, BUT NOT FOR THE N-AXIS?
+        templats1,templons1 = lats.copy(),lons.copy()   #Copies the lats, lons, and dips as placeholder variables as we expand in the m-axis using our step size. 
         templats2,templons2 = lats.copy(),lons.copy()
         tempdips1,tempdips2 = dips.copy(),dips.copy()
-        for i in range(1,(m - 1)//2+1):
-            for j in range(n_steps):
-                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
-                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
-                tempdips1 = self.dip_map(templats1,templons1)
+        for i in range(1,(m - 1)//2+1):                 #Iterate over the dipward/antidipward axis (m-axis)
+            for j in range(n_steps):                    #Calculate the dips, strikes and displacements over these little steps.
+                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))        #Diplaces each set of points along the dipward angle. These are arrays of size (n,)
+                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))       #Displaces all the points along the antidipward angle.
+                tempdips1 = self.dip_map(templats1,templons1)       #Computes the dip for the set of points, returns array of size (n,)
                 tempdips2 = self.dip_map(templats2,templons2)
-            Lats[(m-1)//2+i] = templats1
-            Lats[(m-1)//2-i] = templats2
+            Lats[(m-1)//2+i] = templats1    #Stores the latest lats and lons after taking n_steps along the dipward/antidipward angle.
+            Lats[(m-1)//2-i] = templats2    #Adds these arrays to the next outer index in the Lats matrix, adds them along the m-axis.
             Lons[(m-1)//2+i] = templons1
             Lons[(m-1)//2-i] = templons2
-            Strikes[(m-1)//2+i] = self.strike_map(templats1,templons1)
+            Strikes[(m-1)//2+i] = self.strike_map(templats1,templons1)      #Computes strike of the templats/templons, returns array of size (n,)
             Strikes[(m-1)//2-i] = self.strike_map(templats2,templons2)
             Dips[(m-1)//2+i] = tempdips1
             Dips[(m-1)//2-i] = tempdips2
+            #The above matrices are now full of the correct values of for all the splits along the n and m axes.
 
-        Depths = self.depth_map(Lats.flatten(),Lons.flatten()) + depth_offset
-        data = [Lats,Lons,Strikes,Dips,Depths]
-        data = [arr.flatten() for arr in data]
-        subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth'])
-        subfault_params['length'] = sublength
-        subfault_params['width'] = subwidth
-        subfault_params['slip'] = slip
+        Depths = self.depth_map(Lats.flatten(),Lons.flatten()) + depth_offset   #Calculates the depths for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
+        data = [Lats,Lons,Strikes,Dips,Depths]      #Store all of our data in a list.
+        data = [arr.flatten() for arr in data]      #Iterate through all of the data, flatten the lat/lon/strike/dip matrices
+        subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth'])    #Transform data into a pandas dataframe.
+        subfault_params['length'] = sublength       #sublength = length/n, the same value is stored for each subfault. Size(m*n,)
+        subfault_params['width'] = subwidth         #subwidth = width/m.
+        subfault_params['slip'] = slip              #Usually these are the default values passed in, will generally all be the same for each subfault for both slip and rake.
         subfault_params['rake'] = rake
 
         return subfault_params
@@ -290,32 +293,35 @@ class BaseFault:
         lats[(n - 1)//2] = lat
         lons[(n - 1)//2] = lon
 
+        #THE BELOW PART SEEMS TO BE DOING FINE SINCE WE DEAL ONLY WITH SCALARS HERE...
         # add strikeward and anti-strikeward centers
-        bearing1 = self.strike_map(lat,lon)
-        bearing2 = (bearing1-180)%360
+        bearing1 = self.strike_map(lat,lon) #Calculates the strike just for one point, returns a scalar.
+        bearing2 = (bearing1-180)%360       #Adds 180 to the strike angle to compute antistrikeward angle.
         lat1,lon1 = lat,lon
         lat2,lon2 = lat,lon
-        for i in range(1,(n - 1)//2+1):
-            for j in range(n_steps):
-                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)
+        for i in range(1,(n - 1)//2+1):     #Computes the lats/lons for the subfaults along the n-axis.
+            for j in range(n_steps):        #Takes n_steps to compute each adjacent subfault.
+                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)    #Displaces each lat1 lon1 by the small step.
                 lat2,lon2 = displace(lat2,lon2,bearing2,length_step)
-                bearing1 = self.strike_map(lat1, lon1)
+                bearing1 = self.strike_map(lat1, lon1)                  #Computes the new bearing from the strike angle of that point.
                 bearing2 = (self.strike_map(lat2, lon2)-180)%360
             lats[(n-1)//2+i] = lat1
             lats[(n-1)//2-i] = lat2
             lons[(n-1)//2+i] = lon1
             lons[(n-1)//2-i] = lon2
+            #The onlye problem here is that maybe these are size (n,1) and they should be (n,)
 
-        strikes = self.strike_map(lats,lons)
+        #Interesting...Even though lats lons have size (n,1), the following return arrays of size (n,)
+        strikes = self.strike_map(lats,lons)        #We pass in lats lons as arrays of size (n,1), this returns an array of size (n)
         dips = self.dip_map(lats,lons)
-        dipward = (strikes+90)%360
+        dipward = (strikes+90)%360                  #Dipward is an array of size (n,) with all of the strike angles + 90 degrees.
 
         Lats = np.empty((m,n))
         Lons = np.empty((m,n))
         Strikes = np.empty((m,n))
         Dips = np.empty((m,n))
-        Lats[(m-1)//2] = lats
-        Lons[(m-1)//2] = lons
+        Lats[(m-1)//2] = lats.flatten()
+        Lons[(m-1)//2] = lons.flatten()
         Strikes[(m-1)//2] = strikes
         Dips[(m-1)//2] = dips
 
@@ -325,25 +331,26 @@ class BaseFault:
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,(m - 1)//2+1):
             for j in range(n_steps):
-                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
-                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
-                tempdips1 = self.dip_map(templats1,templons1)
-                tempdips2 = self.dip_map(templats2,templons2)
+                templats1,templons1 = displace(templats1.flatten(),templons1.flatten(),dipward,width_step*np.cos(np.deg2rad(tempdips1)))        #To pass into displace, we needed to flatten templats and templons.
+                templats2,templons2 = displace(templats2.flatten(),templons2.flatten(),dipward,-width_step*np.cos(np.deg2rad(tempdips2)))       #These return arrays of size (n,)
+                tempdips1 = self.dip_map(templats1[:,np.newaxis],templons1[:,np.newaxis])   #In order to interface with dip_map, we need to add back a new axis so that we pass in arrays of size (n,1)
+                tempdips2 = self.dip_map(templats2[:,np.newaxis],templons2[:,np.newaxis])   #After the dips are computed, this returns an array of size (n,)
             Lats[(m-1)//2+i] = templats1
             Lats[(m-1)//2-i] = templats2
             Lons[(m-1)//2+i] = templons1
             Lons[(m-1)//2-i] = templons2
-            Strikes[(m-1)//2+i] = self.strike_map(templats1,templons1)
-            Strikes[(m-1)//2-i] = self.strike_map(templats2,templons2)
+            Strikes[(m-1)//2+i] = self.strike_map(templats1[:,np.newaxis],templons1[:,np.newaxis])
+            Strikes[(m-1)//2-i] = self.strike_map(templats2[:,np.newaxis],templons2[:,np.newaxis])
             Dips[(m-1)//2+i] = tempdips1
             Dips[(m-1)//2-i] = tempdips2
+            #From all this we learn that, strike_map, dip_map, and depth_map must take in arrays of size (n,1), but they return arrays of size (n,)
 
-        Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset               #Removed .flatten() from Lats and Lons.
+        Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset   #Calculates the depths for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
         data = [Lats,Lons,Strikes,Dips,Depths]
         data = [arr.flatten() for arr in data]
         subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth'])
-        subfault_params['length'] = sublength
-        subfault_params['width'] = subwidth
+        subfault_params['length'] = sublength   #The length of each subfault, should be the same for all splits. sublength = length/n
+        subfault_params['width'] = subwidth     #subwidth = width/m, same for each subfault.
         subfault_params['slip'] = slip
         subfault_params['rake'] = rake
 
