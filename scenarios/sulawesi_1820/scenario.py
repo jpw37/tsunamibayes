@@ -3,15 +3,60 @@ import pandas as pd
 from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
 
-class BandaScenario(BaseScenario):
-    sample_cols = ['latitude','longitude','magnitude','delta_logl','delta_logw',
-                   'depth_offset']
-    model_param_cols = ['latitude','longitude','length','width','slip','strike',
-                        'dip','depth','rake','depth_offset']
+
+class MultiFaultScenario():
+    def __init__(self,scenarios):
+        """Wrapper for multiple scenarios."""
+        self.scenarios = scenarios
+
+    def init_chain(self,fault_idx,u0=None,method=None,verbose=False,**kwargs):
+        """Initializes a chain associated with scenarios[fault_idx]."""
+        self.scenarios[fault_idx].init_chain(
+            u0=u0,
+            method=method,
+            verbose=verbose,
+            **kwargs
+        )
+
+    def resume_chain(self,fault_idx,output_dir):
+        """Resumes a chain associated with scenarios[fault_idx]."""
+        self.scenarios[fault_idx].resume_chain(output_dir)
+
+    def sample(self,fault_idx,nsamples,output_dir=None,save_freq=1,verbose=False):
+        """Samples from the chain at fault_idx."""
+        self.scenarios[fault_idx].sample(nsamples,output_dir,save_freq,verbose)
+
+
+class SulawesiScenario(BaseScenario):
+    sample_cols = [
+        'latitude',
+        'longitude',
+        'magnitude',
+        'delta_logl',
+        'delta_logw',
+        'depth_offset',
+        'rake_offset',
+        'dip_offset',
+        'fault_idx'
+    ]
+    model_param_cols = [
+        'latitude',
+        'longitude',
+        'length',
+        'width',
+        'slip',
+        'strike',
+        'dip',
+        'depth',
+        'rake',
+        'depth_offset',
+        #'rake_offset', # TODO: do rake and dip offsets need to be Okada parameters?
+        #'dip_offset',
+    ]
 
     def __init__(self,prior,forward_model,covariance):
         """Initializes all the necessary variables for the BandaScenario subclass.
-        
+
         Parameters
         ----------
         prior : BandaPrior Object
@@ -28,7 +73,7 @@ class BandaScenario(BaseScenario):
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.
-        
+
         Parameters
         ----------
         sample : pandas Series of floats
@@ -39,11 +84,15 @@ class BandaScenario(BaseScenario):
         Returns
         -------
         proposal : pandas Series of floats
-            Essentailly the same format as 'sample', we have simply added a multivariate normal
-            to produce proposal values for lat, long, mag, etc. 
+            Essentailly the same format as 'sample', we have simply added a
+            multivariate normal to produce proposal values for lat, lon,
+            mag, etc.
         """
         proposal = sample.copy()
-        proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
+        proposal += np.random.multivariate_normal(
+            np.zeros(len(self.sample_cols)),
+            cov=self.cov
+        )
         return proposal
 
     def proposal_logpdf(self,u,v):
@@ -70,14 +119,14 @@ class BandaScenario(BaseScenario):
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
             'delta_logw', and 'depth_offset' with their associated float values.
-        
+
         Returns
         -------
         model_params : dict
-            A dictionary that builds off of the sample dictionary whose keys are the 
+            A dictionary that builds off of the sample dictionary whose keys are the
             okada parameters: 'latitude', 'longitude', 'depth_offset', 'strike','length',
-            'width','slip','depth','dip','rake', 
-            and whose associated values are the newly calculated values from the sample. 
+            'width','slip','depth','dip','rake',
+            and whose associated values are the newly calculated values from the sample.
         """
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])

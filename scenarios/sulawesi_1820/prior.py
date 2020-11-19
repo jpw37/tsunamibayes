@@ -2,76 +2,83 @@ import numpy as np
 from tsunamibayes import BasePrior
 from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 
-class BandaPrior(BasePrior):
+
+class SulawesiPrior(BasePrior):
     """The child class of Base Prior that creates a prior distribution,
     specifically for the Banda 1852 event."""
-    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset):
+    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset,dip_offset,rake_offset):
         """Initializes all the necessary variables for the subclass.
-        
+
         Parameters
         ----------
         latlon : LatLonPrior Object
             Contains attirbutes fault and depth_dist, with methods logpdf, pdf, and rvs.
         mag : scipy.stats rv_frozen object
-            A truncated continous random variable describing the sample's 
+            A truncated continous random variable describing the sample's
             magnitude with fixed parameters shape, location and scale.
         delta_logl : scipy.stats rv_frozen object
             The continous random variable describing the sample's standard deviation for
-            the log of the length, also with fixed parameters. 
+            the log of the length, also with fixed parameters.
         delta_logw : scipy.stats rv_frozen object
             The continous random variable describing the sample's standard deviation for
-            the log of the width, also with fixed parameters. 
+            the log of the width, also with fixed parameters.
         depth_offset : scipy.stats rv_frozen object
-            The continous random variable describing the sample's depth offset, 
-            also with fixed parameters. 
+            The continous random variable describing the sample's depth offset,
+            also with fixed parameters.
         """
         self.latlon = latlon
         self.mag = mag
         self.delta_logl = delta_logl
         self.delta_logw = delta_logw
         self.depth_offset = depth_offset
+        self.dip_offset = dip_offset
+        self.rake_offset = rake_offset
 
     def logpdf(self,sample):
         """Computes the log of the probability density function. Adds
         together the logs of all the probability denisty functions for each
         of sample's attributes.
-        
+
         Parameters
         ----------
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values. 
-        
+            'delta_logw', and 'depth_offset' with their associated float values.
+
         Returns
         -------
         lpdf : float
             The log of the probability density function for the sample.
-        """ 
-        lat    = sample["latitude"]
-        lon    = sample["longitude"]
-        mag    = sample["magnitude"]
+        """
+        lat = sample["latitude"]
+        lon = sample["longitude"]
+        mag = sample["magnitude"]
         delta_logl = sample["delta_logl"]
         delta_logw = sample["delta_logw"]
         depth_offset = sample["depth_offset"]
+        dip_offset = sample['dip_offset']
+        rake_offset = sample['rake_offset']
 
         lpdf = self.latlon.logpdf(sample)
         lpdf += self.mag.logpdf(mag)
         lpdf += self.delta_logl.logpdf(delta_logl)
         lpdf += self.delta_logw.logpdf(delta_logw)
         lpdf += self.depth_offset.logpdf(depth_offset)
+        lpdf += self.dip_offset.logpdf(dip_offset)
+        lpdf += self.rake_offset.logpdf(rake_offset)
 
         return lpdf
 
     def rvs(self):
         """Computes random variates for each of Banda Prior's data members,
         then returns the organized set of random variates for each.
-        
+
         Returns
         -------
         rvs : pandas Series
             A series containing axis labels for each of banda prior's variables,
-            with the associated random variates (float values) for each parameter. 
+            with the associated random variates (float values) for each parameter.
         """
         latlon = self.latlon.rvs()
         mag = self.mag.rvs()
@@ -79,12 +86,17 @@ class BandaPrior(BasePrior):
         delta_logw = self.delta_logw.rvs()
         depth_offset = self.depth_offset.rvs()
         params = np.array(latlon+[mag,delta_logl,delta_logw,depth_offset])
-        return pd.Series(params,["latitude",
-                                 "longitude",
-                                 "magnitude",
-                                 "delta_logl",
-                                 "delta_logw",
-                                 "depth_offset"])
+        columns = [
+            'latitude',
+            'longitude',
+            'magnitude',
+            'delta_logl',
+            'delta_logw',
+            'depth_offset',
+            'dip_offset',
+            'rake_offset'
+        ]
+        return pd.Series(params, columns)
 
 class LatLonPrior(BasePrior):
     def __init__(self,fault,depth_dist):
@@ -93,19 +105,19 @@ class LatLonPrior(BasePrior):
         Parameters
         ----------
         fault :  GridFault Object
-            From the tsunamibayes module in fault.py 
-        depth_dist : scipy.stats rv_frozen object       
-            The truncated continous random variable describing the depth 
+            From the tsunamibayes module in fault.py
+        depth_dist : scipy.stats rv_frozen object
+            The truncated continous random variable describing the depth
             with fixed shape, location and scale parameters.
         """
         self.fault = fault
-        self.depth_dist = depth_dist        #FAULT: Will we need 2 depth distributions here? How will this interact with fault?
+        self.depth_dist = depth_dist # FAULT: Will we need 2 depth distributions here? How will this interact with fault?
 
     def logpdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
-        then computes the log of the depth distribution's probability density function 
-        evaluated at the sample's depth. 
-        
+        then computes the log of the depth distribution's probability density function
+        evaluated at the sample's depth.
+
         Parameters
         ----------
         sample : pandas Series of floats
@@ -117,14 +129,14 @@ class LatLonPrior(BasePrior):
         -------
         NINF -or- logpdf : float
             Returns negative inifity if out-of-bounds,
-            otherwise returns the log of the probability density function 
-            for the depth distribution evaluated at the sample's depth. 
+            otherwise returns the log of the probability density function
+            for the depth distribution evaluated at the sample's depth.
         """
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
-        
-        #FAULT: subfault_params is a data frame. We shoudn't need a subfault split function. 
+
+        #FAULT: subfault_params is a data frame. We shoudn't need a subfault split function.
         #FAULT: What will be our replacement here?
         subfault_params = self.fault.subfault_split(sample['latitude'],
                                                     sample['longitude'],
@@ -132,7 +144,7 @@ class LatLonPrior(BasePrior):
                                                     width,
                                                     1,
                                                     sample['depth_offset'])
-        
+
         if subfault_params.isnull().values.any():
             return np.NINF
         if out_of_bounds(subfault_params,self.fault.bounds):
@@ -143,9 +155,9 @@ class LatLonPrior(BasePrior):
 
     def pdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
-        then evaluates the depth distribution's probability density function 
-        at the sample's depth. 
-        
+        then evaluates the depth distribution's probability density function
+        at the sample's depth.
+
         Parameters
         ----------
         sample : pandas Series of floats
@@ -157,7 +169,7 @@ class LatLonPrior(BasePrior):
         -------
         pdf : float
             The value of the probability density function for the depth distribution
-            evaluated at the depth of the sample. 
+            evaluated at the depth of the sample.
         """
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
@@ -180,7 +192,7 @@ class LatLonPrior(BasePrior):
     def rvs(self):
         """Produces two random variate values for latitude and longitude
         based on a random variate of the depth distribution.
-        
+
         Returns
         -------
         lat, lon : (list) of floats
