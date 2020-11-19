@@ -18,11 +18,11 @@ class BaseScenario:
 
     def __init__(self,prior,forward_model):
         """Initializes variables for the base class.
-        
+
         Parameters
         ----------
         prior : Prior object
-            The prior distribution for the scenario. 
+            The prior distribution for the scenario.
         forward_model : Forward Model object
             This is usually the GeoClawForward model.
         """
@@ -143,7 +143,7 @@ class BaseScenario:
         """Reads DataFrames from the .csv files housing the samples, model info,
         bayes data, and debugging information that have already been stored before
         the program was paused.
-        
+
         Parameters
         ----------
         output_dir : string
@@ -158,7 +158,7 @@ class BaseScenario:
 
     def save_data(self,output_dir,append_rows=None):
         """Writes the DataFrames for the samples, model parameters & ouput,
-        bayes data, and debugging info into .csv files and stores them in the 
+        bayes data, and debugging info into .csv files and stores them in the
         specified directory.
 
         Parameters
@@ -166,7 +166,7 @@ class BaseScenario:
         output_dir : string
             The name of the output directory to which the files will be stored.
         append_rows : int -or- None
-            Default is None. If an integer is passed in, then this is 
+            Default is None. If an integer is passed in, then this is
             the number of rows to append to the end of the .csv files to be written.
         """
         if not append_rows:
@@ -195,15 +195,15 @@ class BaseScenario:
             The name of the output directory to save the sample data.
         save_freq : int
             The integer that sets how frequently the sample data will be saved and written to a file.
-            Default is 10. This also represents the number of rows to appened when 
+            Default is 10. This also represents the number of rows to appened when
             this function calls the save_data function.
         verbose : bool
-            If true, prints gague data for the loglikelihood of the forward model. Default is false.  
+            If true, prints gague data for the loglikelihood of the forward model. Default is false.
 
         Returns
         -------
         samples : pandas DataFrame
-            Pandas dataframe containing the set of samples from all of the accepted proposal generated, 
+            Pandas dataframe containing the set of samples from all of the accepted proposal generated,
             including any from prior runs (such as when using Scenario.restart()).
         """
         if not hasattr(self,'samples'):
@@ -312,7 +312,7 @@ class BaseScenario:
 
     def gen_debug_row(self,sample,proposal,sample_model_params,proposal_model_params,
                       sample_bayes,proposal_bayes,metro_hastings_data):
-        """Combines data from a scenario iteration to be used for debugging puposes, and 
+        """Combines data from a scenario iteration to be used for debugging puposes, and
         stores the combined data in a Pandas Series object.
 
         Parameters
@@ -322,17 +322,17 @@ class BaseScenario:
         proposal : pandas Series of floats
             The series that contains the float values for the declared proposal columns.
         sample_model_params : dict
-            The dictionary containing the sample's specified parameters and their associated float values. 
-            This differs from subclass to subclass, but generally contains parameters such as 
+            The dictionary containing the sample's specified parameters and their associated float values.
+            This differs from subclass to subclass, but generally contains parameters such as
             magnitude, length, width, etc. etc.
         proposal_model_params :  dict
             The dictionary containing the proposal's specified parameters. This differs from subclass
             to subclass, but generally contains parameters such as magnitude, length, width, etc. etc.
         sample_bayes : pandas Series
-            The pandas series that contains labels and float values for 
+            The pandas series that contains labels and float values for
             the sample's prior logpdf, loglikelihood, and posterior logpdf.
         proposal_bayes : pandas Series
-            The pandas series that contains labels and float values for 
+            The pandas series that contains labels and float values for
             the prosal's prior logpdf, loglikelihood, and posterior logpdf.
         metro_hastings_data : pandas Series
             The series that contains a dictioanry with the acceptace probablity, acceptace state, and acceptance rate.
@@ -408,7 +408,7 @@ class TestScenario(BaseScenario):
         ----------
         sample : pandas Series of floats
             The series that contains the float values for the sample's earthquake magnitude.
-        
+
         Returns
         -------
         proposal :  pandas Series of floats
@@ -438,7 +438,7 @@ class TestScenario(BaseScenario):
         ----------
         sample : pandas Series of floats
             The series that contains the float values for the declared sample columns.
-        
+
         Returns
         -------
         params : dict
