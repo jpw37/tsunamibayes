@@ -139,15 +139,17 @@ class SulawesiScenario(BaseScenario):
                                      sample['longitude'])
         rake = 90
 
-        model_params = dict()
+        model_params = dict()           #TODO : Would we need to add dip_offset and rake_offset as Okada or model parameters?
         model_params['latitude'] = sample['latitude']
         model_params['longitude'] = sample['longitude']
-        model_params['depth_offset'] = sample['depth_offset']
         model_params['length'] = length
         model_params['width'] = width
         model_params['slip'] = slip
         model_params['strike'] = strike
         model_params['dip'] = dip
+        model_params['dip_offset'] = sample['dip_offset']
         model_params['depth'] = depth
+        model_params['depth_offset'] = sample['depth_offset']
         model_params['rake'] = rake
+        model_params['rake_offset'] = sample['rake_offset']
         return model_params

@@ -26,7 +26,7 @@ def setup(config):
     -------
     BandaScenario : BandaScenario object
     """
-    # Banda Arc fault object
+    #Flores and Walinae fault objects
     fault_initialization_data = np.load(config.fault['grid_data_path']) # TODO: This will need to contain dictionaries/arrays to initialize both fault objects.
     fault = [
         tb.ReferenceCurveFault(bounds=mb, **init) for mb, init in zip(
@@ -41,21 +41,46 @@ def setup(config):
     depth_std = [config.prior['depth_std_flo'], config.prior['depth_std_wal']]
     mindepth = [config.prior['mindepth_flo'], config.prior['mindepth_wal']]
     maxdepth = [config.prior['maxdepth_flo'], config.prior['maxdepth_wal']]
-    lower_bound = [
+    lower_bound_depth = [
         (md-dmu)/dstd for md, dmu, dstd in zip(mindepth, depth_mu, depth_std)
     ]
-    upper_bound = [
+    upper_bound_depth = [
         (md-dmu)/dstd for md, dmu, dstd in zip(maxdepth, depth_mu, depth_std)
     ]
     depth_dist = [
         stats.truncnorm(lb,ub,loc=dmu,scale=dstd) for lb,ub,dmu,dstd in zip(
-            lower_bound, upper_bound, depth_mu, depth_std
+            lower_bound_depth, upper_bound_depth, depth_mu, depth_std
         )
     ]
     latlon = [
         LatLonPrior(fault[FAULT.FLORES], depth_dist[FAULT.FLORES]),
         LatLonPrior(fault[FAULT.WALANAE], depth_dist[FAULT.WALANAE])
     ]
+
+    # dip distrubution
+    dip_mu = [config.prior['dip_mu_flo'], config.prior['dip_mu_wal']]
+    dip_std = [config.prior['dip_std_flo'], config.prior['dip_std_wal']]
+    mindip = [config.prior['mindip'], config.prior['mindip']]
+    maxdip = [config.prior['maxdip'], config.prior['maxdip']]
+    lower_bound_dip = [
+        (mdip-dipmu)/dipstd for mdip, dipmu, dipstd in zip(mindip, dip_mu, dip_std)
+    ]
+    upper_bound_dip = [
+        (mdip-dipmu)/dipstd for mdip, dipmu, dipstd in zip(maxdip, dip_mu, dip_std)
+    ]
+
+    dip_dist = [        #TODO Figure out where we are going to use this.
+        stats.truncnorm(lb_dip,ub_dip,loc=dipmu,scale=dipstd) for lb_dip,ub_dip,dipmu,dipstd in zip(
+            lower_bound_dip, upper_bound_dip, dip_mu, dip_std
+        )
+    ]
+
+    # rake distribution
+    rake_dist = [   #TODO, figure out where to put this as well. 
+        stats.norm(loc=config.prior['rake_mu_flo'], scale=config.prior['rake_std_flp']),
+        stats.norm(loc=config.prior['rake_mu_wal'], scale=config.prior['rake_std_wal'])
+    ]
+    
 
     # magnitude
     mag = [
@@ -105,8 +130,8 @@ def setup(config):
     ]
 
     prior = [
-        SulawesiPrior(latlon,mag,delta_logl,delta_logw,depth_offset),
-        SulawesiPrior(),
+        SulawesiPrior(latlon,dip_dist,rake_dist,mag,delta_logl,delta_logw,depth_offset,dip_offset,rake_offset),
+        SulawesiPrior(),            #TODO : Did we need to add something else here?
     ]
 
     # load gauges

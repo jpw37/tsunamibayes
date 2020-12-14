@@ -115,7 +115,9 @@ def displace(lat, lon, bearing, distance):
     lat2 = np.arcsin(np.sin(lat)*np.cos(delta)+np.cos(lat)*np.sin(delta)*np.cos(bearing))
     lon2 = lon+np.arctan2(np.sin(bearing)*np.sin(delta)*np.cos(lat),
                           np.cos(delta)-np.sin(lat)*np.sin(lat2))
-    return np.degrees(lat2),np.degrees(lon2)
+    lat2Degrees = np.degrees(lat2)
+    lon2Degrees = np.degrees(lon2)
+    return lat2Degrees, lon2Degrees
 
 def calc_length(magnitude, delta_logl):
     """Computes the rupture length of the fault based on an earthquake's moment magnitude

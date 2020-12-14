@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-
+#TODO : This is another area of focus, how the program will resample over the various faults. 
 def resample(output_dirs, overwrite=False,  verbose=False):
     """Reads the sample data, takes another random sample, and then writes the resampling to a .csv file.
     
