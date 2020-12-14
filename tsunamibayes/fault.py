@@ -51,9 +51,9 @@ class BaseFault:
         rake : float
             Rake parameter (degrees), Optional. Defaults to 90.
         n : int
-            Number of splits along length, Optional. Defaults to 11.
+            Number of splits along length, Optional. Defaults to 11. MUST BE AN ODD NUMBER.
         m : int
-            Number of splits along width, Optional. Defaults to 3.
+            Number of splits along width, Optional. Defaults to 3. MUST BE AN ODD NUMBER.
 
         Returns:
         --------
@@ -251,7 +251,7 @@ class BaseFault:
 
         return subfault_params
 
-    def subfault_split_RefCurve(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3):
+    def subfault_split_RefCurve(self,lat,lon,length,width,slip,depth_offset=0,dip_offset = 0,rake_offset = 0,rake=90,n=11,m=3):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
@@ -272,9 +272,9 @@ class BaseFault:
         rake : float
             Rake parameter (degrees), Optional. Defaults to 90.
         n : int
-            Number of splits along length, Optional. Defaults to 11.
+            Number of splits along length, Optional. Defaults to 11. MUST BE AN ODD NUMBER.
         m : int
-            Number of splits along width, Optional. Defaults to 3.
+            Number of splits along width, Optional. Defaults to 3. MUST BE AN ODD NUMBER. 
 
         Returns:
         --------
@@ -333,26 +333,29 @@ class BaseFault:
             for j in range(n_steps):
                 templats1,templons1 = displace(templats1.flatten(),templons1.flatten(),dipward,width_step*np.cos(np.deg2rad(tempdips1)))        #To pass into displace, we needed to flatten templats and templons.
                 templats2,templons2 = displace(templats2.flatten(),templons2.flatten(),dipward,-width_step*np.cos(np.deg2rad(tempdips2)))       #These return arrays of size (n,)
-                tempdips1 = self.dip_map(templats1[:,np.newaxis],templons1[:,np.newaxis])   #In order to interface with dip_map, we need to add back a new axis so that we pass in arrays of size (n,1)
-                tempdips2 = self.dip_map(templats2[:,np.newaxis],templons2[:,np.newaxis])   #After the dips are computed, this returns an array of size (n,)
-            Lats[(m-1)//2+i] = templats1
-            Lats[(m-1)//2-i] = templats2
-            Lons[(m-1)//2+i] = templons1
-            Lons[(m-1)//2-i] = templons2
-            Strikes[(m-1)//2+i] = self.strike_map(templats1[:,np.newaxis],templons1[:,np.newaxis])
-            Strikes[(m-1)//2-i] = self.strike_map(templats2[:,np.newaxis],templons2[:,np.newaxis])
+                templats1, templons1 = templats1[:,np.newaxis], templons1[:,np.newaxis]
+                templats2, templons2 = templats2[:,np.newaxis], templons2[:,np.newaxis]
+                tempdips1 = self.dip_map(templats1,templons1)   #In order to interface with dip_map, we need to add back a new axis so that we pass in arrays of size (n,1)
+                tempdips2 = self.dip_map(templats2,templons2)   #After the dips are computed, this returns an array of size (n,)
+            Lats[(m-1)//2+i] = templats1.flatten()
+            Lats[(m-1)//2-i] = templats2.flatten()
+            Lons[(m-1)//2+i] = templons1.flatten()
+            Lons[(m-1)//2-i] = templons2.flatten()
+            Strikes[(m-1)//2+i] = self.strike_map(templats1,templons1)
+            Strikes[(m-1)//2-i] = self.strike_map(templats2,templons2)
             Dips[(m-1)//2+i] = tempdips1
             Dips[(m-1)//2-i] = tempdips2
             #From all this we learn that, strike_map, dip_map, and depth_map must take in arrays of size (n,1), but they return arrays of size (n,)
 
         Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset   #Calculates the depths for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
+        Dips = self.dip_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + dip_offset   #Calculates the dips for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
         data = [Lats,Lons,Strikes,Dips,Depths]
         data = [arr.flatten() for arr in data]
         subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth'])
         subfault_params['length'] = sublength   #The length of each subfault, should be the same for all splits. sublength = length/n
         subfault_params['width'] = subwidth     #subwidth = width/m, same for each subfault.
         subfault_params['slip'] = slip
-        subfault_params['rake'] = rake
+        subfault_params['rake'] = (rake + rake_offset)
 
         return subfault_params
 
@@ -771,15 +774,15 @@ class ReferenceCurveFault(BaseFault):
 
         Parameters
         ----------
-        lat : float
+        lat : float or np.array (n,1)
             The latitude coordinate (degrees) near the fault.
             is to be calculated.
-        lon : float
+        lon : float or np.array (n,1)
             The latitude coordinate (degrees) near the fault.
 
         Returns
         -------
-        mean : float
+        mean : float or np.array(n,)
             The computed weighted mean for the strike angles. (degrees)
         """
         distances = haversine(
@@ -798,10 +801,10 @@ class ReferenceCurveFault(BaseFault):
 
         Parameters
         ----------
-        lat : float
+        lat : float or np.array (n,1)
             The latitude coordinate (degrees) near the fault.
             is to be calculated.
-        lon : float
+        lon : float or np.array (n,1)
             The latitude coordinate (degrees) near the fault.
         retside : bool
             A boolean flag that determines whether the function also returns
@@ -811,9 +814,9 @@ class ReferenceCurveFault(BaseFault):
 
         Returns
         -------
-        depth : float
+        depth : float or np.array (n,)
             The interpolated depth (in meters) for the given coordinate.
-        side : signed int
+        side : signed int or np.array (n,)
             (Optionally) Returns 1 if the given point is dipward of the fault,
             -1 if antidipward.
         """
@@ -851,15 +854,15 @@ class ReferenceCurveFault(BaseFault):
 
         Parameters
         ----------
-        lat : float
+        lat : float or np.array (n,1)
             The latitude coordinate (degrees) near the fault.
             is to be calculated.
-        lon : float
+        lon : float or np.array (n,1)
             The latitude coordinate (degrees) near the fault.
 
         Returns
         -------
-        dip : float
+        dip : float or np.array (n,)
             The interpolated dip (in degrees) for the given coordinate.
         """
         distance,idx = self.distance(lat,lon,retclose=True)

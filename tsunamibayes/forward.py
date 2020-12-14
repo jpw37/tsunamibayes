@@ -6,6 +6,7 @@ from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
 
+#TODO : Add a section for the shaking model here. 
 class BaseForwardModel:
     """A parent class giving the outline for other subclasses to run the forward model."""
     def __init__(self,gauges):
