@@ -39,11 +39,11 @@ class MultiFault(BaseFault):
             if hasattr(fault, 'distance'):
                 dists[j] = fault.distance(lat,lon)
             else:
-                dists[j] = self._distance(j, lat, lon)
+                dists[j] = self._distance(lat, lon, j)
         return np.argmin(dists,axis=0)
 
 
-    def _distance(self, fault_idx, lat, lon):
+    def _distance(self, lat, lon, fault_idx):
         """Compute the distance from (lat, lon) to self.faults[fault_idx]."""
         fault = self.faults[fault_idx]
         distances = haversine(lat,lon,fault.latpts,fault.lonpts)
@@ -99,3 +99,7 @@ class MultiFault(BaseFault):
                 idx = np.where(fault_indices == j)[0]
                 dip[idx] = fault.dip_map(lat[idx],lon[idx])
         return dip.reshape(lat.shape)
+
+    def subfault_split(self,sample_params,fault_idx):
+        """Computes subfault_split for self.faults[fault_idx]."""
+        return faults[fault_idx].subfault_split_RefCurve(**sample_params)

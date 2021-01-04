@@ -130,8 +130,13 @@ def setup(config):
     ]
 
     prior = [
+<<<<<<< Updated upstream
         SulawesiPrior(latlon,dip_dist,rake_dist,mag,delta_logl,delta_logw,depth_offset,dip_offset,rake_offset),
         SulawesiPrior(),            #TODO : Did we need to add something else here?
+=======
+        SulawesiPrior(latlon,mag,delta_logl,delta_logw,depth_offset),
+        SulawesiPrior(latlon[FAULT.WALANAE],mag[FAULT.WALANAE],delta_logl[FAULT.WALANAE],delta_logw[FAULT.WALANAE],depth_offset[FAULT.WALANAE]),
+>>>>>>> Stashed changes
     ]
 
     # load gauges

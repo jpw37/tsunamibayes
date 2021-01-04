@@ -83,7 +83,7 @@ class BaseFault:
                 lat2,lon2 = displace(lat2,lon2,bearing2,length_step)    #Takes a small step along bearing2.
                 bearing1 = self.strike_map(lat1, lon1)                  #Calculates new strike angle for bearing1 based on lat/lon of step. Returns just a scalar!
                 bearing2 = (self.strike_map(lat2, lon2)-180)%360        #Calculates new strike angle for bearing2 based on lat/lon of step.
-            lats[(n-1)//2+i] = lat1         #After the loop has taken n_steps, add the calculated lat coordinate to the index for the above split.                
+            lats[(n-1)//2+i] = lat1         #After the loop has taken n_steps, add the calculated lat coordinate to the index for the above split.
             lats[(n-1)//2-i] = lat2         #Same as above, adds the lat coordinate to the index of the split below the center point.
             lons[(n-1)//2+i] = lon1         #Same as above, just for lon. Notice how we are layering around the center point as we move away.
             lons[(n-1)//2-i] = lon2         #THESE ARRAYS ARE ALL size (n,)
@@ -96,7 +96,7 @@ class BaseFault:
         Lons = np.empty((m,n))
         Strikes = np.empty((m,n))                   #YEAH LET'S NOT JUST CAPATILZE THIS STUFF...
         Dips = np.empty((m,n))
-        Lats[(m-1)//2] = lats                       #Assigns array of lats from the strikeward (n-axis) calculations to middle row of Lats.                      
+        Lats[(m-1)//2] = lats                       #Assigns array of lats from the strikeward (n-axis) calculations to middle row of Lats.
         Lons[(m-1)//2] = lons                       #Same as above, same action for Lats, Lons, Strikes, and Dips.
         Strikes[(m-1)//2] = strikes                 #These np.arrays are size (n,)
         Dips[(m-1)//2] = dips
@@ -104,7 +104,7 @@ class BaseFault:
         # add dipward and antidipward centers
 
         #WHY DO WE CALCULATE THE DIP HERE, BUT NOT FOR THE N-AXIS?
-        templats1,templons1 = lats.copy(),lons.copy()   #Copies the lats, lons, and dips as placeholder variables as we expand in the m-axis using our step size. 
+        templats1,templons1 = lats.copy(),lons.copy()   #Copies the lats, lons, and dips as placeholder variables as we expand in the m-axis using our step size.
         templats2,templons2 = lats.copy(),lons.copy()
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,(m - 1)//2+1):                 #Iterate over the dipward/antidipward axis (m-axis)
@@ -600,6 +600,16 @@ class ReferenceCurveFault(BaseFault):
         self.depth_curve = depth_curve
         self.dip_curve = dip_curve
         self.smoothing = smoothing
+
+    @staticmethod
+    def gaussian_process_interp(lat,lon,y):
+        """Trains a gaussian process regressor on the given latitudes and longitudes,
+        with sample data y. The sample data y could represent depths, dips, strikes,
+        or any other data associated with that latitude/long
+
+
+        """
+        pass
 
     @staticmethod #Probably obsolete, we shoudn't need this too much...
     def quad_interp(x,y):

@@ -143,7 +143,9 @@ class LatLonPrior(BasePrior):
                                                     length,
                                                     width,
                                                     1,
-                                                    sample['depth_offset'])
+                                                    sample['depth_offset'],
+                                                    sample['rake_offset'],
+                                                    sample['dip_offset'])
 
         if subfault_params.isnull().values.any():
             return np.NINF
@@ -181,7 +183,9 @@ class LatLonPrior(BasePrior):
                                                     length,
                                                     width,
                                                     1,
-                                                    sample['depth_offset'])
+                                                    sample['depth_offset'],
+                                                    sample['rake_offset'],
+                                                    sample['dip_offset'])
 
         if out_of_bounds(subfault_params,self.fault.bounds):
             return 0
