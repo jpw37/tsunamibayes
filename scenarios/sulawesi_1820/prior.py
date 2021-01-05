@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from tsunamibayes import BasePrior
 from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 

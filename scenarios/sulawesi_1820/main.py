@@ -2,9 +2,9 @@ import numpy as np
 import scipy.stats as stats
 import json
 import tsunamibayes as tb
-from prior import LatLonPrior, BandaPrior
+from prior import LatLonPrior, SulawesiPrior            #Forgot to change this
 from gauges import build_gauges
-from scenario import SulawesiScenario, MultiFaultScenarios
+from scenario import SulawesiScenario, MultiFaultScenario
 from enum import IntEnum
 
 class FAULT(IntEnum): # Don't know if we'll need this. Maybe.
@@ -29,7 +29,7 @@ def setup(config):
     #Flores and Walinae fault objects
     fault_initialization_data = np.load(config.fault['grid_data_path']) # TODO: This will need to contain dictionaries/arrays to initialize both fault objects.
     fault = [
-        tb.ReferenceCurveFault(bounds=mb, **init) for mb, init in zip(
+        tb.fault.ReferenceCurveFault(bounds=mb, **init) for mb, init in zip(
             config.model_bounds, fault_initialization_data
         )
     ]
@@ -41,46 +41,25 @@ def setup(config):
     depth_std = [config.prior['depth_std_flo'], config.prior['depth_std_wal']]
     mindepth = [config.prior['mindepth_flo'], config.prior['mindepth_wal']]
     maxdepth = [config.prior['maxdepth_flo'], config.prior['maxdepth_wal']]
+
     lower_bound_depth = [
         (md-dmu)/dstd for md, dmu, dstd in zip(mindepth, depth_mu, depth_std)
     ]
+
     upper_bound_depth = [
         (md-dmu)/dstd for md, dmu, dstd in zip(maxdepth, depth_mu, depth_std)
     ]
+
     depth_dist = [
         stats.truncnorm(lb,ub,loc=dmu,scale=dstd) for lb,ub,dmu,dstd in zip(
             lower_bound_depth, upper_bound_depth, depth_mu, depth_std
         )
     ]
+
     latlon = [
         LatLonPrior(fault[FAULT.FLORES], depth_dist[FAULT.FLORES]),
         LatLonPrior(fault[FAULT.WALANAE], depth_dist[FAULT.WALANAE])
     ]
-
-    # dip distrubution
-    dip_mu = [config.prior['dip_mu_flo'], config.prior['dip_mu_wal']]
-    dip_std = [config.prior['dip_std_flo'], config.prior['dip_std_wal']]
-    mindip = [config.prior['mindip'], config.prior['mindip']]
-    maxdip = [config.prior['maxdip'], config.prior['maxdip']]
-    lower_bound_dip = [
-        (mdip-dipmu)/dipstd for mdip, dipmu, dipstd in zip(mindip, dip_mu, dip_std)
-    ]
-    upper_bound_dip = [
-        (mdip-dipmu)/dipstd for mdip, dipmu, dipstd in zip(maxdip, dip_mu, dip_std)
-    ]
-
-    dip_dist = [        #TODO Figure out where we are going to use this.
-        stats.truncnorm(lb_dip,ub_dip,loc=dipmu,scale=dipstd) for lb_dip,ub_dip,dipmu,dipstd in zip(
-            lower_bound_dip, upper_bound_dip, dip_mu, dip_std
-        )
-    ]
-
-    # rake distribution
-    rake_dist = [   #TODO, figure out where to put this as well. 
-        stats.norm(loc=config.prior['rake_mu_flo'], scale=config.prior['rake_std_flp']),
-        stats.norm(loc=config.prior['rake_mu_wal'], scale=config.prior['rake_std_wal'])
-    ]
-    
 
     # magnitude
     mag = [
@@ -130,13 +109,22 @@ def setup(config):
     ]
 
     prior = [
-<<<<<<< Updated upstream
-        SulawesiPrior(latlon,dip_dist,rake_dist,mag,delta_logl,delta_logw,depth_offset,dip_offset,rake_offset),
-        SulawesiPrior(),            #TODO : Did we need to add something else here?
-=======
-        SulawesiPrior(latlon,mag,delta_logl,delta_logw,depth_offset),
-        SulawesiPrior(latlon[FAULT.WALANAE],mag[FAULT.WALANAE],delta_logl[FAULT.WALANAE],delta_logw[FAULT.WALANAE],depth_offset[FAULT.WALANAE]),
->>>>>>> Stashed changes
+        SulawesiPrior(  latlon[FAULT.FLORES],
+                        mag[FAULT.FLORES],
+                        delta_logl[FAULT.FLORES],
+                        delta_logw[FAULT.FLORES],
+                        depth_offset[FAULT.FLORES],
+                        dip_offset[FAULT.FLORES],
+                        rake_offset[FAULT.FLORES]
+                    ) ,
+
+        SulawesiPrior(  latlon[FAULT.WALANAE],
+                        mag[FAULT.WALANAE],
+                        delta_logl[FAULT.WALANAE],
+                        delta_logw[FAULT.WALANAE],
+                        depth_offset[FAULT.WALANAE],
+                        dip_offset[FAULT.FLORES],
+                        rake_offset[FAULT.FLORES])
     ]
 
     # load gauges
@@ -251,7 +239,7 @@ if __name__ == "__main__":
     # initialize new chain
     else:
         if config.init['method'] == 'manual':
-            u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
+            u0 = {key:val for key,val in config.init.items() if key in scenarios.sample_cols}
             scenarios.init_chain(args.fault_idx, u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
@@ -260,7 +248,7 @@ if __name__ == "__main__":
                 verbose=args.verbose
             )
 
-    scenario.sample(
+    scenarios.sample(
         args.fault_idx,
         args.n_samples,
         output_dir=args.output_dir,
