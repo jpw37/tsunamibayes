@@ -26,7 +26,7 @@ class BandaScenario(BaseScenario):
         self.fault = forward_model.fault
         self.cov = covariance
 
-    def propose(self,sample):
+    def propose(self,sample,mode='random_walk',delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.
         
         Parameters
@@ -35,6 +35,10 @@ class BandaScenario(BaseScenario):
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
             'delta_logw', and 'depth_offset' with their associated float values.
+        mode : str
+            The desired mcmc algorithm ('random_walk' and 'mala' are supported)
+        delta : float
+            Step size (only for the mala mcmc method)
 
         Returns
         -------
@@ -43,7 +47,14 @@ class BandaScenario(BaseScenario):
             to produce proposal values for lat, long, mag, etc. 
         """
         proposal = sample.copy()
-        proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
+        if mode == 'random_walk':
+            proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
+        elif mode == 'mala':
+            v = np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
+            proposal += -delta**2/2 * dU(proposal) + delta * v #TODO implement gradient of U
+        else:
+            raise ValueError('Invalid Parameter, use \'random_walk\' or \'mala\'')
+        
         return proposal
 
     def proposal_logpdf(self,u,v):
