@@ -1,8 +1,10 @@
- import numpy as np
+from .gaussian_process_regressor import GPR
+import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
 from .utils import displace, haversine, bearing
+
 
 class BaseFault:
     """A class for data relating to the fault"""
@@ -954,3 +956,147 @@ class ReferenceCurveFault(BaseFault):
         weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
         return distances.min(), ReferenceCurveFault.circmean(self.strikepts,weights)%360
+
+
+class GaussianProcessFault(BaseFault):
+        """A class for fault-related data, where depth_map, dip_map, and
+        strike_map are found by training a Gaussian process on sample depth,
+        dip, and strike data.
+        """
+        def __init__(
+            self, lats, lons, depths, dips, strikes, bounds, kers, noise=None
+            ):
+            """Initializes all the necessary variables for the subclass.
+
+            Parameters
+            ----------
+            lats : (N,) ndarray
+                Array containing latitudes of points on the fault.
+            lons : (N,) ndarray
+                Array containing longitudes of points on the fault.
+            depths : (N,) ndarray
+                Array containing depth value at each latitude-longitude pair.
+            dips : (N,) ndarray
+                Array containing dip value at each latitude-longitude pair.
+            strikes : (N,) ndarray
+                Array containing strike value at each latitude-longitude pair.
+            bounds : dict
+                Dictionary containing the model bounds. Keys are 'lon_min',
+                'lon_max', 'lat_min', 'lat_max'.
+            kernels : dict
+                Dictionary containing the kernel functions for each of the
+                three Gaussian processes to fit. Keys are 'depth', 'dip', and
+                'strike'.
+            noise_levels : dict
+                Dictionary containing the noise level for each of the three
+                Gaussian processes. Keys are 'depth', 'dip', and 'strike'.
+                If
+            """
+            super().__init__(bounds)
+
+            if noise is None:
+                noise = {'depth': 1, 'dip': 1, 'strike': 1}
+
+            # Initialize the GPRs.
+            self.depth_gpr = GPR(
+                kernel=kers['depth'],
+                noise_level=noise['depth']
+            )
+            self.dip_gpr = GPR(
+                kernel=kers['dip'],
+                noise_level=noise['dip']
+            )
+            self.strike_gpr = GPR(
+                kernel=kers['strike'],
+                noise_level=noise['strike']
+            )
+
+            # Train each of the GPRs.
+            X = np.vstack([lats, lons]).T
+            self.depth_gpr.fit(X,depths)
+            self.dip_gpr.fit(X,dips)
+            self.strike_gpr.fit(X,strikes)
+
+
+        @classmethod
+        def from_file(cls, filename, bounds, kers, noise):
+            """Alternate constructor for the GaussianProcessFault class.
+
+            Parameters
+            ----------
+            filename : string
+                String containing the filepath to the .npz file containing the
+                necessary data.
+                The file is expected to be an .npz file with the following
+                attributes:
+                    lats : (N,) ndarray
+                    lons : (N,) ndarray
+                    depths : (N,) ndarray
+                    dips : (N,) ndarray
+                    strikes : (N,) ndarray
+            """
+            arrays = np.load(filename)
+            return cls(**arrays, bounds=bounds, kers=kers, noise=noise)
+
+
+        def strike_map(self,lat,lon,return_std=False):
+            """Computes the weighted mean strike angle.
+
+            Parameters
+            ----------
+            lat : float or np.array (n,1)
+                The latitude coordinate (degrees) near the fault.
+                is to be calculated.
+            lon : float or np.array (n,1)
+                The latitude coordinate (degrees) near the fault.
+
+            Returns
+            -------
+            mean : float or np.array(n,)
+                The computed weighted mean for the strike angles. (degrees)
+            """
+            latlon = np.vstack([lat, lon]).T
+            return self.strike_gpr.predict(latlon,return_std=return_std)
+
+
+        def depth_map(self,lat,lon,return_std=False):
+            """Computes the depth for a given lat-lon coordinate.
+
+            Parameters
+            ----------
+            lat : float or np.array (n,1)
+                The latitude coordinate (degrees) near the fault.
+                is to be calculated.
+            lon : float or np.array (n,1)
+                The latitude coordinate (degrees) near the fault.
+
+            Returns
+            -------
+            depth : float or np.array (n,)
+                The interpolated depth (in meters) for the given coordinate.
+            side : signed int or np.array (n,)
+                (Optionally) Returns 1 if the given point is dipward of the
+                fault, -1 if antidipward.
+            """
+            latlon = np.vstack([lat, lon]).T
+            return self.depth_gpr.predict(latlon,return_std=return_std)
+
+
+        def dip_map(self,lat,lon,return_std=False):
+            """Computes the dip for a given lat-lon coordinate.
+
+            Parameters
+            ----------
+            lat : float or np.array (n,1)
+                The latitude coordinate (degrees) near the fault.
+                is to be calculated.
+            lon : float or np.array (n,1)
+                The latitude coordinate (degrees) near the fault.
+
+            Returns
+            -------
+            dip : float or np.array (n,)
+                The interpolated dip (in degrees) for the given coordinate.
+            """
+            latlon = np.vstack([lat, lon]).T
+            return self.dip_gpr.predict(latlon,return_std=return_std)
