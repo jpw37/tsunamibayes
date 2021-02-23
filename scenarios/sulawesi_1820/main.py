@@ -29,8 +29,13 @@ def setup(config):
     #Flores and Walinae fault objects
     fault_initialization_data = np.load(config.fault['grid_data_path']) # TODO: This will need to contain dictionaries/arrays to initialize both fault objects.
     fault = [
-        tb.fault.ReferenceCurveFault(bounds=mb, **init) for mb, init in zip(
-            config.model_bounds, fault_initialization_data
+        tb.GaussianProcessFault( # The Flores fault uses a GaussianProcessFault
+            bounds=config.model_bounds[FAULT.FLORES],
+            **fault_initialization_data[FAULT.FLORES]
+        ),
+        tb.ReferenceCurveFault( # The Walanae fault uses a ReferenceCurveFault
+            bounds=config.model_bounds[FAULT.WALANAE],
+            **fault_initialization_data[FAULT.WALANAE]
         )
     ]
 

@@ -6,7 +6,7 @@ from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 
 class SulawesiPrior(BasePrior):
     """The child class of Base Prior that creates a prior distribution,
-    specifically for the Banda 1852 event."""
+    specifically for the Banda 1820 event."""
     def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset,dip_offset,rake_offset):
         """Initializes all the necessary variables for the subclass.
 

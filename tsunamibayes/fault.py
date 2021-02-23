@@ -1,4 +1,4 @@
-import numpy as np
+ import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
@@ -274,7 +274,7 @@ class BaseFault:
         n : int
             Number of splits along length, Optional. Defaults to 11. MUST BE AN ODD NUMBER.
         m : int
-            Number of splits along width, Optional. Defaults to 3. MUST BE AN ODD NUMBER. 
+            Number of splits along width, Optional. Defaults to 3. MUST BE AN ODD NUMBER.
 
         Returns:
         --------
@@ -570,7 +570,7 @@ class ReferenceCurveFault(BaseFault):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
-        ---------
+        ----------
         latpts : (N,) ndarray
             Array containing latitudes of reference points on the fault
         lonpts : (N,) ndarray
@@ -601,15 +601,6 @@ class ReferenceCurveFault(BaseFault):
         self.dip_curve = dip_curve
         self.smoothing = smoothing
 
-    @staticmethod
-    def gaussian_process_interp(lat,lon,y):
-        """Trains a gaussian process regressor on the given latitudes and longitudes,
-        with sample data y. The sample data y could represent depths, dips, strikes,
-        or any other data associated with that latitude/long
-
-
-        """
-        pass
 
     @staticmethod #Probably obsolete, we shoudn't need this too much...
     def quad_interp(x,y):

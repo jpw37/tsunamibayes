@@ -131,8 +131,8 @@ class SulawesiScenario(BaseScenario):
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
         slip = calc_slip(sample['magnitude'],length,width)
-        strike = self.fault.strike_map(sample['latitude'],
-                                       sample['longitude'])
+        strike, strike_std = self.fault.strike_map(sample['latitude'],
+                                       sample['longitude'], return_std=True)
         dip = self.fault.dip_map(sample['latitude'],
                                  sample['longitude'])
         depth = self.fault.depth_map(sample['latitude'],
@@ -145,6 +145,7 @@ class SulawesiScenario(BaseScenario):
         model_params['length'] = length
         model_params['width'] = width
         model_params['slip'] = slip
+        # Multiply strike, dip, depth, by st. deviation of Gaussian process
         model_params['strike'] = strike
         model_params['dip'] = dip
         model_params['dip_offset'] = sample['dip_offset']
