@@ -3,7 +3,7 @@ import scipy.stats as stats
 
 def build_gauges():
     """Creates gauge object for each observation point's data and appends each to a list.
-    
+
     Returns
     -------
     gauges : (list) of Gauge objects
@@ -58,7 +58,7 @@ def build_gauges():
     gauge.lat = -3.543
     gauge.lon = 128.557
     gauges.append(gauge)
-    
+
     # Saparua
     name = 'Saparua'
     dists = dict()
