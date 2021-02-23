@@ -27,10 +27,22 @@ def setup(config):
     BandaScenario : BandaScenario object
     """
     #Flores and Walinae fault objects
-    fault_initialization_data = np.load(config.fault['grid_data_path']) # TODO: This will need to contain dictionaries/arrays to initialize both fault objects.
+    fault_initialization_data = np.load(
+        np.load(config.fault['flores_data_path']),
+        np.load(config.fault['walanae_data_path'], allow_pickle=True)
+    ]
+    # Initialize the kernel for the Gaussian process fault. Strike, dip and
+    #  depth will use the same kernel (the RBF kernel).
+    flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
     fault = [
         tb.GaussianProcessFault( # The Flores fault uses a GaussianProcessFault
             bounds=config.model_bounds[FAULT.FLORES],
+            kers={
+                'depth': flores_kernel,
+                'dip': flores_kernel,
+                'strike': flores_kernel,
+            },
+            noise={'depth': 1, 'dip': 1, 'strike': 1},
             **fault_initialization_data[FAULT.FLORES]
         ),
         tb.ReferenceCurveFault( # The Walanae fault uses a ReferenceCurveFault
