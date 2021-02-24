@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from tsunamibayes import BaseScenario
-from tsunamibayes.utils import calc_length, calc_width, calc_slip
+from tsunamibayes.utils import calc_length, calc_width, calc_slip, dU
 
 class BandaScenario(BaseScenario):
     sample_cols = ['latitude','longitude','magnitude','delta_logl','delta_logw',
@@ -51,7 +51,7 @@ class BandaScenario(BaseScenario):
             proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
         elif mode == 'mala':
             v = np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
-            proposal += -delta**2/2 * dU(proposal) + delta * v #TODO implement gradient of U
+            proposal += -delta**2/2 * dU(proposal) + delta * v
         else:
             raise ValueError('Invalid Parameter, use \'random_walk\' or \'mala\'')
         

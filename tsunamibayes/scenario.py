@@ -3,6 +3,7 @@ import time
 from datetime import timedelta
 import numpy as np
 import pandas as pd
+from tsunamibayes.utils import dU, naive_gradient_setup
 
 class BaseScenario:
     """Base class for running a tsunamibayes scenario. Contains the essential
@@ -216,6 +217,8 @@ class BaseScenario:
         if output_dir is not None:
             if not os.path.exists(output_dir): os.mkdir(output_dir)
             self.save_data(output_dir)
+        if mode == 'mala':
+            naive_gradient_setup()
 
         chain_start = time.time()
         j = 0
@@ -268,11 +271,11 @@ class BaseScenario:
                     alpha = np.exp(alpha)
                     accepted = (np.random.rand() < alpha)
                 elif mode == 'mala':
-                    U_current = self.bayes_data.loc[i-1]["posterior_logpdf"]
-                    U_proposal = prior_logpdf + llh
-                    # TODO Implement gradient of U (dU) for current and proposed
-                    alpha = -U_proposal -1/(2*delta**2) * np.linalg.norm((x0 - x1 + delta**2/2*dU(x1)).astype(float))**2 +\
-                            U_current + 1/(2*delta**2) * np.linalg.norm((x1 - x0 + delta**2/2*dU(x0)).astype(float))**2
+                    U_0 = self.bayes_data.loc[i-1]["posterior_logpdf"]
+                    U_1 = prior_logpdf + llh
+                    x1, x0 = self.samples.loc[i], self.samples.loc[i-1]
+                    alpha = -U_1 -1/(2*delta**2) * np.linalg.norm((x0 - x1 + delta**2/2*dU(x1)))**2 +\
+                            U_0 + 1/(2*delta**2) * np.linalg.norm((x1 - x0 + delta**2/2*dU(x0)))**2
                     alpha = min(1, alpha)
                     accepted = np.log(np.random.uniform()) <= alpha
                 else:

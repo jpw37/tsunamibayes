@@ -114,6 +114,9 @@ if __name__ == "__main__":
             scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenario.init_chain(method='prior_rvs',verbose=args.verbose)
-  
-    scenario.sample(args.n_samples,output_dir=args.output_dir,
+    if config.init['mcmc_mode'] == 'random_walk':
+        scenario.sample(args.n_samples,output_dir=args.output_dir,
+                    save_freq=args.save_freq,verbose=args.verbose)
+    elif config.init['mcmc_mode'] == 'mala':
+        scenario.sample(args.n_samples,mode='mala',delta=config.mala[delta],output_dir=args.output_dir,
                     save_freq=args.save_freq,verbose=args.verbose)

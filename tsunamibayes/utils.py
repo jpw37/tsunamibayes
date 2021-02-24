@@ -1,4 +1,8 @@
 import numpy as np
+import sympy as sy
+from sympy.functions.elementary.complexes import Abs
+from sympy.functions.elementary.trigonometric import asin
+from sympy.functions.elementary.exponential import log
 import re
 from ast import literal_eval
 import argparse
@@ -83,6 +87,87 @@ def bearing(lat1, lon1, lat2, lon2):
     x = np.cos(lat2)*np.sin(lon2-lon1)
     y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
     return np.degrees(np.arctan2(x,y))%360
+
+naive_gradient_frozen = None
+
+def naive_gradient_setup():
+    """Use the simplified tsunami formula to compute the gradient
+    
+    Parameters
+    ----------
+    sample : pandas.Series
+        Sample parameters (lat,lon,mag,dll,dlw,depth_offset)
+    
+    Returns
+    -------
+    gradient : numpy array
+        The computed gradient
+    """
+    # Variables
+    delta_logl, delta_logw, lat, lon, mag = sy.symbols('delta_logl delta_logw lat lon mag')
+
+    # Constants
+    mu = 4e10 # Scaling factor, found in code as 4e10 by default and never changed
+    earth_rad = 6.3781e6 # meters
+    H_bar = 10_000 # TODO Calculate actualy average height
+    H_0 = 28_000 # TODO Look up actual depth at lat,lon
+    H = 1 # Can be assumed to be 1 
+    theta, phi = np.radians(22.3), np.radians(90) #22.3, 90 # TODO Look up actual dip and rake using lat and lon
+    alpha = (1-theta/180) * sy.sin(theta) * Abs(sy.sin(phi))
+    # gauge_lat, gauge_lon = -4.5248, 129.8965 # Pulu Ai Coords TODO use actual gauge lat and lon for each gauge location
+    gauge_lat, gauge_lon = -3.576, 128.657 # Saparua Coords
+
+    # Formulas
+    length = sy.Pow(10, 0.5233956445903871 * mag + 1.0974498706605313 + delta_logl)
+    width = sy.Pow(10, 0.29922483873212863 * mag + 2.608734705074858 + delta_logw)
+    slip = sy.Pow(10, 1.5 * mag + 9.05 - log(mu * length * width, 10))
+    psi = 0.5 + 0.575 * sy.exp(-0.0175 * length / H_bar)
+    to_rad = lambda x: sy.pi * x / 180
+
+    R = 2 * earth_rad * asin(sy.sqrt(
+                sy.Pow(sy.sin(0.5*(to_rad(lat) - to_rad(gauge_lat))), 2)
+                + sy.cos(to_rad(lat)) * sy.cos(to_rad(gauge_lat)) 
+                * sy.Pow(sy.sin(0.5*(to_rad(lon) - to_rad(gauge_lon))), 2)))
+
+    # Combined formula for mean wave height
+    denom = sy.cosh((4 * sy.pi * H_0) / (width + length))
+    A = ((alpha * slip) / denom) * sy.Pow(1 + (2*R / length), -psi) * (H_0 / H)**(1/4)
+    
+    dh_dlat = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lat))
+    dh_dlon = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lon))
+    dh_dmag = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, mag))
+    dh_ddll = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logl))
+    dh_ddlw = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logw))
+    # set derivative of depth offset to 0
+    dh_ddo = lambda x: 0
+
+    global naive_gradient_frozen
+
+    naive_gradient_frozen = [dh_dlat,dh_dlon,dh_dmag,dh_ddll,dh_ddlw,dh_ddo]
+
+def dU(sample,mode='naive'):
+    """Compute the gradient for the U function (logprior + llh)
+    for the mala mcmc method
+
+    Parameters
+    ----------
+    sample : pandas.Series
+        Sample parameters (lat,lon,mag,dll,dlw,depth_offset)
+    
+    Returns
+    -------
+    gradient : numpy array
+        The computed gradient
+    """
+    if mode == 'naive':
+        
+        # This if statement is for debugging only, can be deleted
+        if naive_gradient_frozen == None:
+            raise ValueError('naive_gradient_frozen is None')
+
+        return np.array([naive_gradient_frozen[i](sample.iloc[i]) for i in range(len(sample))])
+    else:
+        raise ValueError('Invalid mode, try \'naive\'')
 
 def displace(lat, lon, bearing, distance):
     """Compute the lat-lon coordinates of a point on a sphere after the displacement of a given point
