@@ -10,94 +10,50 @@ def build_gauges():
     """
     gauges = list()
 
-    # Pulu Ai
-    name = 'Pulu Ai'
+    # Bulukumba
+    name = 'Bulukumba'
     dists = dict()
-    dists['height'] = stats.norm(loc=3,scale=0.8)
+    dists['height'] = stats.norm(loc=24,scale=5)
+    dists['arrival'] = stats.norm(loc=15,scale=10)
     gauge = Gauge(name,dists)
-    gauge.lat = -4.5175
-    gauge.lon = 129.775
+    gauge.lat = -5.565079
+    gauge.lon = 120.192826
     gauges.append(gauge)
 
-    # Ambon
-    name = 'Ambon'
+    # Sumenep
+    name = 'Sumenep'
     dists = dict()
-    dists['height'] = stats.norm(loc=1.8,scale=0.4)
+    dists['height'] = stats.truncnorm(loc=1.5,scale=1,a=-1,b=4)
+    dists['arrival'] = stats.norm(loc=240,scale=45)
     gauge = Gauge(name,dists)
-    gauge.lat = -3.691
-    gauge.lon = 128.178
+    gauge.lat = -7.049969
+    gauge.lon = 113.908203
     gauges.append(gauge)
 
-    # Banda Neira
-    name = 'Banda Neira'
+
+    # Nipa-Nipa
+    name = 'Nipa-Nipa'
     dists = dict()
-    dists['arrival'] = stats.skewnorm(a=2,loc=15,scale=5)
-    dists['height'] = stats.norm(loc=6.5,scale=1.5)
-    dists['inundation'] = stats.norm(loc=185,scale=65)
+    dists['height'] = stats.truncnorm(loc=3,scale=2,a=-1,b=4)
+    dists['inundation'] = stats.norm(135,20)
     gauge = Gauge(name,dists)
-    gauge.lat = -4.5248
-    gauge.lon = 129.8965
-    gauge.beta = 4.253277987952933
-    gauge.n = 0.06
+    gauge.lat = -5.567525
+    gauge.lon = 120.011503
     gauges.append(gauge)
 
-    # Buru
-    name = 'Buru'
+    # Bima
+    name = 'Bima'
     dists = dict()
-    dists['height'] = stats.chi(df=1.01,loc=0.5,scale=1.5)
+    dists['height'] = stats.truncnorm(loc=10,scale=4,a=-2,b=4)
     gauge = Gauge(name,dists)
-    gauge.lat = -3.3815
-    gauge.lon = 127.113
+    gauge.lat =  -8.443485 # Note: this is within the town
+    gauge.lon = 118.716085
     gauges.append(gauge)
 
-    # Hulaliu
-    name = 'Hulaliu'
-    dists = dict()
-    dists['height'] = stats.chi(df=1.01,loc=0.5,scale=2.0)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.543
-    gauge.lon = 128.557
-    gauges.append(gauge)
-
-    # Saparua
-    name = 'Saparua'
-    dists = dict()
-    dists['arrival'] = stats.norm(loc=45,scale=5)
-    dists['height'] = stats.norm(loc=5,scale=1)
-    dists['inundation'] = stats.norm(loc=125,scale=40)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.576
-    gauge.lon = 128.657
-    gauge.beta = 1.1067189507222546
-    gauge.n = 0.06
-    gauges.append(gauge)
-
-    # Kulur
-    name = 'Kulur'
-    dists = dict()
-    dists['height'] = stats.norm(loc=3,scale=1)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.501
-    gauge.lon = 128.562
-    gauges.append(gauge)
-
-    # Ameth
-    name = 'Ameth'
-    dists = dict()
-    dists['height'] = stats.norm(loc=3,scale=1)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.6455
-    gauge.lon = 128.807
-    gauges.append(gauge)
-
-    # Amahai
-    name = 'Amahai'
-    dists = dict()
-    dists['height'] = stats.norm(loc=3.5,scale=1)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.338
-    gauge.lon = 128.921
-    gauges.append(gauge)
+    # Makassar
+    # Actually, there is no recording of an event in Makassar.
+    # Rather than treat this as evidence of lack of tsunami, we
+    # omit it entirely.
 
     return gauges
 
