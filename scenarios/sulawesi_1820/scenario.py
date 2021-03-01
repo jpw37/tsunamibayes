@@ -3,7 +3,6 @@ import pandas as pd
 from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
 
-
 class MultiFaultScenario():
     def __init__(self,scenarios):
         """Wrapper for multiple scenarios."""
@@ -35,9 +34,8 @@ class SulawesiScenario(BaseScenario):
         'delta_logl',
         'delta_logw',
         'depth_offset',
-        'rake_offset',
         'dip_offset',
-        'fault_idx'
+        'strike_offset',
     ]
     model_param_cols = [
         'latitude',
@@ -50,11 +48,11 @@ class SulawesiScenario(BaseScenario):
         'depth',
         'rake',
         'depth_offset',
-        #'rake_offset', # TODO: do rake and dip offsets need to be Okada parameters?
-        #'dip_offset',
+        'rake_offset', # TODO: do rake and dip offsets need to be Okada parameters?
+        'dip_offset',
     ]
 
-    def __init__(self,prior,forward_model,covariance):
+    def __init__(self,prior,forward_model,covariance,fault_enum):
         """Initializes all the necessary variables for the BandaScenario subclass.
 
         Parameters
@@ -70,6 +68,7 @@ class SulawesiScenario(BaseScenario):
         super().__init__(prior,forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
+        self.FAULT_ENUM = fault_enum
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.
@@ -131,13 +130,38 @@ class SulawesiScenario(BaseScenario):
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
         slip = calc_slip(sample['magnitude'],length,width)
-        strike, strike_std = self.fault.strike_map(sample['latitude'],
-                                       sample['longitude'], return_std=True)
-        dip = self.fault.dip_map(sample['latitude'],
-                                 sample['longitude'])
-        depth = self.fault.depth_map(sample['latitude'],
+        if self.FAULT_ENUM == 0: # If we are on the Flores fault:
+            strike, strike_std = self.fault.strike_map(
+                sample['latitude'],
+                sample['longitude'],
+                return_std=True
+            )
+            dip, dip_std = self.fault.dip_map(
+                sample['latitude'],
+                sample['longitude'],
+                return_std=True
+            )
+            depth, depth_std = self.fault.depth_map(
+                sample['latitude'],
+                sample['longitude'],
+                return_std=True
+            )
+            rake = 90
+
+            # Multiply strike, dip, depth offsets by standard deviation of
+            #  Gaussian process
+            sample['depth_offset'] *= 2*depth_std
+            sample['dip_offset'] *= 2*dip_std
+            sample['strike_offset'] *= 2*strike_std
+
+        else:
+            strike = self.fault.strike_map(sample['latitude'],
+                                           sample['longitude'])
+            dip = self.fault.dip_map(sample['latitude'],
                                      sample['longitude'])
-        rake = 90
+            depth = self.fault.depth_map(sample['latitude'],
+                                         sample['longitude'])
+            rake = 90
 
         model_params = dict()           #TODO : Would we need to add dip_offset and rake_offset as Okada or model parameters?
         model_params['latitude'] = sample['latitude']
@@ -145,12 +169,12 @@ class SulawesiScenario(BaseScenario):
         model_params['length'] = length
         model_params['width'] = width
         model_params['slip'] = slip
-        # Multiply strike, dip, depth, by st. deviation of Gaussian process
         model_params['strike'] = strike
+        model_params['strike_offset'] = sample['strike_offset']
         model_params['dip'] = dip
         model_params['dip_offset'] = sample['dip_offset']
         model_params['depth'] = depth
         model_params['depth_offset'] = sample['depth_offset']
         model_params['rake'] = rake
-        model_params['rake_offset'] = sample['rake_offset']
+
         return model_params
