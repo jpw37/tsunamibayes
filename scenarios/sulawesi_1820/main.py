@@ -1,7 +1,9 @@
 import numpy as np
 import scipy.stats as stats
 import json
+import pickle
 import tsunamibayes as tb
+from tsunamibayes.gaussian_process_regressor import GPR
 from prior import LatLonPrior, SulawesiPrior            #Forgot to change this
 from gauges import build_gauges
 from scenario import SulawesiScenario, MultiFaultScenario
@@ -10,6 +12,22 @@ from enum import IntEnum
 class FAULT(IntEnum): # Don't know if we'll need this. Maybe.
     FLORES = 0
     WALANAE = 1
+
+
+# Dip angle assumed to be 25 degrees.
+def walanae_dip(x):
+    return np.ones(np.shape(x))*25
+
+
+# Depths are assumed to be 20 km.
+def walanae_depth(dist):
+    """Gives depth based on distance from fault.
+    A negative distance is higher than the base fault depth.
+    """
+    base_depth = 20000
+    extra_depth = dist*np.tan(np.deg2rad(walanae_dip(dist)))
+    return base_depth - extra_depth
+
 
 def setup(config):
     """Extracts the data from the config object to create the BandaFault object,
@@ -26,17 +44,20 @@ def setup(config):
     -------
     BandaScenario : BandaScenario object
     """
-    #Flores and Walinae fault objects
-    fault_initialization_data = np.load(
+    #Flores and Walanae fault objects
+    with open(config.fault['walanae_data_path'], 'rb') as file:
+        walanae_initialization_data = pickle.load(file)
+
+    fault_initialization_data = [
         np.load(config.fault['flores_data_path']),
-        np.load(config.fault['walanae_data_path'], allow_pickle=True)
+        walanae_initialization_data
     ]
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
     flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
     fault = [
-        tb.GaussianProcessFault( # The Flores fault uses a GaussianProcessFault
-            bounds=config.model_bounds[FAULT.FLORES],
+        tb.fault.GaussianProcessFault( # The Flores fault uses a GaussianProcessFault
+            bounds=config.model_bounds, # Model bounds are currently same for both
             kers={
                 'depth': flores_kernel,
                 'dip': flores_kernel,
@@ -45,8 +66,8 @@ def setup(config):
             noise={'depth': 1, 'dip': 1, 'strike': 1},
             **fault_initialization_data[FAULT.FLORES]
         ),
-        tb.ReferenceCurveFault( # The Walanae fault uses a ReferenceCurveFault
-            bounds=config.model_bounds[FAULT.WALANAE],
+        tb.fault.ReferenceCurveFault( # The Walanae fault uses a ReferenceCurveFault
+            bounds=config.model_bounds,
             **fault_initialization_data[FAULT.WALANAE]
         )
     ]
@@ -126,26 +147,28 @@ def setup(config):
     ]
 
     prior = [
-        SulawesiPrior(  latlon[FAULT.FLORES],
-                        mag[FAULT.FLORES],
-                        delta_logl[FAULT.FLORES],
-                        delta_logw[FAULT.FLORES],
-                        depth_offset[FAULT.FLORES],
-                        dip_offset[FAULT.FLORES],
-                        rake_offset[FAULT.FLORES]
-                    ) ,
-
-        SulawesiPrior(  latlon[FAULT.WALANAE],
-                        mag[FAULT.WALANAE],
-                        delta_logl[FAULT.WALANAE],
-                        delta_logw[FAULT.WALANAE],
-                        depth_offset[FAULT.WALANAE],
-                        dip_offset[FAULT.FLORES],
-                        rake_offset[FAULT.FLORES])
+        SulawesiPrior(
+            latlon[FAULT.FLORES],
+            mag[FAULT.FLORES],
+            delta_logl[FAULT.FLORES],
+            delta_logw[FAULT.FLORES],
+            depth_offset[FAULT.FLORES],
+            dip_offset[FAULT.FLORES],
+            rake_offset[FAULT.FLORES]
+        ),
+        SulawesiPrior(
+            latlon[FAULT.WALANAE],
+            mag[FAULT.WALANAE],
+            delta_logl[FAULT.WALANAE],
+            delta_logw[FAULT.WALANAE],
+            depth_offset[FAULT.WALANAE],
+            dip_offset[FAULT.WALANAE],
+            rake_offset[FAULT.WALANAE]
+        )
     ]
 
     # load gauges
-    gauges = build_gauges() # TODO: Ashley should be working on this.
+    gauges = build_gauges()
 
     # Forward model
     config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
@@ -210,12 +233,14 @@ def setup(config):
         SulawesiScenario(
             prior[FAULT.FLORES],
             forward_model[FAULT.FLORES],
-            covariance[FAULT.FLORES]
+            covariance[FAULT.FLORES],
+            FAULT.FLORES
         ),
         SulawesiScenario(
             prior[FAULT.WALANAE],
             forward_model[FAULT.WALANAE],
-            covariance[FAULT.WALANAE]
+            covariance[FAULT.WALANAE],
+            FAULT.WALANAE
         )
     ]
     return MultiFaultScenario(scenarios)
