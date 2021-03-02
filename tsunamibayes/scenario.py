@@ -226,7 +226,7 @@ class BaseScenario:
             if verbose: print("\n----------\nIteration {}".format(i)); start = time.time()
 
             # propose new sample from previous
-            proposal = self.propose(self.samples.loc[i-1],mode,delta)
+            proposal = self.propose(self.samples.loc[i-1],mode=mode,delta=delta)
             model_params = self.map_to_model_params(proposal)
             if verbose: print("Proposal:"); print(proposal)
 
