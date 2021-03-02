@@ -374,7 +374,7 @@ class BaseScenario:
                           proposal_bayes,
                           metro_hastings_data))
 
-    def propose(self,sample):
+    def propose(self,sample,mode='random_walk',delta=0.01):
         """Propose a new sample, perhaps dependent on the current sample.
         Must be implemented in inherited classes.
 
