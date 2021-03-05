@@ -158,7 +158,7 @@ def setup(config):
                         delta_logw[FAULT.FLORES],
                         depth_offset[FAULT.FLORES],
                         dip_offset[FAULT.FLORES],
-                        strike_offset[FAULT.FLORES]
+                        strike_offset[FAULT.FLORES],
                         rake_offset[FAULT.FLORES]
                     ) ,
 
@@ -168,7 +168,7 @@ def setup(config):
                         delta_logw[FAULT.WALANAE],
                         depth_offset[FAULT.WALANAE],
                         dip_offset[FAULT.WALANAE],
-                        strike_offset[FAULT.WALANAE]
+                        strike_offset[FAULT.WALANAE],
                         rake_offset[FAULT.WALANAE])
     ]
 
