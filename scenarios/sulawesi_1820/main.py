@@ -147,28 +147,26 @@ def setup(config):
     ]
 
     prior = [
-        SulawesiPrior(
-            latlon[FAULT.FLORES],
-            mag[FAULT.FLORES],
-            delta_logl[FAULT.FLORES],
-            delta_logw[FAULT.FLORES],
-            depth_offset[FAULT.FLORES],
-            dip_offset[FAULT.FLORES],
-            rake_offset[FAULT.FLORES]
-        ),
-        SulawesiPrior(
-            latlon[FAULT.WALANAE],
-            mag[FAULT.WALANAE],
-            delta_logl[FAULT.WALANAE],
-            delta_logw[FAULT.WALANAE],
-            depth_offset[FAULT.WALANAE],
-            dip_offset[FAULT.WALANAE],
-            rake_offset[FAULT.WALANAE]
-        )
+        SulawesiPrior(  latlon[FAULT.FLORES],
+                        mag[FAULT.FLORES],
+                        delta_logl[FAULT.FLORES],
+                        delta_logw[FAULT.FLORES],
+                        depth_offset[FAULT.FLORES],
+                        dip_offset[FAULT.FLORES],
+                        rake_offset[FAULT.FLORES]
+                    ) ,
+
+        SulawesiPrior(  latlon[FAULT.WALANAE],
+                        mag[FAULT.WALANAE],
+                        delta_logl[FAULT.WALANAE],
+                        delta_logw[FAULT.WALANAE],
+                        depth_offset[FAULT.WALANAE],
+                        dip_offset[FAULT.FLORES],
+                        rake_offset[FAULT.FLORES])
     ]
 
     # load gauges
-    gauges = build_gauges()
+    gauges = build_gauges() # TODO: Ashley should be working on this.
 
     # Forward model
     config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
@@ -217,30 +215,38 @@ def setup(config):
 
     # square for std => cov
     covariance = [
-        np.diag(np.square([a,b,c,d,e,f,g,h])) for a,b,c,d,e,f,g,h in zip([
-            lat_std,
-            lon_std,
-            mag_std,
-            delta_logl_std,
-            delta_logw_std,
-            depth_offset_std,
-            dip_offset_std,
-            rake_offset_std
-        ])
+        np.diag(np.square([
+            lat_std[FAULT.FLORES],
+            lon_std[FAULT.FLORES],
+            mag_std[FAULT.FLORES],
+            delta_logl_std[FAULT.FLORES],
+            delta_logw_std[FAULT.FLORES],
+            depth_offset_std[FAULT.FLORES],
+            dip_offset_std[FAULT.FLORES],
+            rake_offset_std[FAULT.FLORES]
+        ])),
+        np.diag(np.square([
+            lat_std[FAULT.WALANAE],
+            lon_std[FAULT.WALANAE],
+            mag_std[FAULT.WALANAE],
+            delta_logl_std[FAULT.WALANAE],
+            delta_logw_std[FAULT.WALANAE],
+            depth_offset_std[FAULT.WALANAE],
+            dip_offset_std[FAULT.WALANAE],
+            rake_offset_std[FAULT.WALANAE]
+        ]))
     ]
 
     scenarios = [
         SulawesiScenario(
             prior[FAULT.FLORES],
             forward_model[FAULT.FLORES],
-            covariance[FAULT.FLORES],
-            FAULT.FLORES
+            covariance[FAULT.FLORES]
         ),
         SulawesiScenario(
             prior[FAULT.WALANAE],
             forward_model[FAULT.WALANAE],
-            covariance[FAULT.WALANAE],
-            FAULT.WALANAE
+            covariance[FAULT.WALANAE]
         )
     ]
     return MultiFaultScenario(scenarios)
@@ -276,13 +282,13 @@ if __name__ == "__main__":
     # resume in-progress chain
     if args.resume:
         if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
-        scenarios.resume_chain(args.fault_idx,args.output_dir)
+        scenarios.resume_chain(0,args.output_dir)
 
     # initialize new chain
     else:
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenarios.sample_cols}
-            scenarios.init_chain(args.fault_idx, u0, verbose=args.verbose)
+            scenarios.init_chain(0, u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
                 args.fault_idx,
