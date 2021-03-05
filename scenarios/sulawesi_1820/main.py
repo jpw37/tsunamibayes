@@ -287,7 +287,7 @@ if __name__ == "__main__":
     # initialize new chain
     else:
         if config.init['method'] == 'manual':
-            u0 = {key:val for key,val in config.init.items() if key in scenarios.sample_cols}
+            u0 = {key:val for key,val in config.init.items() if key in scenarios.scenarios[0].sample_cols}
             scenarios.init_chain(0, u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
