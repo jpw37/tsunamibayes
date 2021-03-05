@@ -7,7 +7,7 @@ from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 class SulawesiPrior(BasePrior):
     """The child class of Base Prior that creates a prior distribution,
     specifically for the Banda 1820 event."""
-    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset,dip_offset,rake_offset):
+    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset,dip_offset,strike_offset,rake_offset):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
@@ -34,6 +34,7 @@ class SulawesiPrior(BasePrior):
         self.depth_offset = depth_offset
         self.dip_offset = dip_offset
         self.rake_offset = rake_offset
+        self.strike_offset = strike_offset
 
     def logpdf(self,sample):
         """Computes the log of the probability density function. Adds
@@ -60,6 +61,7 @@ class SulawesiPrior(BasePrior):
         depth_offset = sample["depth_offset"]
         dip_offset = sample['dip_offset']
         rake_offset = sample['rake_offset']
+        strike_offset = sample['strike_offset']
 
         lpdf = self.latlon.logpdf(sample)
         lpdf += self.mag.logpdf(mag)
@@ -68,6 +70,7 @@ class SulawesiPrior(BasePrior):
         lpdf += self.depth_offset.logpdf(depth_offset)
         lpdf += self.dip_offset.logpdf(dip_offset)
         lpdf += self.rake_offset.logpdf(rake_offset)
+        lpdf += self.strike_offset.logpdf(strike_offset)
 
         return lpdf
 
@@ -95,6 +98,7 @@ class SulawesiPrior(BasePrior):
             'delta_logw',
             'depth_offset',
             'dip_offset',
+            'strike_offset',
             'rake_offset'
         ]
         return pd.Series(params, columns)

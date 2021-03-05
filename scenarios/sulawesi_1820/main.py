@@ -139,6 +139,11 @@ def setup(config):
         stats.norm(scale=config.prior['dip_offset_std_wal'])
     ]
 
+    strike_offset = [
+        stats.norm(scale=config.prior['strike_offset_std_flo']),
+        stats.norm(scale=config.prior['strike_offset_std_wal'])
+    ]
+
     # rake offset
     # in degrees to avoid
     rake_offset = [
@@ -153,6 +158,7 @@ def setup(config):
                         delta_logw[FAULT.FLORES],
                         depth_offset[FAULT.FLORES],
                         dip_offset[FAULT.FLORES],
+                        strike_offset[FAULT.FLORES]
                         rake_offset[FAULT.FLORES]
                     ) ,
 
@@ -161,8 +167,9 @@ def setup(config):
                         delta_logl[FAULT.WALANAE],
                         delta_logw[FAULT.WALANAE],
                         depth_offset[FAULT.WALANAE],
-                        dip_offset[FAULT.FLORES],
-                        rake_offset[FAULT.FLORES])
+                        dip_offset[FAULT.WALANAE],
+                        strike_offset[FAULT.WALANAE]
+                        rake_offset[FAULT.WALANAE])
     ]
 
     # load gauges
@@ -207,6 +214,10 @@ def setup(config):
     dip_offset_std = [
         config.proposal_kernel['dip_offset_std_flo'],
         config.proposal_kernel['dip_offset_std_wal']
+    ]
+    strike_offset_std = [
+        config.proposal_kernel['strike_offset_std_flo'],
+        config.proposal_kernel['strike_offset_std_wal']
     ]
     rake_offset_std = [
         config.proposal_kernel['rake_offset_std_flo'],
