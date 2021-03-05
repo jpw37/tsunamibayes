@@ -143,7 +143,7 @@ class LatLonPrior(BasePrior):
 
         #FAULT: subfault_params is a data frame. We shoudn't need a subfault split function.
         #FAULT: What will be our replacement here?
-        subfault_params = self.fault.subfault_split(sample['latitude'],
+        subfault_params = self.fault.subfault_split_RefCurve(sample['latitude'],
                                                     sample['longitude'],
                                                     length,
                                                     width,
