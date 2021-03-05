@@ -36,6 +36,7 @@ class SulawesiScenario(BaseScenario):
         'depth_offset',
         'dip_offset',
         'strike_offset',
+        'fault_idx'
     ]
     model_param_cols = [
         'latitude',
@@ -52,7 +53,7 @@ class SulawesiScenario(BaseScenario):
         'dip_offset',
     ]
 
-    def __init__(self,prior,forward_model,covariance,fault_enum):
+    def __init__(self,prior,forward_model,covariance):
         """Initializes all the necessary variables for the BandaScenario subclass.
 
         Parameters
@@ -68,7 +69,6 @@ class SulawesiScenario(BaseScenario):
         super().__init__(prior,forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
-        self.FAULT_ENUM = fault_enum
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.
@@ -88,8 +88,8 @@ class SulawesiScenario(BaseScenario):
             mag, etc.
         """
         proposal = sample.copy()
-        proposal += np.random.multivariate_normal(
-            np.zeros(len(self.sample_cols)),
+        proposal[:-1] += np.random.multivariate_normal(
+            np.zeros(len(self.sample_cols)-1),
             cov=self.cov
         )
         return proposal
@@ -130,7 +130,7 @@ class SulawesiScenario(BaseScenario):
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
         slip = calc_slip(sample['magnitude'],length,width)
-        if self.FAULT_ENUM == 0: # If we are on the Flores fault:
+        if sample['fault_idx'] == 0: # If we are on the Flores fault:
             strike, strike_std = self.fault.strike_map(
                 sample['latitude'],
                 sample['longitude'],
