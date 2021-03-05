@@ -175,6 +175,9 @@ class GeoClawForwardModel(BaseForwardModel):
         fgmax_data = np.loadtxt(self.valuemax_path)
         bath_data  = np.loadtxt(self.aux1_path)
 
+        #We have put 3 points per gague location, but we must specify this to the program:
+        num_points_per_gauge = 3 
+
         # this is the arrival time of the first wave, not the maximum wave
         # converting from seconds to minutes
         arrival_times = fgmax_data[:, -1] /60
@@ -182,21 +185,23 @@ class GeoClawForwardModel(BaseForwardModel):
         max_heights = fgmax_data[:, 3]
         bath_depth = bath_data[:, -1]
 
-        # these are locations where the wave never reached the gauge...
+        # these are locations where the wave never reached the gauge...Heights given in meters
         max_heights[max_heights < 1e-15] = -9999
         max_heights[np.abs(max_heights) > 1e15] = -9999
 
         bath_depth[max_heights == 0] = 0
-        wave_heights = max_heights + bath_depth
+        wave_heights = max_heights + bath_depth         #Is this supposed to be max_heights + or - bath_depth
 
         model_output = pd.Series(dtype='float64')
         for i,gauge in enumerate(self.gauges):
+            idx_gauge_start = num_points_per_gauge*i
+            idx_gauge_end = num_points_per_gauge*i + num_points_per_gauge
             if 'arrival' in gauge.obstypes:
-                model_output[gauge.name+' arrival'] = arrival_times[i]
+                model_output[gauge.name+' arrival'] = np.mean(arrival_times[idx_gauge_start:idx_gauge_end])
             if 'height' in gauge.obstypes:
-                model_output[gauge.name+' height'] = wave_heights[i]
+                model_output[gauge.name+' height'] = np.mean(wave_heights[idx_gauge_start:idx_gauge_end])
             if 'inundation' in gauge.obstypes:
-                model_output[gauge.name+' inundation'] = models.inundation(wave_heights[i],
+                model_output[gauge.name+' inundation'] = models.inundation(np.mean(wave_heights[idx_gauge_start:idx_gauge_end]),
                                                                            gauge.beta,
                                                                            gauge.n)
 
