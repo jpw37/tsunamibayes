@@ -36,6 +36,7 @@ class SulawesiScenario(BaseScenario):
         'depth_offset',
         'dip_offset',
         'strike_offset',
+        'rake_offset',
         'fault_idx'
     ]
     model_param_cols = [
@@ -51,6 +52,7 @@ class SulawesiScenario(BaseScenario):
         'depth_offset',
         'rake_offset', # TODO: do rake and dip offsets need to be Okada parameters?
         'dip_offset',
+        'strike_offset'
     ]
 
     def __init__(self,prior,forward_model,covariance):
@@ -146,7 +148,7 @@ class SulawesiScenario(BaseScenario):
                 sample['longitude'],
                 return_std=True
             )
-            rake = 90
+            rake = 90 # FIXME: GPFault needs to fit to rake data as well.
 
             # Multiply strike, dip, depth offsets by standard deviation of
             #  Gaussian process
@@ -161,7 +163,7 @@ class SulawesiScenario(BaseScenario):
                                      sample['longitude'])
             depth = self.fault.depth_map(sample['latitude'],
                                          sample['longitude'])
-            rake = 90
+            rake = 90 # FIXME: is this fine?
 
         model_params = dict()           #TODO : Would we need to add dip_offset and rake_offset as Okada or model parameters?
         model_params['latitude'] = sample['latitude']
@@ -176,5 +178,6 @@ class SulawesiScenario(BaseScenario):
         model_params['depth'] = depth
         model_params['depth_offset'] = sample['depth_offset']
         model_params['rake'] = rake
+        model_params['rake_offset'] = sample['rake_offset']
 
         return model_params
