@@ -349,6 +349,13 @@ class BaseFault:
             Dips[(m-1)//2-i] = tempdips2
             #From all this we learn that, strike_map, dip_map, and depth_map must take in arrays of size (n,1), but they return arrays of size (n,)
 
+        print("""
+        Lats and Lons going into depth_map in fault.py
+        _______________________________
+        """)
+        print(Lats.flatten()[:,np.newaxis])
+        print(Lons.flatten()[:,np.newaxis])
+        print(depth_offset)
         Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset   #Calculates the depths for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
         Dips = self.dip_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + dip_offset   #Calculates the dips for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
         data = [Lats,Lons,Strikes,Dips,Depths]
@@ -1079,6 +1086,9 @@ class GaussianProcessFault(BaseFault):
             fault, -1 if antidipward.
         """
         latlon = np.vstack([lat, lon]).T
+        print("""latlon variable in fault.py depth_map for the gaussian
+        
+        ______________________________""")
         return self.depth_gpr.predict(latlon,return_std=return_std)
 
 
