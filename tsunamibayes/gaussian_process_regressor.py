@@ -30,7 +30,6 @@ class GPR:
 
         ____________________________
         """)
-        print(x1)
         print(x1[:,np.newaxis])
         print("x2")
         print(x2)
