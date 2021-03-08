@@ -359,9 +359,13 @@ class BaseFault:
             #From all this we learn that, strike_map, dip_map, and depth_map must take in arrays of size (n,1), but they return arrays of size (n,)
 
         print("""
+
+        Strikes now and 
+
         Lats and Lons going into depth_map in fault.py
         _______________________________
         """)
+        print(Strikes)
         print(Lats.flatten()[:,np.newaxis])
         print(Lons.flatten()[:,np.newaxis])
         print(depth_offset)
