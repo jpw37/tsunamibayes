@@ -190,7 +190,7 @@ class GeoClawForwardModel(BaseForwardModel):
         max_heights[np.abs(max_heights) > 1e15] = -9999
 
         bath_depth[max_heights == 0] = 0
-        wave_heights = max_heights + bath_depth         #Is this supposed to be max_heights + or - bath_depth
+        wave_heights = max_heights + bath_depth             #Bath_depth should be negative, this is Geoclaw's format
 
         model_output = pd.Series(dtype='float64')
         for i,gauge in enumerate(self.gauges):

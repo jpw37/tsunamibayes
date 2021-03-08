@@ -315,7 +315,16 @@ class BaseFault:
 
         #Interesting...Even though lats lons have size (n,1), the following return arrays of size (n,)
         strikes = self.strike_map(lats,lons)        #We pass in lats lons as arrays of size (n,1), this returns an array of size (n)
+        print("""Strike numbers:
+        
+        Let's hope this is working???
+        __________________""")
+        print(strikes)
         dips = self.dip_map(lats,lons)
+        print("""Dip numbers:
+        
+        __________________""")
+        print(dips)
         dipward = (strikes+90)%360                  #Dipward is an array of size (n,) with all of the strike angles + 90 degrees.
 
         Lats = np.empty((m,n))
