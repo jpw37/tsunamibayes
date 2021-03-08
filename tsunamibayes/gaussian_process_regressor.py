@@ -35,7 +35,7 @@ class GPR:
         print(x2)
         print("subtracting")
         print(x1[:,np.newaxis] - x2)
-        sqdist = np.linalg.norm(x1[:,np.newaxis] - x2, axis=-1)**2
+        sqdist = np.linalg.norm(x1[:,np.newaxis] - x2, axis=-1)**2          #THIS IS THE BUG Cause
         return np.exp( -sqdist / (2*sig**2))
 
 

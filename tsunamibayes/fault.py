@@ -253,7 +253,7 @@ class BaseFault:
 
         return subfault_params
 
-    def subfault_split_RefCurve(self,lat,lon,length,width,slip,depth_offset=0,dip_offset = 0,rake_offset = 0,rake=90,n=1,m=3:
+    def subfault_split_RefCurve(self,lat,lon,length,width,slip,depth_offset=0,dip_offset = 0,rake_offset = 0,rake=90,n=1,m=3):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
