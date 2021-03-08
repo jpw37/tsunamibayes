@@ -54,7 +54,7 @@ def setup(config):
     ]
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
-    flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
+    flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75) #This is potentially our problem?
     fault = [
         tb.fault.GaussianProcessFault( # The Flores fault uses a GaussianProcessFault
             bounds=config.model_bounds, # Model bounds are currently same for both
@@ -299,6 +299,10 @@ if __name__ == "__main__":
     else:
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenarios.scenarios[0].sample_cols}
+            print("""This is the initial sample
+            _____________________________
+            """)
+            print(u0)
             scenarios.init_chain(0, u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
