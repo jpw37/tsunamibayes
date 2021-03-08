@@ -1089,6 +1089,7 @@ class GaussianProcessFault(BaseFault):
         print("""latlon variable in fault.py depth_map for the gaussian
         
         ______________________________""")
+        print(latlon)
         return self.depth_gpr.predict(latlon,return_std=return_std)
 
 
