@@ -30,10 +30,12 @@ class GPR:
 
         ____________________________
         """)
-        print(x1)
-        print(x1[:,np.newaxis])
-        print(x2)
-        print(x1[:,np.newaxis] - x2)
+        # print(x1)
+        # print(x1[:,np.newaxis])
+        # print("x2")
+        # print(x2)
+        # print("subtracting")
+        # print(x1[:,np.newaxis] - x2)
         sqdist = np.linalg.norm(x1[:,np.newaxis] - x2, axis=-1)**2
         return np.exp( -sqdist / (2*sig**2))
 
