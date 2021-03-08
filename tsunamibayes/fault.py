@@ -1061,6 +1061,11 @@ class GaussianProcessFault(BaseFault):
             The computed weighted mean for the strike angles. (degrees)
         """
         latlon = np.vstack([lat, lon]).T
+        print("""strike_map latlon
+        
+        ______________""")
+        print(latlon)
+        print(self.strike_gpr.predict(latlon,return_std=return_std))
         return self.strike_gpr.predict(latlon,return_std=return_std)
 
 
