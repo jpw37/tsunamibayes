@@ -90,7 +90,7 @@ def bearing(lat1, lon1, lat2, lon2):
 
 naive_gradient_frozen = None
 
-def naive_gradient_setup():
+def naive_gradient_setup(dip_map):
     """Use the simplified tsunami formula to compute the gradient
     
     Parameters
@@ -106,32 +106,33 @@ def naive_gradient_setup():
     # Variables
     delta_logl, delta_logw, lat, lon, mag = sy.symbols('delta_logl delta_logw lat lon mag')
 
-    # Constants
+    # Values independent of gauge
     mu = 4e10 # Scaling factor, found in code as 4e10 by default and never changed
     earth_rad = 6.3781e6 # meters
-    H_bar = 10_000 # TODO Calculate actualy average height
-    H_0 = 28_000 # TODO Look up actual depth at lat,lon
     H = 1 # Can be assumed to be 1 
-    theta, phi = np.radians(22.3), np.radians(90) #22.3, 90 # TODO Look up actual dip and rake using lat and lon
-    alpha = (1-theta/180) * sy.sin(theta) * Abs(sy.sin(phi))
-    # gauge_lat, gauge_lon = -4.5248, 129.8965 # Pulu Ai Coords TODO use actual gauge lat and lon for each gauge location
-    gauge_lat, gauge_lon = -3.576, 128.657 # Saparua Coords
-
-    # Formulas
     length = sy.Pow(10, 0.5233956445903871 * mag + 1.0974498706605313 + delta_logl)
     width = sy.Pow(10, 0.29922483873212863 * mag + 2.608734705074858 + delta_logw)
     slip = sy.Pow(10, 1.5 * mag + 9.05 - log(mu * length * width, 10))
-    psi = 0.5 + 0.575 * sy.exp(-0.0175 * length / H_bar)
     to_rad = lambda x: sy.pi * x / 180
 
-    R = 2 * earth_rad * asin(sy.sqrt(
-                sy.Pow(sy.sin(0.5*(to_rad(lat) - to_rad(gauge_lat))), 2)
-                + sy.cos(to_rad(lat)) * sy.cos(to_rad(gauge_lat)) 
-                * sy.Pow(sy.sin(0.5*(to_rad(lon) - to_rad(gauge_lon))), 2)))
+    # Values dependent on gauge location
+    for gauge in gauges:
+        # These can move above if not going to look up true values
+        H_0 = 2_000 # TODO Look up actual depth at lat,lon
+        H_bar = 2_000 # TODO Calculate actual average water depth?
+        psi = 0.5 + 0.575 * sy.exp(-0.0175 * length / H_bar)
 
-    # Combined formula for mean wave height
-    denom = sy.cosh((4 * sy.pi * H_0) / (width + length))
-    A = ((alpha * slip) / denom) * sy.Pow(1 + (2*R / length), -psi) * (H_0 / H)**(1/4)
+        # These definitely depend on gauge
+        theta, phi = to_rad(dip_map(gauge_lat,gauge_lon)), to_rad(90) # TODO Look up actual dip and rake using lat and lon
+        alpha = (1-theta/180) * sy.sin(theta) * Abs(sy.sin(phi))
+        R = 2 * earth_rad * asin(sy.sqrt(
+                    sy.Pow(sy.sin(0.5*(to_rad(lat) - to_rad(gauge_lat))), 2)
+                    + sy.cos(to_rad(lat)) * sy.cos(to_rad(gauge_lat)) 
+                    * sy.Pow(sy.sin(0.5*(to_rad(lon) - to_rad(gauge_lon))), 2)))
+
+        # Combined formula for mean wave height
+        denom = sy.cosh((4 * sy.pi * H_0) / (width + length))
+        A = ((alpha * slip) / denom) * sy.Pow(1 + (2*R / length), -psi) * (H_0 / H)**(1/4)
     
     dh_dlat = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lat))
     dh_dlon = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lon))

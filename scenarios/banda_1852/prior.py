@@ -98,7 +98,7 @@ class LatLonPrior(BasePrior):
             The truncated continous random variable describing the depth 
             with fixed shape, location and scale parameters.
         """
-        self.fault = fault
+        self.fault = fault 
         self.depth_dist = depth_dist
 
     def logpdf(self,sample):

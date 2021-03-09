@@ -25,6 +25,8 @@ class BandaScenario(BaseScenario):
         super().__init__(prior,forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
+        if mode == 'mala':
+            naive_gradient_setup(self.fault.dip_map)
 
     def propose(self,sample,mode='random_walk',delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.
