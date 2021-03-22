@@ -25,17 +25,7 @@ class GPR:
     @staticmethod
     def rbf_kernel(x1,x2,sig=1.0):
         """The RBF kernel (squared exponential distance)."""
-        print("""We're in gp_Regressor.py in rbf_kernel
-        We will print out the x1 array and see how that goes
-
-        ____________________________
-        """)
-        # print(x1[:,np.newaxis])
-        # print("x2")
-        # print(x2)
-        # print("subtracting")
-        # print(x1[:,np.newaxis] - x2)
-        sqdist = np.linalg.norm(x1[:,np.newaxis] - x2, axis=-1)**2          #THIS IS THE BUG Cause
+        sqdist = np.linalg.norm(x1[:,np.newaxis] - x2, axis=-1)**2
         return np.exp( -sqdist / (2*sig**2))
 
 

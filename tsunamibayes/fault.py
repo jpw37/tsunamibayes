@@ -315,26 +315,20 @@ class BaseFault:
 
         #Interesting...Even though lats lons have size (n,1), the following return arrays of size (n,)
         strikes = self.strike_map(lats,lons)        #We pass in lats lons as arrays of size (n,1), this returns an array of size (n)
-        print("""Strike numbers:
-        
-        Let's hope this is working???
-        __________________""")
-        print(strikes)
         dips = self.dip_map(lats,lons)
-        print("""Dip numbers:
-        
-        __________________""")
-        print(dips)
+        depths = self.depth_map(lats,lons)
         dipward = (strikes+90)%360                  #Dipward is an array of size (n,) with all of the strike angles + 90 degrees.
 
         Lats = np.empty((m,n))
         Lons = np.empty((m,n))
         Strikes = np.empty((m,n))
         Dips = np.empty((m,n))
+        Depths = np.empty((m,n))
         Lats[(m-1)//2] = lats.flatten()
         Lons[(m-1)//2] = lons.flatten()
         Strikes[(m-1)//2] = strikes
         Dips[(m-1)//2] = dips
+        Depths[(m-1)//2] = depths
 
         # add dipward and antidipward centers
         templats1,templons1 = lats.copy(),lons.copy()
@@ -356,21 +350,14 @@ class BaseFault:
             Strikes[(m-1)//2-i] = self.strike_map(templats2,templons2)
             Dips[(m-1)//2+i] = tempdips1
             Dips[(m-1)//2-i] = tempdips2
+            Depths[(m-1)//2+i] = self.depth_map(templats1, templons1)
+            Depths[(m-1)//2-i] = self.depth_map(templats2, templons2)
             #From all this we learn that, strike_map, dip_map, and depth_map must take in arrays of size (n,1), but they return arrays of size (n,)
 
-        print("""
-
-        Strikes now and 
-
-        Lats and Lons going into depth_map in fault.py
-        _______________________________
-        """)
-        print(Strikes)
-        print(Lats.flatten()[:,np.newaxis])
-        print(Lons.flatten()[:,np.newaxis])
-        print(depth_offset)
-        Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset   #Calculates the depths for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
-        Dips = self.dip_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + dip_offset   #Calculates the dips for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
+        #Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset   #Calculates the depths for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
+        #Dips = self.dip_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + dip_offset   #Calculates the dips for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
+        Depths += depth_offset
+        Dips += dip_offset
         data = [Lats,Lons,Strikes,Dips,Depths]
         data = [arr.flatten() for arr in data]
         subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth'])
@@ -1076,11 +1063,6 @@ class GaussianProcessFault(BaseFault):
             The computed weighted mean for the strike angles. (degrees)
         """
         latlon = np.vstack([lat, lon]).T
-        print("""strike_map latlon
-        
-        ______________""")
-        print(latlon)
-        print(self.strike_gpr.predict(latlon,return_std=return_std))
         return self.strike_gpr.predict(latlon,return_std=return_std)
 
 
@@ -1104,11 +1086,13 @@ class GaussianProcessFault(BaseFault):
             fault, -1 if antidipward.
         """
         latlon = np.vstack([lat, lon]).T
-        print("""latlon variable in fault.py depth_map for the gaussian
-        
-        ______________________________""")
-        print(latlon)
-        return self.depth_gpr.predict(latlon,return_std=return_std)
+        depth = self.depth_gpr.predict(latlon,return_std=return_std)
+        if return_std:
+            depth, std = depth
+        depth *= 1000. # Change to meters.
+        if return_std:
+            return depth, std
+        return depth
 
 
     def dip_map(self,lat,lon,return_std=False):
