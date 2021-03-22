@@ -234,6 +234,7 @@ def setup(config):
             delta_logw_std[FAULT.FLORES],
             depth_offset_std[FAULT.FLORES],
             dip_offset_std[FAULT.FLORES],
+            strike_offset_std[FAULT.FLORES],
             rake_offset_std[FAULT.FLORES]
         ])),
         np.diag(np.square([
@@ -244,6 +245,7 @@ def setup(config):
             delta_logw_std[FAULT.WALANAE],
             depth_offset_std[FAULT.WALANAE],
             dip_offset_std[FAULT.WALANAE],
+            strike_offset_std[FAULT.WALANAE],
             rake_offset_std[FAULT.WALANAE]
         ]))
     ]
@@ -312,7 +314,7 @@ if __name__ == "__main__":
             )
 
     scenarios.sample(
-        args.fault_idx,
+        0,
         args.n_samples,
         output_dir=args.output_dir,
         save_freq=args.save_freq,

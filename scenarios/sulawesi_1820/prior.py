@@ -63,14 +63,24 @@ class SulawesiPrior(BasePrior):
         rake_offset = sample['rake_offset']
         strike_offset = sample['strike_offset']
 
+        print('\nCalculating the LOGPDF\n--------------\n')
+        print('sample:',sample)
         lpdf = self.latlon.logpdf(sample)
+        print('lpdf latlon:', lpdf)
         lpdf += self.mag.logpdf(mag)
+        print('lpdf mag:', lpdf)
         lpdf += self.delta_logl.logpdf(delta_logl)
+        print('lpdf delta_logl:', lpdf)
         lpdf += self.delta_logw.logpdf(delta_logw)
+        print('lpdf delta_logw:', lpdf)
         lpdf += self.depth_offset.logpdf(depth_offset)
+        print('lpdf depth_offset:', lpdf)
         lpdf += self.dip_offset.logpdf(dip_offset)
+        print('lpdf dip_offset:', lpdf)
         lpdf += self.rake_offset.logpdf(rake_offset)
+        print('lpdf rake_offset:', lpdf)
         lpdf += self.strike_offset.logpdf(strike_offset)
+        print('lpdf strike_offset:', lpdf)
 
         return lpdf
 
@@ -143,11 +153,6 @@ class LatLonPrior(BasePrior):
 
         #FAULT: subfault_params is a data frame. We shoudn't need a subfault split function.
         #FAULT: What will be our replacement here?
-        print("""
-        Sample output in prior.py
-        
-        ____________""")
-        print(sample)                                       
         subfault_params = self.fault.subfault_split_RefCurve(sample['latitude'],
                                                     sample['longitude'],
                                                     length,

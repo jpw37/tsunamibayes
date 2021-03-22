@@ -35,7 +35,7 @@ def build_gauges():
     name = 'Nipa-Nipa'
     dists = dict()
     dists['height'] = stats.truncnorm(loc=3,scale=2,a=-1,b=4)
-    dists['inundation'] = stats.norm(135,20)
+    #dists['inundation'] = stats.norm(135,20)
     gauge = Gauge(name,dists)
     gauge.lat = -5.567525
     gauge.lon = 120.011503
