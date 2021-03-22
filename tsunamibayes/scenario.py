@@ -117,7 +117,7 @@ class BaseScenario:
 
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
-        if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
+        if verbose: print(f"Prior logpdf = {prior_logpdf}")
 
         # raise error if prior density is zero (-infinty logpdf)
         if prior_logpdf == np.NINF:
@@ -225,7 +225,7 @@ class BaseScenario:
 
             # evaluate prior logpdf
             prior_logpdf = self.prior.logpdf(proposal)
-            if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
+            if verbose: print(f"Prior logpdf = {prior_logpdf}")
 
             # if prior logpdf is -infinity, reject proposal and bypass forward model
             if prior_logpdf == np.NINF:
@@ -246,7 +246,7 @@ class BaseScenario:
                 model_output = self.forward_model.run(model_params)
                 if verbose: print("Evaluating log-likelihood:")
                 llh = self.forward_model.llh(model_output,verbose)
-                if verbose: print("Total llh = {:.3E}".format(llh))
+                if verbose: print("Total llh = {}".format(llh))
 
                 # acceptance probability
                 # catch if both loglikelihoods are -inf
@@ -262,7 +262,7 @@ class BaseScenario:
                             self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 alpha = np.exp(alpha)
 
-            if verbose: print("alpha = {:.3E}".format(alpha))
+            if verbose: print(f"alpha = {alpha}")
 
             # prior, likelihood, and posterior logpdf values
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
