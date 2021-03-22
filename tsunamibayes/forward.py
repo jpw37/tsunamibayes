@@ -176,7 +176,7 @@ class GeoClawForwardModel(BaseForwardModel):
         bath_data  = np.loadtxt(self.aux1_path)
 
         #We have put 3 points per gague location, but we must specify this to the program:
-        num_points_per_gauge = 3 
+        num_points_per_gauge = 1
 
         # this is the arrival time of the first wave, not the maximum wave
         # converting from seconds to minutes
