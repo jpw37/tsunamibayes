@@ -6,6 +6,7 @@ from sympy.functions.elementary.exponential import log
 import re
 from ast import literal_eval
 import argparse
+from gauges import build_gauges
 
 # Earth's radius, in meters
 R = 6.3781e6
@@ -88,7 +89,7 @@ def bearing(lat1, lon1, lat2, lon2):
     y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
     return np.degrees(np.arctan2(x,y))%360
 
-naive_gradient_frozen = None
+naive_gradient_frozen = []
 
 def naive_gradient_setup(dip_map):
     """Use the simplified tsunami formula to compute the gradient
@@ -115,6 +116,19 @@ def naive_gradient_setup(dip_map):
     slip = sy.Pow(10, 1.5 * mag + 9.05 - log(mu * length * width, 10))
     to_rad = lambda x: sy.pi * x / 180
 
+    forward_models = []
+
+    radius_lambda = lambda gauge_lat, gauge_lon: 2 * earth_rad * asin(sy.sqrt(
+        sy.Pow(sy.sin(0.5*(to_rad(lat) - to_rad(gauge_lat))), 2)
+        + sy.cos(to_rad(lat)) * sy.cos(to_rad(gauge_lat)) 
+        * sy.Pow(sy.sin(0.5*(to_rad(lon) - to_rad(gauge_lon))), 2)))
+
+    
+    global naive_gradient_frozen
+
+    # get gauge info, need lat and lon
+    gauges = build_gauges()
+
     # Values dependent on gauge location
     for gauge in gauges:
         # These can move above if not going to look up true values
@@ -123,28 +137,28 @@ def naive_gradient_setup(dip_map):
         psi = 0.5 + 0.575 * sy.exp(-0.0175 * length / H_bar)
 
         # These definitely depend on gauge
-        theta, phi = to_rad(dip_map(gauge_lat,gauge_lon)), to_rad(90) # TODO Look up actual dip and rake using lat and lon
+        theta, phi = to_rad(dip_map(gauge.lat,gauge.lon)), to_rad(90) # TODO Look up actual dip and rake using lat and lon
         alpha = (1-theta/180) * sy.sin(theta) * Abs(sy.sin(phi))
-        R = 2 * earth_rad * asin(sy.sqrt(
-                    sy.Pow(sy.sin(0.5*(to_rad(lat) - to_rad(gauge_lat))), 2)
-                    + sy.cos(to_rad(lat)) * sy.cos(to_rad(gauge_lat)) 
-                    * sy.Pow(sy.sin(0.5*(to_rad(lon) - to_rad(gauge_lon))), 2)))
+        R = radius_lambda(gauge.lat, gauge.lon)
 
         # Combined formula for mean wave height
         denom = sy.cosh((4 * sy.pi * H_0) / (width + length))
         A = ((alpha * slip) / denom) * sy.Pow(1 + (2*R / length), -psi) * (H_0 / H)**(1/4)
+
+        forward_models.append(A)
     
-    dh_dlat = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lat))
-    dh_dlon = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lon))
-    dh_dmag = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, mag))
-    dh_ddll = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logl))
-    dh_ddlw = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logw))
-    # set derivative of depth offset to 0
-    dh_ddo = lambda x: 0
+        dh_dlat = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lat))
+        dh_dlon = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lon))
+        dh_dmag = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, mag))
+        dh_ddll = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logl))
+        dh_ddlw = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logw))
+        # set derivative of depth offset to 0
+        dh_ddo = lambda x: 0
 
-    global naive_gradient_frozen
+        grad = lambda l1,l2,m,dll,dlw,ddo: [dh_dlat(l1,l2,dll,dlw,ddo),dh_dlon(l1,l2,dll,dlw,ddo),dh_dmag(l1,l2,dll,dlw,ddo)
+                                                ,dh_ddll(l1,l2,dll,dlw,ddo),dh_ddlw(l1,l2,dll,dlw,ddo),dh_ddo(l1,l2,dll,dlw,ddo)]
 
-    naive_gradient_frozen = [dh_dlat,dh_dlon,dh_dmag,dh_ddll,dh_ddlw,dh_ddo]
+        naive_gradient_frozen.append(grad)
 
 def dU(sample,mode='naive'):
     """Compute the gradient for the U function (logprior + llh)
@@ -163,8 +177,8 @@ def dU(sample,mode='naive'):
     if mode == 'naive':
         
         # This if statement is for debugging only, can be deleted
-        if naive_gradient_frozen == None:
-            raise ValueError('naive_gradient_frozen is None')
+        if len(naive_gradient_frozen) == 0:
+            raise ValueError('naive_gradient_frozen is empty list')
 
         return np.array([naive_gradient_frozen[i](sample.iloc[i]) for i in range(len(sample))])
     else:

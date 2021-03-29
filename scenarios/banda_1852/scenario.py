@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from tsunamibayes import BaseScenario
-from tsunamibayes.utils import calc_length, calc_width, calc_slip, dU
+from tsunamibayes.utils import calc_length, calc_width, calc_slip, dU, naive_gradient_setup
 
 class BandaScenario(BaseScenario):
     sample_cols = ['latitude','longitude','magnitude','delta_logl','delta_logw',
@@ -9,7 +9,7 @@ class BandaScenario(BaseScenario):
     model_param_cols = ['latitude','longitude','length','width','slip','strike',
                         'dip','depth','rake','depth_offset']
 
-    def __init__(self,prior,forward_model,covariance):
+    def __init__(self,prior,forward_model,covariance, mode='random_walk'):
         """Initializes all the necessary variables for the BandaScenario subclass.
         
         Parameters
