@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from tsunamibayes import BaseScenario
-from tsunamibayes.utils import calc_length, calc_width, calc_slip, dU, naive_gradient_setup
+from tsunamibayes.utils import calc_length, calc_width, calc_slip, dU, gradient_setup
 
 class BandaScenario(BaseScenario):
     sample_cols = ['latitude','longitude','magnitude','delta_logl','delta_logw',
@@ -26,7 +26,7 @@ class BandaScenario(BaseScenario):
         self.fault = forward_model.fault
         self.cov = covariance
         if mode == 'mala':
-            naive_gradient_setup(self.fault.dip_map)
+            gradient_setup(self.fault.dip_map)
 
     def propose(self,sample,mode='random_walk',delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.

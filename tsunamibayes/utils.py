@@ -6,7 +6,7 @@ from sympy.functions.elementary.exponential import log
 import re
 from ast import literal_eval
 import argparse
-from gauges import build_gauges
+from gauge import build_gauges
 
 # Earth's radius, in meters
 R = 6.3781e6
@@ -89,15 +89,36 @@ def bearing(lat1, lon1, lat2, lon2):
     y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
     return np.degrees(np.arctan2(x,y))%360
 
-naive_gradient_frozen = []
+neg_llh_grad = None
+neg_lprior_grad = None
+global neg_llh_grad, neg_lprior_grad
 
-def naive_gradient_setup(dip_map):
+def centered_difference(depth_map, lat, lon, step):
+    """Compute an approximation to the gradient at (x,y) on a discretized domain
+
+    Paramters
+    ---------
+    depth_map : map (lat,lon) -> depth
+    
+    Returns
+    -------
+    gradient_approx : [d depth_map / d lat, d depth_map / d_lat]
+    """
+    lat_deriv = (depth_map(lat - step, lon) - 2*depth_map(lat, lon) + depth_map(lat + step, lon)) / step
+    lon_deriv = (depth_map(lat, lon - step) - 2*depth_map(lat, lon) + depth_map(lat, lon + step)) / step
+
+    return np.array([lat_deriv, lon_deriv])
+
+
+def gradient_setup(dip_map, depth_map):
     """Use the simplified tsunami formula to compute the gradient
     
     Parameters
     ----------
-    sample : pandas.Series
-        Sample parameters (lat,lon,mag,dll,dlw,depth_offset)
+    dip_map : 
+        Map from lat,lon to dip angle
+    depth_map : 
+        Map from lat,lon to depth
     
     Returns
     -------
@@ -116,21 +137,16 @@ def naive_gradient_setup(dip_map):
     slip = sy.Pow(10, 1.5 * mag + 9.05 - log(mu * length * width, 10))
     to_rad = lambda x: sy.pi * x / 180
 
-    forward_models = []
-
     radius_lambda = lambda gauge_lat, gauge_lon: 2 * earth_rad * asin(sy.sqrt(
         sy.Pow(sy.sin(0.5*(to_rad(lat) - to_rad(gauge_lat))), 2)
         + sy.cos(to_rad(lat)) * sy.cos(to_rad(gauge_lat)) 
         * sy.Pow(sy.sin(0.5*(to_rad(lon) - to_rad(gauge_lon))), 2)))
 
-    
-    global naive_gradient_frozen
-
     # get gauge info, need lat and lon
     gauges = build_gauges()
 
     # Values dependent on gauge location
-    for gauge in gauges:
+    for i, gauge in enumerate(gauges):
         # These can move above if not going to look up true values
         H_0 = 2_000 # TODO Look up actual depth at lat,lon
         H_bar = 2_000 # TODO Calculate actual average water depth?
@@ -145,20 +161,51 @@ def naive_gradient_setup(dip_map):
         denom = sy.cosh((4 * sy.pi * H_0) / (width + length))
         A = ((alpha * slip) / denom) * sy.Pow(1 + (2*R / length), -psi) * (H_0 / H)**(1/4)
 
-        forward_models.append(A)
+        loc = gauge.loc
+        scale = gauge.scale
     
-        dh_dlat = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lat))
-        dh_dlon = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, lon))
-        dh_dmag = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, mag))
-        dh_ddll = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logl))
-        dh_ddlw = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), sy.diff(A, delta_logw))
-        # set derivative of depth offset to 0
-        dh_ddo = lambda x: 0
+        dh_dlat = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, lat)
+        dh_dlon = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, lon)
+        dh_dmag = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, mag)
+        dh_ddll = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, delta_logl)
+        dh_ddlw = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, delta_logw)
 
-        grad = lambda l1,l2,m,dll,dlw,ddo: [dh_dlat(l1,l2,dll,dlw,ddo),dh_dlon(l1,l2,dll,dlw,ddo),dh_dmag(l1,l2,dll,dlw,ddo)
-                                                ,dh_ddll(l1,l2,dll,dlw,ddo),dh_ddlw(l1,l2,dll,dlw,ddo),dh_ddo(l1,l2,dll,dlw,ddo)]
+        if i == 0:
+            # set derivative of depth offset to 0
+            dh_ddo = lambda x: 0
+            neg_llh_grad = [dh_dlat, dh_dlon, dh_dmag, dh_ddll, dh_ddlw, dh_ddo]
+        else:
+            neg_llh_grad[0] *= dh_dlat
+            neg_llh_grad[1] *= dh_dlon
+            neg_llh_grad[2] *= dh_dmag
+            neg_llh_grad[3] *= dh_ddll
+            neg_llh_grad[4] *= dh_ddlw
 
-        naive_gradient_frozen.append(grad)
+    for i in range(len(neg_llh_grad)):
+        neg_llh_grad[i] = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), neg_llh_grad[i])
+
+    neg_llh_grad = lambda sample: [neg_lprior_grad[i](*sample) for i in range(len(neg_llh_grad))]
+
+
+    # Build the gradient of the negative log prior
+    # Prior parameters for depth, delta_log_length/width (dll/dlw) and depth_offset (do)
+    depth_mu = config.prior['depth_mu']
+    depth_std = config.prior['depth_std']
+    dll_std = config.prior['delta_logl_std']
+    dlw_std = config.prior['delta_lowl_std']
+    do_std = config.prior['depth_offset_std']
+    d_depth_dlatlon = centered_difference(depth_map, lat, lon, step)
+
+    # Precomputed derivative values based on prior distributions in main.py, and prior.py
+    d_lat_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon) + 1000*do)) / depth_std * d_depth_dlatlon[0]
+    d_lon_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon + 1000*do))) / depth_std * d_depth_dlatlon[1]
+    d_mag_prior = 1
+    d_dll_prior = lambda dll: dll / dll_std**2
+    d_dlw_prior = lambda dlw: dlw / dlw_std**2
+    d_do_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon) + 1000*do)) / depth_std * 1000 + do / do_std**2
+
+    neg_lprior_grad = lambda sample: d_lat_prior(sample[0],sample[1],sample[5]) + d_lon_prior(sample[0],sample[1],sample[5]) +\
+                        d_mag_prior + d_dll_prior(sample[3]) + d_dlw_prior(sample[4]) + d_do_prior(sample[0],sample[1],sample[5])
 
 def dU(sample,mode='naive'):
     """Compute the gradient for the U function (logprior + llh)
@@ -177,10 +224,10 @@ def dU(sample,mode='naive'):
     if mode == 'naive':
         
         # This if statement is for debugging only, can be deleted
-        if len(naive_gradient_frozen) == 0:
-            raise ValueError('naive_gradient_frozen is empty list')
+        if len(neg_llh_grad) == 0:
+            raise ValueError('neg_llh_grad is empty list')
 
-        return np.array([naive_gradient_frozen[i](sample.iloc[i]) for i in range(len(sample))])
+        return neg_l_prior(sample.values) + neg_llh_grad(sample)
     else:
         raise ValueError('Invalid mode, try \'naive\'')
 

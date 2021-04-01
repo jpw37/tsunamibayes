@@ -3,7 +3,7 @@ import time
 from datetime import timedelta
 import numpy as np
 import pandas as pd
-from tsunamibayes.utils import dU, naive_gradient_setup
+from tsunamibayes.utils import dU, gradient_setup
 
 class BaseScenario:
     """Base class for running a tsunamibayes scenario. Contains the essential
