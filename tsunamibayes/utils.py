@@ -161,18 +161,28 @@ def gradient_setup(dip_map, depth_map):
         denom = sy.cosh((4 * sy.pi * H_0) / (width + length))
         A = ((alpha * slip) / denom) * sy.Pow(1 + (2*R / length), -psi) * (H_0 / H)**(1/4)
 
+        # parameters from gauge likelihood (in gauge.py)
         loc = gauge.loc
         scale = gauge.scale
-    
-        dh_dlat = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, lat)
-        dh_dlon = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, lon)
-        dh_dmag = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, mag)
-        dh_ddll = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, delta_logl)
-        dh_ddlw = (A(lat,lon,mag,delta_logl,delta_logw) - loc) / scale**2 * sy.diff(A, delta_logw)
+        if i in [3,4]:
+            # Buru and Hulaliu use the chi distribution 
+            df = gauge.df
+            dh_dlat = ((1-df)/(A-loc) + A/scale)*sy.diff(A, lat)
+            dh_dlon = ((1-df)/(A-loc) + A/scale)*sy.diff(A, lon)
+            dh_dmag = ((1-df)/(A-loc) + A/scale)*sy.diff(A, mag)
+            dh_ddll = ((1-df)/(A-loc) + A/scale)*sy.diff(A, dll)
+            dh_ddlw = ((1-df)/(A-loc) + A/scale)*sy.diff(A, dlw)
+        else:
+            # The rest of the gauges use a normal distribution
+            dh_dlat = (A - loc) / scale**2 * sy.diff(A, lat)
+            dh_dlon = (A - loc) / scale**2 * sy.diff(A, lon)
+            dh_dmag = (A - loc) / scale**2 * sy.diff(A, mag)
+            dh_ddll = (A - loc) / scale**2 * sy.diff(A, delta_logl)
+            dh_ddlw = (A - loc) / scale**2 * sy.diff(A, delta_logw)
 
         if i == 0:
             # set derivative of depth offset to 0
-            dh_ddo = lambda x: 0
+            dh_ddo = lambda l1,l2,m,dll,dlw: 0
             neg_llh_grad = [dh_dlat, dh_dlon, dh_dmag, dh_ddll, dh_ddlw, dh_ddo]
         else:
             neg_llh_grad[0] *= dh_dlat
@@ -181,10 +191,10 @@ def gradient_setup(dip_map, depth_map):
             neg_llh_grad[3] *= dh_ddll
             neg_llh_grad[4] *= dh_ddlw
 
+    # lambdify resulting gradient for speed improvement in computation
     for i in range(len(neg_llh_grad)):
         neg_llh_grad[i] = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), neg_llh_grad[i])
-
-    neg_llh_grad = lambda sample: [neg_lprior_grad[i](*sample) for i in range(len(neg_llh_grad))]
+    neg_llh_grad = lambda sample: [neg_llh_grad[i](*sample[:-1]) for i in range(len(neg_llh_grad))]
 
 
     # Build the gradient of the negative log prior
@@ -204,8 +214,8 @@ def gradient_setup(dip_map, depth_map):
     d_dlw_prior = lambda dlw: dlw / dlw_std**2
     d_do_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon) + 1000*do)) / depth_std * 1000 + do / do_std**2
 
-    neg_lprior_grad = lambda sample: d_lat_prior(sample[0],sample[1],sample[5]) + d_lon_prior(sample[0],sample[1],sample[5]) +\
-                        d_mag_prior + d_dll_prior(sample[3]) + d_dlw_prior(sample[4]) + d_do_prior(sample[0],sample[1],sample[5])
+    neg_lprior_grad = lambda sample: np.array([d_lat_prior(sample[0],sample[1],sample[5]), d_lon_prior(sample[0],sample[1],sample[5]),
+                        d_mag_prior, d_dll_prior(sample[3]), d_dlw_prior(sample[4]), d_do_prior(sample[0],sample[1],sample[5])])
 
 def dU(sample,mode='naive'):
     """Compute the gradient for the U function (logprior + llh)
@@ -221,13 +231,15 @@ def dU(sample,mode='naive'):
     gradient : numpy array
         The computed gradient
     """
-    if mode == 'naive':
-        
+    if mode == 'height':
         # This if statement is for debugging only, can be deleted
-        if len(neg_llh_grad) == 0:
+        if neg_llh_grad is None or len(neg_llh_grad) == 0:
             raise ValueError('neg_llh_grad is empty list')
 
-        return neg_l_prior(sample.values) + neg_llh_grad(sample)
+        return neg_l_prior(sample.values) + neg_llh_grad(sample.values)
+    elif mode == 'both':
+        # TODO implement arrival time gradient
+        raise NotImplementedError()
     else:
         raise ValueError('Invalid mode, try \'naive\'')
 
