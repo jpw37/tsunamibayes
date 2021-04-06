@@ -9,7 +9,7 @@ class BandaScenario(BaseScenario):
     model_param_cols = ['latitude','longitude','length','width','slip','strike',
                         'dip','depth','rake','depth_offset']
 
-    def __init__(self,prior,forward_model,covariance, mode='random_walk'):
+    def __init__(self,prior,forward_model,covariance, config):
         """Initializes all the necessary variables for the BandaScenario subclass.
         
         Parameters
@@ -25,8 +25,8 @@ class BandaScenario(BaseScenario):
         super().__init__(prior,forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
-        if mode == 'mala':
-            gradient_setup(self.fault.dip_map)
+        if config.init['mcmc_mode'] == 'mala':
+            gradient_setup(self.fault.dip_map, self.fault.depth_map, config)
 
     def propose(self,sample,mode='random_walk',delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.

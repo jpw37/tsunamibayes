@@ -89,9 +89,9 @@ def bearing(lat1, lon1, lat2, lon2):
     y = np.cos(lat1)*np.sin(lat2)-np.sin(lat1)*np.cos(lat2)*np.cos(lon2-lon1)
     return np.degrees(np.arctan2(x,y))%360
 
+global neg_llh_grad, neg_lprior_grad
 neg_llh_grad = None
 neg_lprior_grad = None
-global neg_llh_grad, neg_lprior_grad
 
 def centered_difference(depth_map, lat, lon, step):
     """Compute an approximation to the gradient at (x,y) on a discretized domain
@@ -104,13 +104,13 @@ def centered_difference(depth_map, lat, lon, step):
     -------
     gradient_approx : [d depth_map / d lat, d depth_map / d_lat]
     """
-    lat_deriv = (depth_map(lat - step, lon) - 2*depth_map(lat, lon) + depth_map(lat + step, lon)) / step
-    lon_deriv = (depth_map(lat, lon - step) - 2*depth_map(lat, lon) + depth_map(lat, lon + step)) / step
+    lat_deriv = (0.5*depth_map(lat + step, lon) - 0.5*depth_map(lat - step, lon)) / step
+    lon_deriv = (0.5*depth_map(lat, lon + step) - 0.5*depth_map(lat, lon - step)) / step
 
     return np.array([lat_deriv, lon_deriv])
 
 
-def gradient_setup(dip_map, depth_map):
+def gradient_setup(dip_map, depth_map, config, step=0.01):
     """Use the simplified tsunami formula to compute the gradient
     
     Parameters
@@ -119,6 +119,10 @@ def gradient_setup(dip_map, depth_map):
         Map from lat,lon to dip angle
     depth_map : 
         Map from lat,lon to depth
+    config :
+        contains variables found in the defaults.cfg file
+    step :
+        step size for gradient approximation of depth_map
     
     Returns
     -------
@@ -207,17 +211,17 @@ def gradient_setup(dip_map, depth_map):
     d_depth_dlatlon = centered_difference(depth_map, lat, lon, step)
 
     # Precomputed derivative values based on prior distributions in main.py, and prior.py
-    d_lat_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon) + 1000*do)) / depth_std * d_depth_dlatlon[0]
-    d_lon_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon + 1000*do))) / depth_std * d_depth_dlatlon[1]
+    d_lat_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon,step) + 1000*do)) / depth_std * d_depth_dlatlon[0]
+    d_lon_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon,step) + 1000*do)) / depth_std * d_depth_dlatlon[1]
     d_mag_prior = 1
     d_dll_prior = lambda dll: dll / dll_std**2
     d_dlw_prior = lambda dlw: dlw / dlw_std**2
-    d_do_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon) + 1000*do)) / depth_std * 1000 + do / do_std**2
+    d_do_prior = lambda lat, lon, do: (depth_mu - (depth_map(lat,lon,step) + 1000*do)) / depth_std * 1000 + do / do_std**2
 
     neg_lprior_grad = lambda sample: np.array([d_lat_prior(sample[0],sample[1],sample[5]), d_lon_prior(sample[0],sample[1],sample[5]),
                         d_mag_prior, d_dll_prior(sample[3]), d_dlw_prior(sample[4]), d_do_prior(sample[0],sample[1],sample[5])])
 
-def dU(sample,mode='naive'):
+def dU(sample,mode='height'):
     """Compute the gradient for the U function (logprior + llh)
     for the mala mcmc method
 
