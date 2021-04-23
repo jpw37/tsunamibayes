@@ -3,7 +3,6 @@ import time
 from datetime import timedelta
 import numpy as np
 import pandas as pd
-from tsunamibayes.utils import dU, gradient_setup
 
 class BaseScenario:
     """Base class for running a tsunamibayes scenario. Contains the essential
@@ -184,18 +183,13 @@ class BaseScenario:
             self.bayes_data.iloc[n:].to_csv(output_dir+"/bayes_data.csv",mode='a+',header=False)
             self.debug.iloc[n:].to_csv(output_dir+"/debug.csv",mode='a+',header=False)        
 
-    def sample(self,nsamples,mode='random_walk',delta=0.01,output_dir=None,save_freq=1,verbose=False):
+    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
-
         Parameters
         ----------
         nsamples : int
             Number of samples to draw.
-        mode     : str
-            The desired mcmc method ('random_walk' or 'mala' at this point)
-        delta    : float
-            Step size (only required for the mala mcmc method)
         output_dir : string
             The name of the output directory to save the sample data.
         save_freq : int
@@ -204,7 +198,6 @@ class BaseScenario:
             this function calls the save_data function.
         verbose : bool
             If true, prints gague data for the loglikelihood of the forward model. Default is false.  
-
         Returns
         -------
         samples : pandas DataFrame
@@ -224,7 +217,7 @@ class BaseScenario:
             if verbose: print("\n----------\nIteration {}".format(i)); start = time.time()
 
             # propose new sample from previous
-            proposal = self.propose(self.samples.loc[i-1],mode=mode,delta=delta)
+            proposal = self.propose(self.samples.loc[i-1])
             model_params = self.map_to_model_params(proposal)
             if verbose: print("Proposal:"); print(proposal)
 
@@ -254,31 +247,18 @@ class BaseScenario:
                 if verbose: print("Total llh = {:.3E}".format(llh))
 
                 # acceptance probability
-                if mode == 'random_walk': 
-                    # catch if both loglikelihoods are -inf
-                    if self.bayes_data.loc[i-1,'llh'] == np.NINF and llh == np.NINF:
-                        alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
-                                self.bayes_data.loc[i-1,'prior_logpdf'] - \
-                                self.proposal_logpdf(proposal,self.samples.loc[i-1])
-                    else:
-                        alpha = prior_logpdf + llh + \
-                                self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
-                                self.bayes_data.loc[i-1,'prior_logpdf'] - \
-                                self.bayes_data.loc[i-1,'llh'] - \
-                                self.proposal_logpdf(proposal,self.samples.loc[i-1]) 
-                    alpha = np.exp(alpha)
-                    accepted = (np.random.rand() < alpha)
-                elif mode == 'mala':
-                    # TODO: should it be +logprior +llh or -logprior -llh??? 
-                    U_0 = -self.bayes_data.loc[i-1]['posterior_logpdf'] -self.bayes_data.loc[i-1]['llh']
-                    U_1 = -prior_logpdf - llh  
-                    x1, x0 = proposal, self.samples.loc[i-1]
-                    alpha = -U_1 -1/(2*delta**2) * np.linalg.norm(x0 - x1 + delta**2/2*dU(x1))**2 +\
-                            U_0 + 1/(2*delta**2) * np.linalg.norm(x1 - x0 + delta**2/2*dU(x0))**2
-                    alpha = min(1, alpha)
-                    accepted = np.log(np.random.uniform()) <= alpha
+                # catch if both loglikelihoods are -inf
+                if self.bayes_data.loc[i-1,'llh'] == np.NINF and llh == np.NINF:
+                    alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
+                            self.bayes_data.loc[i-1,'prior_logpdf'] - \
+                            self.proposal_logpdf(proposal,self.samples.loc[i-1])
                 else:
-                    raise ValueError('Invalid Mode, try random_walk or mala instead')
+                    alpha = prior_logpdf + llh + \
+                            self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
+                            self.bayes_data.loc[i-1,'prior_logpdf'] - \
+                            self.bayes_data.loc[i-1,'llh'] - \
+                            self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                alpha = np.exp(alpha)
 
             if verbose: print("alpha = {:.3E}".format(alpha))
 
@@ -286,6 +266,7 @@ class BaseScenario:
             bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
 
             # accept/reject
+            accepted = (np.random.rand() < alpha)
             if accepted:
                 if verbose: print("Proposal accepted",flush=True)
                 self.samples.loc[i] = proposal
