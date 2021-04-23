@@ -6,7 +6,7 @@ from prior import LatLonPrior, BandaPrior
 from gauges import build_gauges
 from scenario import BandaScenario
 
-def setup(config, mode='random_walk'):
+def setup(config):
     """Extracts the data from the config object to create the BandaFault object, 
     and then declares the scenario's initial prior, forward model, and covariance 
     in order to create the BandaScenario. 
@@ -72,7 +72,7 @@ def setup(config, mode='random_walk'):
                              delta_logw_std,
                              depth_offset_std]))
 
-    return BandaScenario(prior,forward_model,covariance,mode)
+    return BandaScenario(prior,forward_model,covariance,config)
 
 if __name__ == "__main__":
     import os
@@ -100,10 +100,7 @@ if __name__ == "__main__":
     os.system("cp {} Makefile".format(makefile_path))
 
     # build scenario
-    print(config)
-    print(type(config))
-    print(config.init['mcmc_mode'])
-    scenario = setup(config, config.init['mcmc_mode'])
+    scenario = setup(config)
 
     # resume in-progress chain
     if args.resume:
