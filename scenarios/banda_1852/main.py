@@ -100,6 +100,9 @@ if __name__ == "__main__":
     os.system("cp {} Makefile".format(makefile_path))
 
     # build scenario
+    print(config)
+    print(type(config))
+    print(config.init['mcmc_mode'])
     scenario = setup(config, config.init['mcmc_mode'])
 
     # resume in-progress chain
