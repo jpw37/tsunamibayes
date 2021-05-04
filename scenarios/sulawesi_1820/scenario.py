@@ -8,22 +8,40 @@ class MultiFaultScenario():
         """Wrapper for multiple scenarios."""
         self.scenarios = scenarios
 
-    def init_chain(self,fault_idx,u0=None,method=None,verbose=False,**kwargs):
+    def init_chain(self,u0=None,method=None,verbose=False,**kwargs):
         """Initializes a chain associated with scenarios[fault_idx]."""
+        # Get the fault index from u0, then initialize the chain.
+        fault_idx = u0['fault_idx']
         self.scenarios[fault_idx].init_chain(
             u0=u0,
             method=method,
             verbose=verbose,
             **kwargs
         )
+        self.fault_idx = fault_idx
 
-    def resume_chain(self,fault_idx,output_dir):
+    def resume_chain(self,output_dir,fault_idx=None):
         """Resumes a chain associated with scenarios[fault_idx]."""
-        self.scenarios[fault_idx].resume_chain(output_dir)
+        # We need to figure out which fault we're resuming, then initialize the
+        # chain using that fault's scenario.
+        if fault_idx is None:
+            fault_idx = int(pd.read_csv(
+                output_dir+"/samples.csv",
+                index_col=0
+            ).reset_index(drop=True).iloc[-1]['fault_idx'])
 
-    def sample(self,fault_idx,nsamples,output_dir=None,save_freq=1,verbose=False):
+        self.scenarios[fault_idx].resume_chain(output_dir)
+        self.fault_idx = fault_idx
+
+    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False,fault_idx=None):
         """Samples from the chain at fault_idx."""
-        self.scenarios[fault_idx].sample(nsamples,output_dir,save_freq,verbose)
+        self.scenarios[self.fault_idx].sample(
+            nsamples,
+            output_dir,
+            save_freq,
+            verbose
+        )
+
 
 
 class SulawesiScenario(BaseScenario):

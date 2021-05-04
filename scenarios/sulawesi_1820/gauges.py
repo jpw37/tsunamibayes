@@ -21,14 +21,14 @@ def build_gauges():
     gauges.append(gauge)
 
     # Sumenep
-    name = 'Sumenep'
-    dists = dict()
-    dists['height'] = stats.truncnorm(loc=1.5,scale=1,a=-1,b=4)
-    dists['arrival'] = stats.norm(loc=240,scale=45)
-    gauge = Gauge(name,dists)
-    gauge.lat = -7.049969
-    gauge.lon = 113.908203
-    gauges.append(gauge)
+    #name = 'Sumenep'
+    #dists = dict()
+    #dists['height'] = stats.truncnorm(loc=1.5,scale=1,a=-1,b=4)
+    #dists['arrival'] = stats.norm(loc=240,scale=45)
+    #gauge = Gauge(name,dists)
+    #gauge.lat = -7.049969
+    #gauge.lon = 113.908203
+    #gauges.append(gauge)
 
 
     # Nipa-Nipa
