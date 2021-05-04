@@ -153,14 +153,16 @@ class LatLonPrior(BasePrior):
 
         #FAULT: subfault_params is a data frame. We shoudn't need a subfault split function.
         #FAULT: What will be our replacement here?
-        subfault_params = self.fault.subfault_split_RefCurve(sample['latitude'],
-                                                    sample['longitude'],
-                                                    length,
-                                                    width,
-                                                    1,
-                                                    sample['depth_offset'],
-                                                    sample['rake_offset'],
-                                                    sample['dip_offset'])
+        subfault_params = self.fault.subfault_split_RefCurve(lat = sample['latitude'],
+                                                    lon = sample['longitude'],
+                                                    length = length,
+                                                    width = width,
+                                                    slip = 1,
+                                                    depth_offset = sample['depth_offset'],
+                                                    dip_offset = sample['dip_offset'],
+                                                    rake_offset = sample['rake_offset'])
+        print("SUBFAULT PARAMETERS")
+        print(subfault_params)
 
         if subfault_params.isnull().values.any():
             return np.NINF

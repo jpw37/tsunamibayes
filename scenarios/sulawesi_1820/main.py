@@ -295,26 +295,20 @@ if __name__ == "__main__":
     # resume in-progress chain
     if args.resume:
         if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
-        scenarios.resume_chain(0,args.output_dir)
+        scenarios.resume_chain(args.output_dir)
 
     # initialize new chain
     else:
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenarios.scenarios[0].sample_cols}
-            print("""This is the initial sample
-            _____________________________
-            """)
-            print(u0)
-            scenarios.init_chain(0, u0, verbose=args.verbose)
+            scenarios.init_chain(u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
-                args.fault_idx,
                 method='prior_rvs',
                 verbose=args.verbose
             )
 
     scenarios.sample(
-        0,
         args.n_samples,
         output_dir=args.output_dir,
         save_freq=args.save_freq,
