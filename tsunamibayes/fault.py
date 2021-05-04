@@ -772,11 +772,28 @@ class ReferenceCurveFault(BaseFault):
             self.latpts,
             self.lonpts
         )
+
         #I think we need an if statement here for when the distances array doesn't have more than 1 dimension.
-        if retclose:
-            return distances.min(axis=1), distances.argmin(axis=1)
+        if np.isscalar(lat):
+            out = (distances.min(axis=0), distances.argmin(axis=0))
+            return out if retclose else out[0]
+
+        # if len(distances[0] == 1):
+        #     # if retclose:
+        #     #     print("DEBUGGING RETCLOSE BRANCH")
+        #     #     print(distances.min())
+        #     #     print(distances.argmin())
+        #     #     return distances.min(), distances.argmin()
+        #     # else:
+        #     #     return distances.min()
+        #     out = (distances.min(), distances.argmin())
+        #     return out if retclose else out[0]
+
         else:
-            return distances.min(axis=1)
+            if retclose:
+                return distances.min(axis=1), distances.argmin(axis=1)
+            else:
+                return distances.min(axis=1)
 
 
     def strike_map(self,lat,lon):
@@ -841,20 +858,37 @@ class ReferenceCurveFault(BaseFault):
         )
 
         # Change the distance anywhere idx == 0 or idx == len(self.latpts)-1
-        mask = (idx == 0) | (idx == (len(self.latpts)-1))
-        bear = bearing(
-            self.latpts[idx[mask]],
-            self.lonpts[idx[mask]],
-            np.squeeze(lat[idx[mask]]),
-            np.squeeze(lon[idx[mask]])
-        )
-        distance[idx[mask]] = distance[idx[mask]]*np.sin(
-            np.deg2rad(self.strikepts[idx[mask]]-bear)
-        )
-        side[idx[mask]] = -np.sign(distance[idx[mask]][:,np.newaxis])
-        distance[idx[mask]] = np.abs(distance[idx[mask]])
+        if np.isscalar(lat):
+            bear = bearing(
+                self.latpts[idx],
+                self.lonpts[idx],
+                lat,
+                lon
+            )
+            distance = distance*np.sin(             #This returns the distances to each of the points defined along the referecne curve
+                np.deg2rad(self.strikepts-bear)
+            )                             
+            sorted_distances = distance.sort()      #Sort the distances from smallest to largest (distances are negative, so we will pull off the top values to get the closest distances)
+            distance = np.average(distance[-3:])    #We average the three closest points
+            side= -np.sign(distance)
+            distance = np.abs(distance)
+            depth = self.depth_curve(np.squeeze(side)*distance)
 
-        depth = self.depth_curve(np.squeeze(side)*distance)
+        else:
+            mask = (idx == 0) | (idx == (len(self.latpts)-1))
+            bear = bearing(
+                self.latpts[idx[mask]],
+                self.lonpts[idx[mask]],
+                np.squeeze(lat[idx[mask]]),
+                np.squeeze(lon[idx[mask]])
+            )
+            distance[idx[mask]] = distance[idx[mask]]*np.sin(
+                np.deg2rad(self.strikepts[idx[mask]]-bear)
+            )
+            side[idx[mask]] = -np.sign(distance[idx[mask]][:,np.newaxis])
+            distance[idx[mask]] = np.abs(distance[idx[mask]])
+
+            depth = self.depth_curve(np.squeeze(side)*distance)
 
         return ((depth,side) if retside else depth)
 
@@ -885,18 +919,34 @@ class ReferenceCurveFault(BaseFault):
             self.strikepts[idx]
         )
 
-        mask = (idx == 0) | (idx == (len(self.latpts)-1))
-        bear = bearing(
-            self.latpts[idx[mask]],
-            self.lonpts[idx[mask]],
-            np.squeeze(lat[idx[mask]]),
-            np.squeeze(lon[idx[mask]])
-        )
-        distance[idx[mask]] = distance[idx[mask]]*np.sin(
-            np.deg2rad(self.strikepts[idx[mask]]-bear)
-        )
-        side[idx[mask]] = -np.sign(distance[idx[mask]][:,np.newaxis])
-        distance[idx[mask]] = np.abs(distance[idx[mask]])
+        if np.isscalar(lat):
+            bear = bearing(
+                self.latpts[idx],
+                self.lonpts[idx],
+                lat,
+                lon
+            )
+            distance = distance*np.sin(
+                np.deg2rad(self.strikepts-bear)
+            )
+            distance.sort()
+            distance = np.average(distance[-3:])
+            side = -np.sign(distance)
+            distance = np.abs(distance)
+
+        else: 
+            mask = (idx == 0) | (idx == (len(self.latpts)-1))
+            bear = bearing(
+                self.latpts[idx[mask]],
+                self.lonpts[idx[mask]],
+                np.squeeze(lat[idx[mask]]),
+                np.squeeze(lon[idx[mask]])
+            )
+            distance[idx[mask]] = distance[idx[mask]]*np.sin(
+                np.deg2rad(self.strikepts[idx[mask]]-bear)
+            )
+            side[idx[mask]] = -np.sign(distance[idx[mask]][:,np.newaxis])
+            distance[idx[mask]] = np.abs(distance[idx[mask]])
 
         return self.dip_curve(np.squeeze(side)*distance)
 

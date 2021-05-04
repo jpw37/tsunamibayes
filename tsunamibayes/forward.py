@@ -154,13 +154,15 @@ class GeoClawForwardModel(BaseForwardModel):
         """
         # split fault into subfaults aligning to fault zone geometry
         #FAULT: Once again, are we going to use some sort of subfault split, or just treat the fault as one Okada Rectangle?
-        subfault_params = self.fault.subfault_split(model_params['latitude'],
-                                                    model_params['longitude'],
-                                                    model_params['length'],
-                                                    model_params['width'],
-                                                    model_params['slip'],
-                                                    model_params['depth_offset'],
-                                                    model_params['rake'])
+        subfault_params = self.fault.subfault_split_RefCurve(lat = model_params['latitude'],
+                                                    lon = model_params['longitude'],
+                                                    length = model_params['length'],
+                                                    width = model_params['width'],
+                                                    slip = model_params['slip'],
+                                                    depth_offset = model_params['depth_offset'],
+                                                    dip_offset = model_params['dip_offset'],
+                                                    rake_offset = model_params['rake_offset'],
+                                                    rake =model_params['rake'])
 
         # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)  #FAULT: When we call fault.bounds, will this return both fault bounds, which one? How can we differentiate?

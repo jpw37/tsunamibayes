@@ -237,8 +237,10 @@ def out_of_bounds(subfault_params, bounds):
     # check if subfaults are outside bounds
     corners = calc_corners(subfault_params)
     if np.any(corners[0] < bounds['lat_min']) or np.any(corners[0] > bounds['lat_max']):
+        print("Subfault lat out of bounds")
         return True
     if np.any(corners[1] < bounds['lon_min']) or np.any(corners[1] > bounds['lon_max']):
+        print("Subfault lon out of bounds")
         return True
 
     print('Not outside corners... YAY')
@@ -246,6 +248,11 @@ def out_of_bounds(subfault_params, bounds):
     # check if subfaults intersect surface
     for _,subfault in subfault_params.iterrows():
         if subfault['depth'] < .5*subfault['width']*np.sin(np.deg2rad(subfault['dip'])):
+            print("Subfault intersects surface")
+            print(subfault['depth'])
+            print(subfault['width'])
+            print(subfault['dip'])
+            print(.5*subfault['width']*np.sin(np.deg2rad(subfault['dip'])))
             return True
 
     return False
