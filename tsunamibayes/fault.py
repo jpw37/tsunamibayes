@@ -867,7 +867,7 @@ class ReferenceCurveFault(BaseFault):
             )
             distance = distance*np.sin(             #This returns the distances to each of the points defined along the referecne curve
                 np.deg2rad(self.strikepts-bear)
-            )                             
+            )
             sorted_distances = distance.sort()      #Sort the distances from smallest to largest (distances are negative, so we will pull off the top values to get the closest distances)
             distance = np.average(distance[-3:])    #We average the three closest points
             side= -np.sign(distance)
@@ -934,7 +934,7 @@ class ReferenceCurveFault(BaseFault):
             side = -np.sign(distance)
             distance = np.abs(distance)
 
-        else: 
+        else:
             mask = (idx == 0) | (idx == (len(self.latpts)-1))
             bear = bearing(
                 self.latpts[idx[mask]],
@@ -1099,10 +1099,21 @@ class GaussianProcessFault(BaseFault):
         Returns
         -------
         mean : float or np.array(n,)
-            The computed weighted mean for the strike angles. (degrees)
+            The interpolated strike (in degrees) for the given coordinate.
+        std : (optional) float or np.array (n,)
+            The standard deviation (in degrees) around each strike prediction.
         """
         latlon = np.vstack([lat, lon]).T
-        return self.strike_gpr.predict(latlon,return_std=return_std)
+        pred = self.strike_gpr.predict(latlon,return_std=return_std)
+
+        # In scalar cases, ensure we don't propagate arrays.
+        if np.isscalar(lat):
+            if return_std:
+                pred = (pred[0].item(), pred[1].item())
+            else:
+                pred = pred.item()
+
+        return pred
 
 
     def depth_map(self,lat,lon,return_std=False):
@@ -1120,18 +1131,26 @@ class GaussianProcessFault(BaseFault):
         -------
         depth : float or np.array (n,)
             The interpolated depth (in meters) for the given coordinate.
-        side : signed int or np.array (n,)
-            (Optionally) Returns 1 if the given point is dipward of the
-            fault, -1 if antidipward.
+        std : (optional) float or np.array (n,)
+            The standard deviation (in meters) around each depth prediction.
         """
         latlon = np.vstack([lat, lon]).T
-        depth = self.depth_gpr.predict(latlon,return_std=return_std)
+        pred = self.depth_gpr.predict(latlon,return_std=return_std)
+
+        # The treatment is different if we need the standard deviation.
         if return_std:
-            depth, std = depth
-        depth *= 1000. # Change to meters.
-        if return_std:
+            depth, std = pred
+            depth *= 1000. # Change to meters.
+            if np.isscalar(lat):
+                return depth.item(), std.item()
             return depth, std
-        return depth
+
+        # Procedure when standard deviation is not needed.
+        pred *= 1000. # Change to meters.
+        if np.isscalar(lat):
+            pred = pred.item()
+
+        return pred
 
 
     def dip_map(self,lat,lon,return_std=False):
@@ -1139,16 +1158,27 @@ class GaussianProcessFault(BaseFault):
 
         Parameters
         ----------
-        lat : float or np.array (n,1)
+        lat : float or np.array (n,)
             The latitude coordinate (degrees) near the fault.
             is to be calculated.
-        lon : float or np.array (n,1)
+        lon : float or np.array (n,)
             The latitude coordinate (degrees) near the fault.
 
         Returns
         -------
         dip : float or np.array (n,)
             The interpolated dip (in degrees) for the given coordinate.
+        std : (optional) float or np.array (n,)
+            The standard deviation (in degrees) around each dip prediction.
         """
         latlon = np.vstack([lat, lon]).T
-        return self.dip_gpr.predict(latlon,return_std=return_std)
+        pred = self.strike_gpr.predict(latlon, return_std=return_std)
+
+        # In scalar cases, ensure we don't propagate arrays.
+        if np.isscalar(lat):
+            if return_std:
+                pred = (pred[0].item(), pred[1].item())
+            else:
+                pred = pred.item()
+
+        return pred
