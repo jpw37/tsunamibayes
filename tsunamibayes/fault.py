@@ -1183,7 +1183,7 @@ class GaussianProcessFault(BaseFault):
             The standard deviation (in degrees) around each dip prediction.
         """
         latlon = np.vstack([lat, lon]).T
-        pred = self.strike_gpr.predict(latlon, return_std=return_std)
+        pred = self.dip_gpr.predict(latlon, return_std=return_std)
 
         # In scalar cases, ensure we don't propagate arrays.
         if np.isscalar(lat):
