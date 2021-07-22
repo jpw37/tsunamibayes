@@ -70,7 +70,8 @@ class SulawesiScenario(BaseScenario):
         'depth_offset',
         'rake_offset', # TODO: do rake and dip offsets need to be Okada parameters?
         'dip_offset',
-        'strike_offset'
+        'strike_offset',
+        'magnitude'
     ]
 
     def __init__(self,prior,forward_model,covariance):
@@ -87,7 +88,7 @@ class SulawesiScenario(BaseScenario):
             the scenario's latitude, longitude, magnitude, delta logl & logw, and depth offset.
         """
         super().__init__(prior,forward_model)
-        self.fault = forward_model.fault
+        self.fault = forward_model.submodels[0].fault # Use the GeoclawForwardModel's fault object.
         self.cov = covariance
 
     def propose(self,sample):
@@ -197,5 +198,6 @@ class SulawesiScenario(BaseScenario):
         model_params['depth_offset'] = sample['depth_offset']
         model_params['rake'] = rake
         model_params['rake_offset'] = sample['rake_offset']
+        model_params['magnitude'] = sample['magnitude']
 
         return model_params

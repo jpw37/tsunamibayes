@@ -15,21 +15,23 @@ def build_gauges():
     dists = dict()
     dists['height'] = stats.norm(loc=24,scale=5)
     dists['arrival'] = stats.norm(loc=15,scale=10)
+    dists['PGA'] = stats.truncnorm(loc=1.0,scale=0.3,a=0.04,b=1.4) # center it around one.
+    #dists['MMI'] = stats.truncnorm(loc=7,scale=1.5,a=4,b=11) # should probably be disabled.
     gauge = Gauge(name,dists)
     gauge.lat = -5.565079
     gauge.lon = 120.192826
+    gauge.V_S30 = 260 # https://usgs.maps.arcgis.com/apps/webappviewer/index.html?id=8ac19bc334f747e486550f32837578e1
     gauges.append(gauge)
 
     # Sumenep
-    #name = 'Sumenep'
-    #dists = dict()
-    #dists['height'] = stats.truncnorm(loc=1.5,scale=1,a=-1,b=4)
-    #dists['arrival'] = stats.norm(loc=240,scale=45)
-    #gauge = Gauge(name,dists)
-    #gauge.lat = -7.049969
-    #gauge.lon = 113.908203
-    #gauges.append(gauge)
-
+    name = 'Sumenep'
+    dists = dict()
+    dists['height'] = stats.truncnorm(loc=1.5,scale=1,a=-1,b=4)
+    dists['arrival'] = stats.norm(loc=240,scale=45)
+    gauge = Gauge(name,dists)
+    gauge.lat = -7.049969
+    gauge.lon = 113.908203
+    gauges.append(gauge)
 
     # Nipa-Nipa
     name = 'Nipa-Nipa'

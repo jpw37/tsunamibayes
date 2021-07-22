@@ -1,18 +1,19 @@
 import numpy as np
 
 def inundation(wave_height,beta,n):
-    """Computes the inundation distance of the tsunami wave based on wave height.
-    
+    """Computes the inundation distance of the tsunami wave based on wave
+    height.
+
     Parameters
     ----------
     wave_height : float
         The wave height at the shore (in meters).
     beta : float
-        The gauge's beta value, the uniform slope of the shoreline (degrees). 
+        The gauge's beta value, the uniform slope of the shoreline (degrees).
         (FIXME: What does beta stand for in banda_1852 gauges?).
     n : float
-        The Manning's coefficient for the surface roughness of the shoreline. 
-    
+        The Manning's coefficient for the surface roughness of the shoreline.
+
     Returns
     -------
     val : float
@@ -22,17 +23,14 @@ def inundation(wave_height,beta,n):
     val = wave_height**(4/3)*0.06*np.cos(np.deg2rad(beta))/(n**2)
     return max(val,0)
 
-def abrahamson(type,mag,dist,V_S30,backarc=False):
-    """Computes PGA_1000 by running the model with VS30 = 1000, PGA = 0 and associated
-    regression parameters (those listed for period = 0 hz.), then uses the computed value
-    to computes the spectral acceleration model of Abrahamson, et al for the specific interface event.
+
+def PSA_to_MMI(log_SA, M, D):
+    """Atkinson and Kaka model for converting PSA (1 Hz) to MMI.
 
     Parameters
     ----------
-    type : string
-        The type of the model desired. Generally can be either 'PGA' to calculate
-        the general Peak Ground acceleartion or '1HZ' to run the model when the earthquake's
-        period is 1 HZ.
+    log_SA : float
+        Spectral acceleration in units of g. (m/s^2)
     mag : float
         Moment magnitude
     dist : float
@@ -42,7 +40,7 @@ def abrahamson(type,mag,dist,V_S30,backarc=False):
         Passed into run_model function as 'VS30'.
     backarc : bool
         True if the location of the model is on the backarc side of fault.
-        False for modeling in the forarc side of a fault. Default is False. 
+        False for modeling in the forarc side of a fault. Default is False.
 
     Returns
     -------
@@ -50,31 +48,78 @@ def abrahamson(type,mag,dist,V_S30,backarc=False):
         Spectral acceleration in units of g. (m/s^2)
     sigma : float
         Standard deviation of ln(PSA) in units of g. (m/s^2)
-        The root sum squars of the interevent's standard deviations.  
+        The root sum squars of the interevent's standard deviations.
+    """
+
+    C = [3.23, 1.18, 0.57, 2.95, 1.92, -0.39, 0.04]
+    log_YI5 = 1.50
+
+    sigma_IMMI = 0.84
+    sigma_MMI = 0.73
+    sigma = np.sqrt(sigma_IMMI**2 + sigma_MMI**2)
+
+    if log_SA <= log_YI5:
+        MMI = C[0] + C[1]*log_SA + C[4] + C[5]*M + C[6]*np.log(D)
+    else:
+        MMI = C[2] + C[3]*log_SA + C[4] + C[5]*M + C[6]*np.log(D)
+
+    return MMI, sigma
+
+
+def abrahamson(type,mag,dist,V_S30,backarc=False,return_std=False):
+    """Computes PGA_1000 by running the model with VS30 = 1000, PGA = 0 and
+    associated regression parameters (those listed for period = 0 hz.), then
+    uses the computed value to computes the spectral acceleration model of
+    Abrahamson, et al for the specific interface event.
+
+    Parameters
+    ----------
+    type : string
+        The type of the model desired. Generally can be either 'PGA' to
+        calculate the general Peak Ground acceleartion or '1HZ' to run the
+        model when the earthquake's period is 1 HZ.
+    mag : float
+        Moment magnitude
+    dist : float
+        Distance to fault (km). Passed into run_model function as 'R'.
+    V_S30 : float
+        Shear wave velocity in the top 30 meters (m/s).
+        Passed into run_model function as 'VS30'.
+    backarc : bool
+        True if the location of the model is on the backarc side of fault.
+        False for modeling in the forarc side of a fault. Default is False.
+
+    Returns
+    -------
+    spec_accel : float
+        Spectral acceleration in units of g. (m/s^2)
+    sigma : float
+        Standard deviation of ln(PSA) in units of g. (m/s^2)
+        The root sum squars of the interevent's standard deviations.
     """
     def run_model(type,M,R,PGA_1000,VS30,backarc):
         """Computes the spectral acceleration model of Abrahamson, et al
         for an interface event.
-        
+
         Parameters
         ----------
         type : string
-            The type of the model desired. Generally can be either 'PGA' to calculate
-            the general Peak Ground acceleartion or '1HZ' to run the model when the earthquake's
-            period is 1 HZ.
+            The type of the model desired. Generally can be either 'PGA' to
+            calculate the general Peak Ground acceleartion or '1HZ' to run the
+            model when the earthquake's period is 1 HZ.
         M : float
             The earthquake's moment magnitude.
         R : float
             Distance to fault (km).
         PGA_1000 : float
-            The peak ground acceleration (m/s^2) when the shear wave velocity in the top 
-            30 meters (V_S30) is 1000 m/s. 
+            The peak ground acceleration (m/s^2) when the shear wave velocity
+            in the top 30 meters (V_S30) is 1000 m/s.
         VS30 : float
             Shear wave velocity in the top 30 meters (m/s).
         backarc : bool
             True if the location of the model is on the backarc side of fault.
-            False for modeling in the forarc side of a fault. 
-        
+            False for modeling in the forarc side of a fault.
+
         Returns
         -------
         log : float
@@ -122,9 +167,9 @@ def abrahamson(type,mag,dist,V_S30,backarc=False):
         else:
             Vstar = VS30
 
-        if VS30 < V_lin:
-            fsite = a[11]*np.log(Vstar/V_lin)-b*np.log(PGA+c) + \
-                    b*np.log(PGA + c*(Vstar/V_lin)**n)
+        if VS30 < V_lin: # FIXME: following line changed to PGA_1000
+            fsite = a[11]*np.log(Vstar/V_lin)-b*np.log(PGA_1000+c) + \
+                    b*np.log(PGA_1000 + c*(Vstar/V_lin)**n)
         else:
             fsite = (a[11]+ b*n)*np.log(Vstar/V_lin)
 
@@ -135,24 +180,28 @@ def abrahamson(type,mag,dist,V_S30,backarc=False):
             fFABA = 0
 
         # Full equation:
-#         log = a[0] + a[3]*deltaC + (a[1] + a[2]*(M-7.8))* \
-#               np.log(R+C4*np.exp(a[8]*(M-6))) + \
-#               a[5]*R + fmag + fFABA + fsite
+        #   log = a[0] + a[3]*deltaC + (a[1] + a[2]*(M-7.8))* \
+        #         np.log(R+C4*np.exp(a[8]*(M-6))) + \
+        #         a[5]*R + fmag + fFABA + fsite
 
-        log = a[0] + (a[1] + a[2]*(M-7.8))* \
-              np.log(R+C4*np.exp(a[8]*(M-6))) + \
-              a[5]*R + fmag + fFABA + fsite + PGA_adjust
-
+        log = (
+            a[0] + (a[1] + a[2]*(M-7.8))*
+            np.log(R+C4*np.exp(a[8]*(M-6))) +
+            a[5]*R + fmag + fFABA + fsite + PGA_adjust
+        )
         return log
 
+    # FIXME: What should Backarc be?? Can we always assume it's true?
+    BACKARC = True
 
     # Calculate PGA 1000
-    PGA_1000 = np.exp(run_model('PGA',mag,dist,0,1000.))
+    PGA_1000 = np.exp(run_model('PGA',mag,dist,0,1000.,BACKARC))
 
     # Run model for period = 1hz
-    log = run_model(type, mag, dist, PGA_1000, V_S30)
+    log = run_model(type, mag, dist, PGA_1000, V_S30, BACKARC)
 
     phi = 0.60 # intraevent standard deviation
     tau = 0.43 # interevent standard deviation
 
-    return log, np.sqrt(phi**2 + tau**2)
+    return log
+    return (log, np.sqrt(phi**2 + tau**2)) if return_std else log

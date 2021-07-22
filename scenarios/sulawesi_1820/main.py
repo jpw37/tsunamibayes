@@ -152,34 +152,58 @@ def setup(config):
     ]
 
     prior = [
-        SulawesiPrior(  latlon[FAULT.FLORES],
-                        mag[FAULT.FLORES],
-                        delta_logl[FAULT.FLORES],
-                        delta_logw[FAULT.FLORES],
-                        depth_offset[FAULT.FLORES],
-                        dip_offset[FAULT.FLORES],
-                        strike_offset[FAULT.FLORES],
-                        rake_offset[FAULT.FLORES]
-                    ) ,
-
-        SulawesiPrior(  latlon[FAULT.WALANAE],
-                        mag[FAULT.WALANAE],
-                        delta_logl[FAULT.WALANAE],
-                        delta_logw[FAULT.WALANAE],
-                        depth_offset[FAULT.WALANAE],
-                        dip_offset[FAULT.WALANAE],
-                        strike_offset[FAULT.WALANAE],
-                        rake_offset[FAULT.WALANAE])
+        SulawesiPrior(
+            latlon[FAULT.FLORES],
+            mag[FAULT.FLORES],
+            delta_logl[FAULT.FLORES],
+            delta_logw[FAULT.FLORES],
+            depth_offset[FAULT.FLORES],
+            dip_offset[FAULT.FLORES],
+            strike_offset[FAULT.FLORES],
+            rake_offset[FAULT.FLORES]
+        ),
+        SulawesiPrior(
+            latlon[FAULT.WALANAE],
+            mag[FAULT.WALANAE],
+            delta_logl[FAULT.WALANAE],
+            delta_logw[FAULT.WALANAE],
+            depth_offset[FAULT.WALANAE],
+            dip_offset[FAULT.WALANAE],
+            strike_offset[FAULT.WALANAE],
+            rake_offset[FAULT.WALANAE]
+        )
     ]
 
     # load gauges
     gauges = build_gauges() # TODO: Ashley should be working on this.
 
     # Forward model
-    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
+    config.fgmax['min_level_check'] = (
+        len(config.geoclaw['refinement_ratios']) + 1
+    )
     forward_model = [
-        tb.GeoClawForwardModel(gauges,fault[FAULT.FLORES],config.fgmax,config.geoclaw['dtopo_path']),
-        tb.GeoClawForwardModel(gauges,fault[FAULT.WALANAE],config.fgmax,config.geoclaw['dtopo_path'])
+        tb.forward.CompositeForwardModel(
+            [
+                tb.forward.GeoClawForwardModel(
+                    gauges,
+                    fault[FAULT.FLORES],
+                    config.fgmax,
+                    config.geoclaw['dtopo_path']
+                ),
+                tb.forward.ShakeForwardModel(gauges,fault[FAULT.FLORES])
+            ]
+        ),
+        tb.forward.CompositeForwardModel(
+            [
+                tb.forward.GeoClawForwardModel(
+                    gauges,
+                    fault[FAULT.WALANAE],
+                    config.fgmax,
+                    config.geoclaw['dtopo_path']
+                ),
+                tb.forward.ShakeForwardModel(gauges,fault[FAULT.WALANAE])
+            ]
+        )
     ]
 
     # TODO: how does proposal kernel need to change?
