@@ -31,7 +31,7 @@ setup(
     include_package_data=True,
     keywords='tsunamibayes',
     name='tsunamibayes',
-    packages=find_packages(include=['tsunamibayes']),
+    packages=find_packages(),
     test_suite='tests',
     url='https://github.com/jpw37/tsunamibayes',
     version='0.1.0',
