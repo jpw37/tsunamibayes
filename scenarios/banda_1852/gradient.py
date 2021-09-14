@@ -112,7 +112,6 @@ def gradient_setup(dip_map, depth_map, config, step=0.01):
         neg_llh_grad[i] = sy.Lambda((lat, lon, mag, delta_logl, delta_logw), neg_llh_grad[i])
     neg_llh_grad = lambda sample: [neg_llh_grad[i](*sample[:-1]) for i in range(len(neg_llh_grad))]
 
-
     # Build the gradient of the negative log prior
     # Prior parameters for depth, delta_log_length/width (dll/dlw) and depth_offset (do)
     depth_mu = config.prior['depth_mu']
