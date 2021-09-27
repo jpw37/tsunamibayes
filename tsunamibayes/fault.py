@@ -911,16 +911,6 @@ class ReferenceCurveFault(BaseFault):
         """
         distance,idx = self.distance(lat,lon,retclose=True)
 
-<<<<<<< HEAD
-        side = ReferenceCurveFault.side(lat,lon,self.latpts[idx],self.lonpts[idx],self.strikepts[idx])
-        print(np.shape(idx))
-        if idx == 0 or idx == len(self.latpts)-1:
-            bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
-            distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
-            side = -np.sign(distance)
-            distance = np.abs(distance)
-        return self.dip_curve(side*distance)
-=======
         side = ReferenceCurveFault.side(
             lat,
             lon,
@@ -959,7 +949,6 @@ class ReferenceCurveFault(BaseFault):
             distance[idx[mask]] = np.abs(distance[idx[mask]])
 
         return self.dip_curve(np.squeeze(side)*distance)
->>>>>>> 9b4df4a... Vectorize ReferenceCurveFault and finish MultiFault
 
 
     def depth_dip(self,lat,lon):
