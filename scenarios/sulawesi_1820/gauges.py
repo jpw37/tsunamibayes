@@ -16,8 +16,8 @@ def build_gauges():
     dists['height'] = stats.norm(loc=24,scale=5)
     dists['arrival'] = stats.norm(loc=15,scale=10)
     gauge = Gauge(name,dists)
-    gauge.lat = [-5.565079]
-    gauge.lon = [120.192826]
+    gauge.lat = [-5.566, -5.5675, -5.563]
+    gauge.lon = [120.195, 120.1915, 120.197]
     gauges.append(gauge)
 
     # Sumenep
@@ -26,8 +26,8 @@ def build_gauges():
     dists['height'] = stats.truncnorm(loc=1.5,scale=1,a=-1,b=4)
     dists['arrival'] = stats.norm(loc=240,scale=45)
     gauge = Gauge(name,dists)
-    gauge.lat = [-7.049969]
-    gauge.lon = [113.908203]
+    gauge.lat = [-7.049969, -7.049, -7.053]
+    gauge.lon = [113.909, 113.913, 113.905]
     gauges.append(gauge)
 
     # Nipa-Nipa
@@ -36,8 +36,8 @@ def build_gauges():
     dists['height'] = stats.truncnorm(loc=3,scale=2,a=-1,b=4)
     #dists['inundation'] = stats.norm(135,20)
     gauge = Gauge(name,dists)
-    gauge.lat = [-5.567525]
-    gauge.lon = [120.011503]
+    gauge.lat = [-5.574, -5.569, -5.575]
+    gauge.lon = [120.011, 120.005, 120.016]
     gauges.append(gauge)
 
     # Bima
@@ -45,8 +45,8 @@ def build_gauges():
     dists = dict()
     dists['height'] = stats.truncnorm(loc=10,scale=4,a=-2,b=4)
     gauge = Gauge(name,dists)
-    gauge.lat =  [-8.443485] # Note: this is within the town
-    gauge.lon = [118.716085]
+    gauge.lat =  [-8.4417, -8.4502, -8.4476]
+    gauge.lon = [118.7188, 118.7169, 118.7135]
     gauges.append(gauge)
 
     # Makassar
