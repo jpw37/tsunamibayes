@@ -6,16 +6,16 @@ from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
 
-#TODO : Add a section for the shaking model here. 
+#TODO : Add a section for the shaking model here.
 class BaseForwardModel:
     """A parent class giving the outline for other subclasses to run the forward model."""
     def __init__(self,gauges):
         """Initializes the necessary variables for the base class.
-        
+
         Parameters
         ----------
         gauges : (list) of Gauge objects
-            The list of gauge objects containing locations data distribution functions for the 
+            The list of gauge objects containing locations data distribution functions for the
             arrival, height, and inundation for each gauge location.
         """
         self.gauges = gauges
@@ -36,11 +36,11 @@ class CompositeForwardModel(BaseForwardModel):
     def __init__(self,submodels):
         """Extracts all the gauge objects found within each element of the submodels
         lists and pases those gauges into the constructor of the parent class.
-        
+
         Parameters
         ----------
         submodels : (list) of ForwardModel objects
-            A list of GeoClawForwardModel or TestForwardModel objects that each 
+            A list of GeoClawForwardModel or TestForwardModel objects that each
             contain their own respective gauges data member.
         """
         self.submodels = submodels
@@ -58,9 +58,9 @@ class CompositeForwardModel(BaseForwardModel):
         Parameters
         ----------
         model_params : dict
-            The dictionary whose keys are the okada parameters: 'latitude', 'longitude', 
-            'depth_offset', 'strike','length','width','slip','depth','dip','rake', 
-            and whose associated values are floats. 
+            The dictionary whose keys are the okada parameters: 'latitude', 'longitude',
+            'depth_offset', 'strike','length','width','slip','depth','dip','rake',
+            and whose associated values are floats.
         verbose : bool
             Flag for verbose output, optional. Default is False.
 
@@ -76,12 +76,12 @@ class CompositeForwardModel(BaseForwardModel):
 
     def llh(self,model_output,verbose=False):
         """Returns the total loglikelihood for all the submodels based on the model output.
-        
+
         Parameters
         ----------
         model_params : dict
-            The dictionary containing the sample's parameters and  whose keys are 
-            the okada parameters, and whose associated values are floats. 
+            The dictionary containing the sample's parameters and  whose keys are
+            the okada parameters, and whose associated values are floats.
         verbose : bool
             Flag for verbose output, optional. Default is False.
 
@@ -100,19 +100,19 @@ class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
     def __init__(self,gauges,fault,fgmax_params,dtopo_path):
         """Initializes all the necessary variables for the GeoClawForwardModel subclass.
-        
+
         Parameters
         ----------
         gauges : (list) of Gauge objects
-            The list of gauge objects containing location data and distribution functions for 
+            The list of gauge objects containing location data and distribution functions for
             the arrival, height, and inundation parameters for each gauge location.
         fault : Fault object
-            Ususally a previously constructed GridFault object. 
+            Ususally a previously constructed GridFault object.
         fgmax_params : dict
-            The dictionary containing information for the fixed grid maximums (see GeoClaw pack) 
+            The dictionary containing information for the fixed grid maximums (see GeoClaw pack)
             with keys 'min_level_check', 'fgmax_grid_path', 'valuemax_path',
-            'aux1_path',  as well as others specified in the scenario's defaults.cfg file. 
-            Associated values are a variety of strings for file paths & floats. 
+            'aux1_path',  as well as others specified in the scenario's defaults.cfg file.
+            Associated values are a variety of strings for file paths & floats.
         dtopo_path : string
             The name of the .tt3 file location containing the GeoClaw information of dtopo.
             Used later on to create and write dtopo file.
@@ -130,17 +130,17 @@ class GeoClawForwardModel(BaseForwardModel):
         os.system('make clean')
 
     def run(self,model_params,verbose=False):
-        """Runs the forward model for a specified sample's model parameters, 
+        """Runs the forward model for a specified sample's model parameters,
         then returns the computed arrival times, wave heights, and inundation distances
-        for each gauge location, as appropriate. 
-        Essentially, this function works 'backwards' from a sample model of the fault rupture's 
-        parameters to compute what the gauge's observations would have been like for that given 
+        for each gauge location, as appropriate.
+        Essentially, this function works 'backwards' from a sample model of the fault rupture's
+        parameters to compute what the gauge's observations would have been like for that given
         earthquake event sample.
-        
+
         Parameters
         ----------
         model_params : dict
-            The sample's model parameters. The dictionary whose keys are the okada parameters: 
+            The sample's model parameters. The dictionary whose keys are the okada parameters:
             'latitude', 'longitude', 'depth_offset', 'strike','length','width','slip','depth',
             'dip','rake', and whose associated values are floats.
         verbose : bool
@@ -149,8 +149,8 @@ class GeoClawForwardModel(BaseForwardModel):
         Returns
         -------
         model_output : pandas Series
-            A pandas series whose axes labels are the cominations of the scenario's gauges 
-            names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
+            A pandas series whose axes labels are the cominations of the scenario's gauges
+            names plus 'arrivals', 'height', or 'inundation'. The associated values are floats.
         """
         # split fault into subfaults aligning to fault zone geometry
         #FAULT: Once again, are we going to use some sort of subfault split, or just treat the fault as one Okada Rectangle?
@@ -177,12 +177,9 @@ class GeoClawForwardModel(BaseForwardModel):
         fgmax_data = np.loadtxt(self.valuemax_path)
         bath_data  = np.loadtxt(self.aux1_path)
 
-        #We have put 3 points per gague location, but we must specify this to the program:
-        num_points_per_gauge = 1
-
         # this is the arrival time of the first wave, not the maximum wave
         # converting from seconds to minutes
-        arrival_times = fgmax_data[:, -1] /60
+        arrival_times = fgmax_data[:, -1] / 60
 
         max_heights = fgmax_data[:, 3]
         bath_depth = bath_data[:, -1]
@@ -195,9 +192,11 @@ class GeoClawForwardModel(BaseForwardModel):
         wave_heights = max_heights + bath_depth             #Bath_depth should be negative, this is Geoclaw's format
 
         model_output = pd.Series(dtype='float64')
+        idx_gauge_start = 0
+        idx_gauge_end = 0
         for i,gauge in enumerate(self.gauges):
-            idx_gauge_start = num_points_per_gauge*i
-            idx_gauge_end = num_points_per_gauge*i + num_points_per_gauge
+            num_points_in_this_gauge = len(gauge.lat)
+            idx_gauge_end += num_points_in_this_gauge
             if 'arrival' in gauge.obstypes:
                 model_output[gauge.name+' arrival'] = np.mean(arrival_times[idx_gauge_start:idx_gauge_end])
             if 'height' in gauge.obstypes:
@@ -206,21 +205,22 @@ class GeoClawForwardModel(BaseForwardModel):
                 model_output[gauge.name+' inundation'] = models.inundation(np.mean(wave_heights[idx_gauge_start:idx_gauge_end]),
                                                                            gauge.beta,
                                                                            gauge.n)
+            idx_gauge_start += num_points_in_this_gauge
 
         return model_output
 
     def llh(self,model_output,verbose=False):
-        """Comptues the loglikelihood of the forward model's ouput. 
-        Compares the model outputs with the acutal gauge observation distributions for 
-        arrival time, wave height, and inundation distance, and calculates the log of 
+        """Comptues the loglikelihood of the forward model's ouput.
+        Compares the model outputs with the acutal gauge observation distributions for
+        arrival time, wave height, and inundation distance, and calculates the log of
         the probability distribution function at each point of the model's output for the gagues.
         Finally, sums together all the log values for each observation point and type.
 
         Parameters
         ----------
         model_output : pandas Series
-            A pandas series whose axes labels are the cominations of the scenario's gauges 
-            names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
+            A pandas series whose axes labels are the cominations of the scenario's gauges
+            names plus 'arrivals', 'height', or 'inundation'. The associated values are floats.
         verbose : bool
             Flag for verbose output, optional. Default is False.
             If set to true, will output a Gauge Log with each gauges computed arrival time,
@@ -257,24 +257,24 @@ class GeoClawForwardModel(BaseForwardModel):
         return llh
 
     def write_fgmax_grid(self,gauges,fgmax_params):
-        """Writes a file to store a specific scenario's parameters for the 
+        """Writes a file to store a specific scenario's parameters for the
         fixed grid maximum monitoring feature in GeoClaw.
         After it is written, the file at the specific path will contain values for each
-        fixed grid parameter, the total number of observations from the gauges, and the 
+        fixed grid parameter, the total number of observations from the gauges, and the
         gauge location information.
-        
+
         Parameters
         ----------
         gauges : (list) of Gauge objects
-            The list of gauge objects containing locations data distribution functions for the 
-            arrival, height, and inundation for each gauge location.  
+            The list of gauge objects containing locations data distribution functions for the
+            arrival, height, and inundation for each gauge location.
         fgmax_params : dict
-            The dictionary containing information for the fixed grid maximums (see GeoClaw pack) 
+            The dictionary containing information for the fixed grid maximums (see GeoClaw pack)
             with keys 'min_level_check', 'fgmax_grid_path', 'valuemax_path',
-            'aux1_path', as well as others specified in the scenario's defaults.cfg file. 
-            Associated values are a variety of strings for file paths & floats. 
+            'aux1_path', as well as others specified in the scenario's defaults.cfg file.
+            Associated values are a variety of strings for file paths & floats.
         """
-        npts = sum(1 for gauge in gauges if
+        npts = sum(len(gauge.lat) for gauge in gauges if
                    any(obstype in self.obstypes for obstype in gauge.obstypes))
 
         with open(fgmax_params['fgmax_grid_path'],'w') as f:
@@ -287,8 +287,9 @@ class GeoClawForwardModel(BaseForwardModel):
             f.write(str(npts)+'\t# n_pts\n')
             for gauge in gauges:
                 if any(obstype in self.obstypes for obstype in gauge.obstypes):
-                    f.write(str(gauge.lon)+' '+str(gauge.lat))
-                    f.write('\t# '+gauge.name+'\n')
+                    for lon, lat in zip(gauge.lon, gauge.lat):
+                        f.write(str(lon)+' '+str(lat))
+                        f.write('\t# '+gauge.name+'\n')
 
 class TestForwardModel(BaseForwardModel):
     obstypes = ['power']
@@ -299,12 +300,12 @@ class TestForwardModel(BaseForwardModel):
         Parameters
         ----------
         model_params : dict
-            The dictionary containing the sample's parameters and  whose keys are 
-            the okada parameters, and whose associated values are floats. 
+            The dictionary containing the sample's parameters and  whose keys are
+            the okada parameters, and whose associated values are floats.
             Here, only the 'length' and 'width' parameters are used to calculate fault rupture area.
         verbose : bool
             Flag for verbose output, optional. Default is False.
-        
+
         Returns
         -------
         d : dict
@@ -319,12 +320,12 @@ class TestForwardModel(BaseForwardModel):
 
     def llh(self,model_output,verbose=False):
         """Computes the loglikelihood of the output results from running the Test forward model.
-        
+
         Parameters
         ----------
         model_params : dict
-            The dictionary containing the sample's parameters and  whose keys are 
-            the okada parameters, and whose associated values are floats. 
+            The dictionary containing the sample's parameters and  whose keys are
+            the okada parameters, and whose associated values are floats.
             Here, only the 'length' and 'width' parameters are used to calculate fault rupture area.
         verbose : bool
             Flag for verbose output, optional. Default is False.
