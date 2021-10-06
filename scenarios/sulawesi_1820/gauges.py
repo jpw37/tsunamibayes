@@ -45,7 +45,7 @@ def build_gauges():
     dists = dict()
     dists['height'] = stats.truncnorm(loc=10,scale=4,a=-2,b=4)
     gauge = Gauge(name,dists)
-    gauge.lat =  [-8.4417, -8.4502, -8.4476]
+    gauge.lat = [-8.4417, -8.4502, -8.446]
     gauge.lon = [118.7188, 118.7169, 118.7135]
     gauges.append(gauge)
 
