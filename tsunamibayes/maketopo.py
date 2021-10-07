@@ -5,8 +5,9 @@ except:
     pass
 
 def make_fault_dtopo(subfault_params,bounds,verbose=False):
-    """Create GeoClaw fault object and dtopo for deformation of sea floor due to earthquake.
-    Uses the Okada model with fault parameters and mesh specified below.
+    """Create GeoClaw fault object and dtopo for deformation of sea floor due
+    to earthquake. Uses the Okada model with fault parameters and mesh
+    specified below.
 
     Parameters
     ----------
@@ -18,7 +19,7 @@ def make_fault_dtopo(subfault_params,bounds,verbose=False):
     verbose : bool
         Flag for verbose output, optional. Default is False.
         If true, prints the fault's subfault parameters as well as the
-        momement magnitude and seismic moment of the fault. 
+        momement magnitude and seismic moment of the fault.
 
     Returns
     -------
@@ -63,9 +64,9 @@ def make_fault_dtopo(subfault_params,bounds,verbose=False):
     return fault
 
 def write_dtopo(subfault_params,bounds,dtopo_path,verbose=False):
-    """Executes the function to create the fault's dtopo object and then 
+    """Executes the function to create the fault's dtopo object and then
     writes the dtopo object to the specified path location.
-    
+
     Parameters
     ----------
     subfault_params : pandas DataFrame
