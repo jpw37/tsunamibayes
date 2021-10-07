@@ -2,7 +2,8 @@ from tsunamibayes import Gauge, dump_gauges
 import scipy.stats as stats
 
 def build_gauges():
-    """Creates gauge object for each observation point's data and appends each to a list.
+    """Creates gauge object for each observation point's data and appends each
+    to a list.
 
     Returns
     -------
@@ -34,7 +35,6 @@ def build_gauges():
     name = 'Nipa-Nipa'
     dists = dict()
     dists['height'] = stats.truncnorm(loc=3,scale=2,a=-1,b=4)
-    #dists['inundation'] = stats.norm(135,20)
     gauge = Gauge(name,dists)
     gauge.lat = [-5.574, -5.569, -5.575]
     gauge.lon = [120.011, 120.005, 120.016]
@@ -50,15 +50,16 @@ def build_gauges():
     gauges.append(gauge)
 
     # Makassar
-    # Actually, there is no recording of an event in Makassar.
+    # There is no recording of an event in Makassar.
     # Rather than treat this as evidence of lack of tsunami, we
     # omit it entirely.
 
     return gauges
 
 if __name__=="__main__":
-    """Builds the scenario's gauges and stores the data in either a default file,
-    or a file specified by the user in the command line."""
+    """Builds the scenario's gauges and stores the data in either a default
+    file, or a file specified by the user in the command line.
+    """
     from sys import argv
 
     if len(argv) == 1:

@@ -33,7 +33,14 @@ class MultiFaultScenario():
         self.scenarios[fault_idx].resume_chain(output_dir)
         self.fault_idx = fault_idx
 
-    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False,fault_idx=None):
+    def sample(
+        self,
+        nsamples,
+        output_dir=None,
+        save_freq=1,
+        verbose=False,
+        fault_idx=None
+    ):
         """Samples from the chain at fault_idx."""
         self.scenarios[self.fault_idx].sample(
             nsamples,
@@ -68,23 +75,27 @@ class SulawesiScenario(BaseScenario):
         'depth',
         'rake',
         'depth_offset',
-        'rake_offset', # TODO: do rake and dip offsets need to be Okada parameters?
+        'rake_offset',
         'dip_offset',
         'strike_offset'
     ]
 
     def __init__(self,prior,forward_model,covariance):
-        """Initializes all the necessary variables for the BandaScenario subclass.
+        """Initializes all the necessary variables for the BandaScenario
+        subclass.
 
         Parameters
         ----------
         prior : BandaPrior Object
-            The prior object made from the scenario defaults for the prior distribution.
+            The prior object made from the scenario defaults for the prior
+            distribution.
         forward_model : GeoClawForwardModel Object
-            The forward model made with the scenario's gauge, fault, and togography data.
+            The forward model made with the scenario's gauge, fault, and
+            togography data.
         covariance : array-like
-            The ndarray that contains the covariances computed from the standard deviations for
-            the scenario's latitude, longitude, magnitude, delta logl & logw, and depth offset.
+            The ndarray that contains the covariances computed from the
+            standard deviations for the scenario's latitude, longitude,
+            magnitude, delta logl & logw, and depth offset.
         """
         super().__init__(prior,forward_model)
         self.fault = forward_model.fault
@@ -98,7 +109,8 @@ class SulawesiScenario(BaseScenario):
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values.
+            'delta_logw', and 'depth_offset' with their associated float
+            values.
 
         Returns
         -------
@@ -137,15 +149,16 @@ class SulawesiScenario(BaseScenario):
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values.
+            'delta_logw', and 'depth_offset' with their associated float
+            values.
 
         Returns
         -------
         model_params : dict
-            A dictionary that builds off of the sample dictionary whose keys are the
-            okada parameters: 'latitude', 'longitude', 'depth_offset', 'strike','length',
-            'width','slip','depth','dip','rake',
-            and whose associated values are the newly calculated values from the sample.
+            A dictionary that builds off of the sample dictionary whose keys
+            are the okada parameters: 'latitude', 'longitude', 'depth_offset',
+            'strike','length', 'width','slip','depth','dip','rake', and whose
+            associated values are the newly calculated values from the sample.
         """
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
@@ -181,9 +194,9 @@ class SulawesiScenario(BaseScenario):
                                      sample['longitude'])
             depth = self.fault.depth_map(sample['latitude'],
                                          sample['longitude'])
-            rake = 90 # FIXME: is this fine?
+            rake = 90 # FIXME: GPFault needs to fit to rake data as well.
 
-        model_params = dict()           #TODO : Would we need to add dip_offset and rake_offset as Okada or model parameters?
+        model_params = dict()
         model_params['latitude'] = sample['latitude']
         model_params['longitude'] = sample['longitude']
         model_params['length'] = length

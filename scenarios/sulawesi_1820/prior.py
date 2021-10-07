@@ -6,23 +6,35 @@ from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 
 class SulawesiPrior(BasePrior):
     """The child class of Base Prior that creates a prior distribution,
-    specifically for the Banda 1820 event."""
-    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset,dip_offset,strike_offset,rake_offset):
+    specifically for the Banda 1820 event.
+    """
+    def __init__(
+        self,
+        latlon,
+        mag,
+        delta_logl,
+        delta_logw,
+        depth_offset,
+        dip_offset,
+        strike_offset,
+        rake_offset
+    ):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
         ----------
         latlon : LatLonPrior Object
-            Contains attirbutes fault and depth_dist, with methods logpdf, pdf, and rvs.
+            Contains attirbutes fault and depth_dist, with methods logpdf,
+            pdf, and rvs.
         mag : scipy.stats rv_frozen object
             A truncated continous random variable describing the sample's
             magnitude with fixed parameters shape, location and scale.
         delta_logl : scipy.stats rv_frozen object
-            The continous random variable describing the sample's standard deviation for
-            the log of the length, also with fixed parameters.
+            The continous random variable describing the sample's standard
+            deviation for the log of the length, also with fixed parameters.
         delta_logw : scipy.stats rv_frozen object
-            The continous random variable describing the sample's standard deviation for
-            the log of the width, also with fixed parameters.
+            The continous random variable describing the sample's standard
+            deviation for the log of the width, also with fixed parameters.
         depth_offset : scipy.stats rv_frozen object
             The continous random variable describing the sample's depth offset,
             also with fixed parameters.
@@ -46,7 +58,8 @@ class SulawesiPrior(BasePrior):
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values.
+            'delta_logw', and 'depth_offset' with their associated float
+            values.
 
         Returns
         -------
@@ -91,8 +104,9 @@ class SulawesiPrior(BasePrior):
         Returns
         -------
         rvs : pandas Series
-            A series containing axis labels for each of banda prior's variables,
-            with the associated random variates (float values) for each parameter.
+            A series containing axis labels for each of banda prior's
+            variables, with the associated random variates (float values) for
+            each parameter.
         """
         latlon = self.latlon.rvs()
         mag = self.mag.rvs()
@@ -126,19 +140,20 @@ class LatLonPrior(BasePrior):
             with fixed shape, location and scale parameters.
         """
         self.fault = fault
-        self.depth_dist = depth_dist # FAULT: Will we need 2 depth distributions here? How will this interact with fault?
+        self.depth_dist = depth_dist
 
     def logpdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
-        then computes the log of the depth distribution's probability density function
-        evaluated at the sample's depth.
+        then computes the log of the depth distribution's probability density
+        function evaluated at the sample's depth.
 
         Parameters
         ----------
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values.
+            'delta_logw', and 'depth_offset' with their associated float
+            values.
 
         Returns
         -------
@@ -151,25 +166,26 @@ class LatLonPrior(BasePrior):
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
 
-        #FAULT: subfault_params is a data frame. We shoudn't need a subfault split function.
-        #FAULT: What will be our replacement here?
-        subfault_params = self.fault.subfault_split_RefCurve(lat = sample['latitude'],
-                                                    lon = sample['longitude'],
-                                                    length = length,
-                                                    width = width,
-                                                    slip = 1,
-                                                    depth_offset = sample['depth_offset'],
-                                                    dip_offset = sample['dip_offset'],
-                                                    rake_offset = sample['rake_offset'])
-        print("SUBFAULT PARAMETERS")
-        print(subfault_params)
+        subfault_params = self.fault.subfault_split_RefCurve(
+            lat = sample['latitude'],
+            lon = sample['longitude'],
+            length = length,
+            width = width,
+            slip = 1,
+            depth_offset = sample['depth_offset'],
+            dip_offset = sample['dip_offset'],
+            rake_offset = sample['rake_offset']
+        )
 
         if subfault_params.isnull().values.any():
             return np.NINF
         if out_of_bounds(subfault_params,self.fault.bounds):
             return np.NINF
         else:
-            depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']      #FAULT: WIll this knwo which depth_map to call?
+            depth = (
+                self.fault.depth_map(sample['latitude'],sample['longitude'])
+                + 1000*sample['depth_offset']
+            )
             return self.depth_dist.logpdf(depth)
 
     def pdf(self,sample):
@@ -182,32 +198,39 @@ class LatLonPrior(BasePrior):
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values.
+            'delta_logw', and 'depth_offset' with their associated float
+            values.
 
         Returns
         -------
         pdf : float
-            The value of the probability density function for the depth distribution
-            evaluated at the depth of the sample.
+            The value of the probability density function for the depth
+            distribution evaluated at the depth of the sample.
         """
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
 
-        #FAULT: What exactly do we need to replace subfault_params?
-        subfault_params = self.fault.subfault_split(sample['latitude'],
-                                                    sample['longitude'],
-                                                    length,
-                                                    width,
-                                                    1,
-                                                    sample['depth_offset'],
-                                                    sample['rake_offset'],
-                                                    sample['dip_offset'])
+        subfault_params = self.fault.subfault_split_RefCurve(
+            lat = sample['latitude'],
+            lon = sample['longitude'],
+            length = length,
+            width = width,
+            slip = 1,
+            depth_offset = sample['depth_offset'],
+            dip_offset = sample['dip_offset'],
+            rake_offset = sample['rake_offset']
+        )
 
+        if subfault_params.isnull().values.any():
+            return 0
         if out_of_bounds(subfault_params,self.fault.bounds):
             return 0
         else:
-            depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
+            depth = (
+                self.fault.depth_map(sample['latitude'],sample['longitude'])
+                + 1000*sample['depth_offset']
+            )
             return self.depth_dist.pdf(depth)
 
     def rvs(self):
@@ -217,9 +240,13 @@ class LatLonPrior(BasePrior):
         Returns
         -------
         lat, lon : (list) of floats
-            The random variates for latitude and longitude within the fault's bounds.
+            The random variates for latitude and longitude within the fault's
+            bounds.
         """
         d = self.depth_dist.rvs()
-        I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
+        I,J = np.nonzero(
+            (d - 500 < self.fault.depth)
+            & (self.fault.depth < d + 500)
+        )
         idx = np.random.randint(len(I))
         return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
