@@ -4,12 +4,13 @@ import json
 import pickle
 import tsunamibayes as tb
 from tsunamibayes.gaussian_process_regressor import GPR
-from prior import LatLonPrior, SulawesiPrior            #Forgot to change this
+from prior import LatLonPrior, SulawesiPrior
 from gauges import build_gauges
 from scenario import SulawesiScenario, MultiFaultScenario
 from enum import IntEnum
 
-class FAULT(IntEnum): # Don't know if we'll need this. Maybe.
+# Used to easily reference the two faults.
+class FAULT(IntEnum):
     FLORES = 0
     WALANAE = 1
 
@@ -30,15 +31,16 @@ def walanae_depth(dist):
 
 
 def setup(config):
-    """Extracts the data from the config object to create the BandaFault object,
-    and then declares the scenario's initial prior, forward model, and covariance
-    in order to create the BandaScenario.
+    """Extracts the data from the config object to create the SulawesiFault
+    object, and then declares the scenario's initial prior, forward model, and
+    covariance in order to create the SulawesiScenario.
 
     Parameters
     ----------
     config : Config object
-        The config object that contains the default scenario data to use for the sampling.
-        Essentially, this sets all the initial conditions for the bounds, prior, fault, etc.
+        The config object that contains the default scenario data to use for
+        the sampling. Essentially, this sets all the initial conditions for the
+        bounds, prior, fault, etc.
 
     Returns
     -------
@@ -54,10 +56,10 @@ def setup(config):
     ]
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
-    flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75) #This is potentially our problem?
+    flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
     fault = [
-        tb.fault.GaussianProcessFault( # The Flores fault uses a GaussianProcessFault
-            bounds=config.model_bounds, # Model bounds are currently same for both
+        tb.fault.GaussianProcessFault( # Flores uses a GaussianProcessFault
+            bounds=config.model_bounds,
             kers={
                 'depth': flores_kernel,
                 'dip': flores_kernel,
@@ -66,7 +68,7 @@ def setup(config):
             noise={'depth': 1, 'dip': 1, 'strike': 1},
             **fault_initialization_data[FAULT.FLORES]
         ),
-        tb.fault.ReferenceCurveFault( # The Walanae fault uses a ReferenceCurveFault
+        tb.fault.ReferenceCurveFault( # Walanae uses a ReferenceCurveFault
             bounds=config.model_bounds,
             **fault_initialization_data[FAULT.WALANAE]
         )
@@ -173,18 +175,27 @@ def setup(config):
     ]
 
     # load gauges
-    gauges = build_gauges() # TODO: Ashley should be working on this.
+    gauges = build_gauges()
 
     # Forward model
-    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
+    config.fgmax['min_level_check'] = (
+        len(config.geoclaw['refinement_ratios']) + 1
+    )
     forward_model = [
-        tb.GeoClawForwardModel(gauges,fault[FAULT.FLORES],config.fgmax,config.geoclaw['dtopo_path']),
-        tb.GeoClawForwardModel(gauges,fault[FAULT.WALANAE],config.fgmax,config.geoclaw['dtopo_path'])
+        tb.GeoClawForwardModel(
+            gauges,
+            fault[FAULT.FLORES],
+            config.fgmax,
+            config.geoclaw['dtopo_path']
+        ),
+        tb.GeoClawForwardModel(
+            gauges,
+            fault[FAULT.WALANAE],
+            config.fgmax,
+            config.geoclaw['dtopo_path']
+        )
     ]
 
-    # TODO: how does proposal kernel need to change?
-    # TODO: I added rake/dip offsets, but do there need to be
-    #  different values for each fault?
     # Proposal kernel
     lat_std = [
         config.proposal_kernel['lat_std_flo'],
@@ -294,13 +305,17 @@ if __name__ == "__main__":
 
     # resume in-progress chain
     if args.resume:
-        if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
+        if args.verbose:
+            print("Resuming chain from: {}".format(args.output_dir),flush=True)
         scenarios.resume_chain(args.output_dir)
 
     # initialize new chain
     else:
         if config.init['method'] == 'manual':
-            u0 = {key:val for key,val in config.init.items() if key in scenarios.scenarios[0].sample_cols}
+            u0 = {
+                key:val for key,val in config.init.items()
+                if key in scenarios.scenarios[0].sample_cols
+            }
             scenarios.init_chain(u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
