@@ -1002,7 +1002,7 @@ class ReferenceCurveFault(BaseFault):
                 np.deg2rad(self.strikepts-bear)
             )
             sorted_distances = distance.sort()
-            distance = np.average(distance[-3:]) # FIXME: should this be sorted_distances?
+            distance = np.average(sorted_distances[-3:])
             side= -np.sign(distance)
             distance = np.abs(distance)
             depth = self.depth_curve(np.squeeze(side)*distance)
