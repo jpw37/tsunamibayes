@@ -100,6 +100,7 @@ class MultiFault(BaseFault):
                 dip[idx] = fault.dip_map(lat[idx],lon[idx])
         return dip.reshape(lat.shape)
 
+
     def subfault_split(self,sample_params,fault_idx):
         """Computes subfault_split for self.faults[fault_idx]."""
         return faults[fault_idx].subfault_split_RefCurve(**sample_params)

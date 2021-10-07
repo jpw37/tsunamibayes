@@ -9,14 +9,16 @@ from .utils import displace, haversine, bearing
 class BaseFault:
     """A class for data relating to the fault"""
     def __init__(self,bounds):
-        """Creates and initializes the BaseFault object with specified lat/lon bounds.
-        However, one must use a subclass to call to the functions of this parent class.
+        """Creates and initializes the BaseFault object with specified lat/lon
+        bounds. However, one must use a subclass to call to the functions of
+        this parent class.
 
         Parameters
         ----------
         bounds : dict
-            The dictionary of the upper and lower limits for latitude/longitude for the model.
-            Keys are 'lon_min','lon_max','lat_min', 'lat_max', with associated (float) values.
+            The dictionary of the upper and lower limits for latitude/longitude
+            for the model. Keys are 'lon_min','lon_max','lat_min', 'lat_max',
+            with associated (float) values.
         """
         self.bounds = bounds
 
@@ -32,7 +34,18 @@ class BaseFault:
         raise NotImplementedError("dip_map must be implemented in classes "
                                   "inheriting from BaseFault")
 
-    def subfault_split(self,lat,lon,length,width,slip,depth_offset=0,rake=90,n=11,m=3):
+    def subfault_split(
+        self,
+        lat,
+        lon,
+        length,
+        width,
+        slip,
+        depth_offset=0,
+        rake=90,
+        n=11,
+        m=3
+    ):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
@@ -53,17 +66,20 @@ class BaseFault:
         rake : float
             Rake parameter (degrees), Optional. Defaults to 90.
         n : int
-            Number of splits along length, Optional. Defaults to 11. MUST BE AN ODD NUMBER.
+            Number of splits along length, Optional. Defaults to 11.
+            MUST BE AN ODD NUMBER.
         m : int
-            Number of splits along width, Optional. Defaults to 3. MUST BE AN ODD NUMBER.
+            Number of splits along width, Optional. Defaults to 3.
+            MUST BE AN ODD NUMBER.
 
         Returns:
         --------
         subfault_params : pandas DataFrame
-            The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
-            and whose rows contain the associated data (float values)  for each subfault.
+            The 2-d DataFrame whose columns are (ndarrays) of the Okada
+            parameters and whose rows contain the associated data (float
+            values) for each subfault.
         """
-        n_steps = 8                         #What is this n_steps used for?
+        n_steps = 8
         length_step = length/(n*n_steps)
         width_step = width/(m*n_steps)
         sublength = length/n
@@ -136,10 +152,24 @@ class BaseFault:
 
         return subfault_params
 
-    def subfault_split2(self,lat,lon,length,width,slip,depth_offset=0,rake=90,m=11,n=3,rake_type='uniform',slip_dist='uniform'):
+    def subfault_split2(
+        self,
+        lat,
+        lon,
+        length,
+        width,
+        slip,
+        depth_offset=0,
+        rake=90,
+        m=11,
+        n=3,
+        rake_type='uniform',
+        slip_dist='uniform'
+    ):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
-        Takes into account the type of rake and slip distrubution present in the fault data.
+        Takes into account the type of rake and slip distribution present in
+        the fault data.
 
         Parameters
         ----------
@@ -160,15 +190,18 @@ class BaseFault:
         n : int
             Number of splits along width, optional. Defaults to 3.
         rake : string
-            The type of orientation of block movement during a fault rupture, optional. Defaults to 'uniform'.
+            The type of orientation of block movement during a fault rupture,
+            optional. Defaults to 'uniform'.
         slip_dist : string
-            The shape of the slip distribution, optional. Defaults to 'uniform'.
+            The shape of the slip distribution, optional. Defaults to
+            'uniform'.
 
         Returns:
         --------
         subfault_params : pandas DataFrame
-            The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
-            and whose rows contain the associated data (float values) for each subfault.
+            The 2-d DataFrame whose columns are (ndarrays) of the Okada
+            parameters and whose rows contain the associated data (float
+            values) for each subfault.
         """
         n_steps = 8
         length_step = length/(m*n_steps)
@@ -217,8 +250,18 @@ class BaseFault:
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,mid_w+1):
             for j in range(n_steps):
-                templats1,templons1 = displace(templats1,templons1,dipward,width_step*np.cos(np.deg2rad(tempdips1)))
-                templats2,templons2 = displace(templats2,templons2,dipward,-width_step*np.cos(np.deg2rad(tempdips2)))
+                templats1, templons1 = displace(
+                    templats1,
+                    templons1,
+                    dipward,
+                    width_step*np.cos(np.deg2rad(tempdips1))
+                )
+                templats2, templons2 = displace(
+                    templats2,
+                    templons2,
+                    dipward,
+                    -width_step*np.cos(np.deg2rad(tempdips2))
+                )
                 tempdips1 = self.dip_map(templats1,templons1)
                 tempdips2 = self.dip_map(templats2,templons2)
             Lats[:,mid_w+i],Lons[:,mid_w+i] = templats1,templons1
@@ -230,7 +273,10 @@ class BaseFault:
 
         if slip_dist == 'elliptical':
             if mid_w == 0: mid_w = 1
-            dist = multivariate_normal(mean=np.array([mid_l,mid_w]),cov=np.array([[(mid_l/1.8)**2,0],[0,(mid_w/1.5)**2]]))
+            dist = multivariate_normal(
+                mean=np.array([mid_l,mid_w]),
+                cov=np.array([[(mid_l/1.8)**2,0],[0,(mid_w/1.5)**2]])
+            )
             X,Y = np.meshgrid(np.arange(m),np.arange(n),indexing='ij')
             Slips = dist.pdf(np.array([X,Y]).T).T
             Slips *= slip/Slips.mean()
@@ -240,7 +286,10 @@ class BaseFault:
         Depths = self.depth_map(Lats.flatten(),Lons.flatten()) + depth_offset
         data = [Lats,Lons,Strikes,Dips,Depths,Slips]
         data = [arr.flatten() for arr in data]
-        subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth','slip'])
+        subfault_params = pd.DataFrame(
+            np.array(data).T,
+            columns=['latitude','longitude','strike','dip','depth','slip']
+        )
         subfault_params['length'] = sublength
         subfault_params['width'] = subwidth
 
@@ -253,7 +302,20 @@ class BaseFault:
 
         return subfault_params
 
-    def subfault_split_RefCurve(self,lat,lon,length,width,slip,depth_offset=0,dip_offset = 0,rake_offset = 0,rake=90,n=1,m=3):
+    def subfault_split_RefCurve(
+        self,
+        lat,
+        lon,
+        length,
+        width,
+        slip,
+        depth_offset=0,
+        dip_offset=0,
+        rake_offset=0,
+        rake=90,
+        n=1,
+        m=3
+    ):
         """Splits a given Okada rectangle into a collection of subfaults fit
         to the geometry of the fault.
 
@@ -274,15 +336,18 @@ class BaseFault:
         rake : float
             Rake parameter (degrees), Optional. Defaults to 90.
         n : int
-            Number of splits along length, Optional. Defaults to 11. MUST BE AN ODD NUMBER.
+            Number of splits along length, Optional. Defaults to 11.
+            MUST BE AN ODD NUMBER.
         m : int
-            Number of splits along width, Optional. Defaults to 3. MUST BE AN ODD NUMBER.
+            Number of splits along width, Optional. Defaults to 3.
+            MUST BE AN ODD NUMBER.
 
         Returns:
         --------
         subfault_params : pandas DataFrame
-            The 2-d DataFrame whose columns are (ndarrays) of the Okada parameters
-            and whose rows contain the associated data (float values)  for each subfault.
+            The 2-d DataFrame whose columns are (ndarrays) of the Okada
+            parameters and whose rows contain the associated data (float
+            values) for each subfault.
         """
         n_steps = 8
         length_step = length/(n*n_steps)
@@ -290,34 +355,31 @@ class BaseFault:
         sublength = length/n
         subwidth = width/m
 
-        lats = np.empty((n,1))              #Added dimension (n,1) to lats/long curves to interface with distance function axes.
+        lats = np.empty((n,1))
         lons = np.empty((n,1))
         lats[(n - 1)//2] = lat
         lons[(n - 1)//2] = lon
 
-        #THE BELOW PART SEEMS TO BE DOING FINE SINCE WE DEAL ONLY WITH SCALARS HERE...
-        # add strikeward and anti-strikeward centers
-        bearing1 = self.strike_map(lat,lon) #Calculates the strike just for one point, returns a scalar.
-        bearing2 = (bearing1-180)%360       #Adds 180 to the strike angle to compute antistrikeward angle.
+        # Add strikeward and anti-strikeward centers
+        bearing1 = self.strike_map(lat,lon)
+        bearing2 = (bearing1-180)%360
         lat1,lon1 = lat,lon
         lat2,lon2 = lat,lon
-        for i in range(1,(n - 1)//2+1):     #Computes the lats/lons for the subfaults along the n-axis.
-            for j in range(n_steps):        #Takes n_steps to compute each adjacent subfault.
-                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)    #Displaces each lat1 lon1 by the small step.
+        for i in range(1,(n - 1)//2+1):
+            for j in range(n_steps):
+                lat1,lon1 = displace(lat1,lon1,bearing1,length_step)
                 lat2,lon2 = displace(lat2,lon2,bearing2,length_step)
-                bearing1 = self.strike_map(lat1, lon1)                  #Computes the new bearing from the strike angle of that point.
+                bearing1 = self.strike_map(lat1, lon1)
                 bearing2 = (self.strike_map(lat2, lon2)-180)%360
             lats[(n-1)//2+i] = lat1
             lats[(n-1)//2-i] = lat2
             lons[(n-1)//2+i] = lon1
             lons[(n-1)//2-i] = lon2
-            #The onlye problem here is that maybe these are size (n,1) and they should be (n,)
 
-        #Interesting...Even though lats lons have size (n,1), the following return arrays of size (n,)
-        strikes = self.strike_map(lats,lons)        #We pass in lats lons as arrays of size (n,1), this returns an array of size (n)
+        strikes = self.strike_map(lats,lons)
         dips = self.dip_map(lats,lons)
         depths = self.depth_map(lats,lons)
-        dipward = (strikes+90)%360                  #Dipward is an array of size (n,) with all of the strike angles + 90 degrees.
+        dipward = (strikes+90)%360
 
         Lats = np.empty((m,n))
         Lons = np.empty((m,n))
@@ -336,12 +398,26 @@ class BaseFault:
         tempdips1,tempdips2 = dips.copy(),dips.copy()
         for i in range(1,(m - 1)//2+1):
             for j in range(n_steps):
-                templats1,templons1 = displace(templats1.flatten(),templons1.flatten(),dipward,width_step*np.cos(np.deg2rad(tempdips1)))        #To pass into displace, we needed to flatten templats and templons.
-                templats2,templons2 = displace(templats2.flatten(),templons2.flatten(),dipward,-width_step*np.cos(np.deg2rad(tempdips2)))       #These return arrays of size (n,)
-                templats1, templons1 = templats1[:,np.newaxis], templons1[:,np.newaxis]
-                templats2, templons2 = templats2[:,np.newaxis], templons2[:,np.newaxis]
-                tempdips1 = self.dip_map(templats1,templons1)   #In order to interface with dip_map, we need to add back a new axis so that we pass in arrays of size (n,1)
-                tempdips2 = self.dip_map(templats2,templons2)   #After the dips are computed, this returns an array of size (n,)
+                templats1,templons1 = displace(
+                    templats1.flatten(),
+                    templons1.flatten(),
+                    dipward,
+                    width_step*np.cos(np.deg2rad(tempdips1))
+                )
+                templats2,templons2 = displace(
+                    templats2.flatten(),
+                    templons2.flatten(),
+                    dipward,
+                    -width_step*np.cos(np.deg2rad(tempdips2))
+                )
+                templats1, templons1 = (
+                    templats1[:,np.newaxis], templons1[:,np.newaxis]
+                )
+                templats2, templons2 = (
+                    templats2[:,np.newaxis], templons2[:,np.newaxis]
+                )
+                tempdips1 = self.dip_map(templats1,templons1)
+                tempdips2 = self.dip_map(templats2,templons2)
             Lats[(m-1)//2+i] = templats1.flatten()
             Lats[(m-1)//2-i] = templats2.flatten()
             Lons[(m-1)//2+i] = templons1.flatten()
@@ -352,17 +428,17 @@ class BaseFault:
             Dips[(m-1)//2-i] = tempdips2
             Depths[(m-1)//2+i] = self.depth_map(templats1, templons1)
             Depths[(m-1)//2-i] = self.depth_map(templats2, templons2)
-            #From all this we learn that, strike_map, dip_map, and depth_map must take in arrays of size (n,1), but they return arrays of size (n,)
 
-        #Depths = self.depth_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + depth_offset   #Calculates the depths for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
-        #Dips = self.dip_map(Lats.flatten()[:,np.newaxis],Lons.flatten()[:,np.newaxis]) + dip_offset   #Calculates the dips for the entire matrix of Lats/Lons. Returns a flattened array (m*n,)
         Depths += depth_offset
         Dips += dip_offset
         data = [Lats,Lons,Strikes,Dips,Depths]
         data = [arr.flatten() for arr in data]
-        subfault_params = pd.DataFrame(np.array(data).T,columns=['latitude','longitude','strike','dip','depth'])
-        subfault_params['length'] = sublength   #The length of each subfault, should be the same for all splits. sublength = length/n
-        subfault_params['width'] = subwidth     #subwidth = width/m, same for each subfault.
+        subfault_params = pd.DataFrame(
+            np.array(data).T,
+            columns=['latitude','longitude','strike','dip','depth']
+        )
+        subfault_params['length'] = sublength
+        subfault_params['width'] = subwidth
         subfault_params['slip'] = slip
         subfault_params['rake'] = (rake + rake_offset)
 
@@ -378,25 +454,43 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : array_like of floats
-            An ndarray of (floats) containing the latitude coordinates along the fault line. (degrees)
+            An ndarray of (floats) containing the latitude coordinates along
+            the fault line. (degrees)
         lon : array_like of floats
-            An ndarray of (floats) containinng the longitude coordinates along the fault line. (degrees)
+            An ndarray of (floats) containinng the longitude coordinates along
+            the fault line. (degrees)
         depth : array_like of floats
-            An ndarray of (floats) containinng data for the depth along the fault line. (meters)
+            An ndarray of (floats) containinng data for the depth along the
+            fault line. (meters)
         dip : array_like of floats
-            An ndarray of (floats) containinng data for the dip along the fault line. (degrees)
-            The information for the angles at which the plane dips downward from the top edge
-            (a positive angle between 0 and 90)
+            An ndarray of (floats) containinng data for the dip along the fault
+            line. (degrees)
+            The information for the angles at which the plane dips downward
+            from the top edge (a positive angle between 0 and 90).
         strike : array_like of floats
-            An ndarray of (floats) containinng data for the strike orientation along the fault. (degrees)
+            An ndarray of (floats) containinng data for the strike orientation
+            along the fault. (degrees)
         bounds : dict
-            The dictionary of the upper and lower limits for latitude/longitude.
-            Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
+            The dictionary of the upper and lower limits for latitude and
+            longitude. Contains keys: lat_min, lon_min, lat_max, lon_max
+            with associated (float) values.
         """
         super().__init__(bounds)
-        self.depth_interp = RegularGridInterpolator((lat,lon),depth,bounds_error=False)
-        self.dip_interp = RegularGridInterpolator((lat,lon),dip,bounds_error=False)
-        self.strike_interp = RegularGridInterpolator((lat,lon),strike,bounds_error=False)
+        self.depth_interp = RegularGridInterpolator(
+            (lat,lon),
+            depth,
+            bounds_error=False
+        )
+        self.dip_interp = RegularGridInterpolator(
+            (lat,lon),
+            dip,
+            bounds_error=False
+        )
+        self.strike_interp = RegularGridInterpolator(
+            (lat,lon),
+            strike,
+            bounds_error=False
+        )
         self.lat = lat
         self.lon = lon
         self.depth = np.nan_to_num(depth)
@@ -405,21 +499,24 @@ class GridFault(BaseFault):
 
     @classmethod
     def from_slab2(cls,depth_file,dip_file,strike_file,bounds):
-        """This provides the aternate constructor for Gridfault that accepts data files,
-        reads those data files, and returns a constructor that accepts keyword arguments
-        (lat, lon, depth, dip, strike).
+        """This provides the aternate constructor for Gridfault that accepts
+        data files, reads those data files, and returns a constructor that
+        accepts keyword arguments (lat, lon, depth, dip, strike).
 
         Parameters
         ----------
         depth_file : text file of floats
             The file containing the depth (in meters) readings along the fault.
         dip_file : text file of floats
-            The file containing the angle measurements of dip all along the fault (degrees).
+            The file containing the angle measurements of dip all along the
+            fault (degrees).
         strike_file : text file of floats
-            The file containing the strike orientations in radians along the fault. (degrees)
+            The file containing the strike orientations in radians along the
+            fault. (degrees)
         bounds : dict
-            The dictionary of the upper and lower limits for latitude/longitude.
-            Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
+            The dictionary of the upper and lower limits for latitude and
+            longitude. Contains keys: lat_min, lon_min, lat_max, lon_max
+            with associated (float) values.
 
         Returns
         -------
@@ -435,18 +532,22 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-valued float. (degrees)
+            The array of latitude values along the fault, or can be single-
+            valued float. (degrees)
 
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-valued float. (degrees)
+            The array of longitude values along the fault, or can be single-
+            valued float. (degrees)
 
         Returns
         -------
         arr : ndarray of floats
-            The array of interpolated depths (meters) associated to the pairs of coordinates passed-in.
+            The array of interpolated depths (meters) associated to the pairs
+            of coordinates passed-in.
         -or-
         arr[0] : float
-            The single value interpolated depth, when only a simple coordinate is passed in for lat and lon.
+            The single value interpolated depth, when only a simple coordinate
+            is passed in for lat and lon.
         """
         arr = self.depth_interp(np.array([lat,lon]).T)
         if isinstance(lat,float) or isinstance(lat,int):
@@ -460,18 +561,22 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-coordinate float. (degrees)
+            The array of latitude values along the fault, or can be single-
+            coordinate float. (degrees)
 
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-coordinate float. (degrees)
+            The array of longitude values along the fault, or can be single-
+            coordinate float. (degrees)
 
         Returns
         -------
         arr : ndarray of floats
-            The array of interpolated dip measurements (degrees) associated to the pairs of coordinates passed-in.
+            The array of interpolated dip measurements (degrees) associated to
+            the pairs of coordinates passed-in.
         -or-
         arr[0] : float
-            The single value interpolated dip, when only a simple coordinate is passed in for lat and lon.
+            The single value interpolated dip, when only a simple coordinate is
+            passed in for lat and lon.
         """
         arr = self.dip_interp(np.array([lat,lon]).T)
         if isinstance(lat,float) or isinstance(lat,int):
@@ -485,18 +590,22 @@ class GridFault(BaseFault):
         Parameters
         ----------
         lat : float, array_like of floats
-            The array of latitude values along the fault, or can be single-coordinate float. (degrees)
+            The array of latitude values along the fault, or can be single-
+            coordinate float. (degrees)
 
         lon : float, array_like of floats
-            The array of longitude values along the fault, or can be single-coordinate float. (degrees)
+            The array of longitude values along the fault, or can be single-
+            coordinate float. (degrees)
 
         Returns
         -------
         arr : ndarray of floats
-            The array of interpolated strike (degrees) associated to the pairs of coordinates passed-in.
+            The array of interpolated strike (degrees) associated to the pairs
+            of coordinates passed in.
         -or-
         arr[0] : float
-            The single value interpolated strike, when only a simple coordinate is passed in for lat and lon.
+            The single value interpolated strike, when only a simple coordinate
+            is passed in for lat and lon.
         """
         arr = self.strike_interp(np.array([lat,lon]).T)
         if isinstance(lat,float) or isinstance(lat,int):
@@ -505,28 +614,33 @@ class GridFault(BaseFault):
             return arr
 
 def load_slab2_data(depth_file,dip_file,strike_file,bounds):
-    """Loads the depth, dip, and strike data for the fault and returns a dictionary of arrays
-    that contain the 'slices' of this data between a specified set of latitude and longitude bounds.
+    """Loads the depth, dip, and strike data for the fault and returns a
+    dictionary of arrays that contain the 'slices' of this data between a
+    specified set of latitude and longitude bounds.
 
     Parameters
     ----------
     depth_file : text file of floats
         The file containing the depth (in meters) readings along the fault.
     dip_file : text file of floats
-        The file containing the angle measurements of dip all along the fault (degrees).
+        The file containing the angle measurements of dip all along the fault
+        (degrees).
     strike_file : text file of floats
-        The file containing the strike orientations in radians along the fault. (degrees)
+        The file containing the strike orientations in radians along the fault
+        (degrees).
     bounds : dict
-            The dictionary of the upper and lower limits for latitude/longitude.
-            Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
+            The dictionary of the upper and lower limits for latitude and
+            longitude. Contains keys: lat_min, lon_min, lat_max, lon_max with
+            associated (float) values.
 
     Returns
     -------
     arrays : dict
-        A dictionary containing with keys: lat, lon, depth, dip, strike and their associated
-        ndarrays of (float) values within the upper and lower geographical bounds of the fault.
+        A dictionary containing with keys: lat, lon, depth, dip, strike and
+        their associated ndarrays of (float) values within the upper and lower
+        geographical bounds of the fault.
     """
-    # load depth file, extract lat/lon grid, make latitude array in increasing order
+    # load depth file, extract lat/lon grid, make latitude array
     depth = np.loadtxt(depth_file,delimiter=',')
     lat = np.unique(depth[:,1])
     lon = np.unique(depth[:,0])
@@ -540,8 +654,14 @@ def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     strike = strike.reshape((lat.shape[0],lon.shape[0]))[::-1]
 
     # compute indices corresponding to the bounds
-    i,j = np.nonzero((lat >= bounds['lat_min'])&(lat <= bounds['lat_max']))[0][[0,-1]]
-    k,l = np.nonzero((lon >= bounds['lon_min'])&(lon <= bounds['lon_max']))[0][[0,-1]]
+    i,j = np.nonzero(
+        (lat >= bounds['lat_min'])
+        &(lat <= bounds['lat_max'])
+    )[0][[0,-1]]
+    k,l = np.nonzero(
+        (lon >= bounds['lon_min'])
+        &(lon <= bounds['lon_max'])
+    )[0][[0,-1]]
 
     # pass data to the GridFault constructor
     arrays = {'lat':lat[i:j+1],
@@ -553,19 +673,23 @@ def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     return arrays
 
 def save_slab2_npz(depth_file,dip_file,strike_file,bounds,save_path):
-    """Saves the dictionary of arrays for lat, lon, depth, dip, strike to a .npz file.
+    """Saves the dictionary of arrays for lat, lon, depth, dip, strike to a
+    .npz file.
 
     Parameters
     ----------
     depth_file : text file of floats
         The file containing the depth (in meters) readings along the fault.
     dip_file : text file of floats
-        The file containing the angle measurements of dip all along the fault (degrees).
+        The file containing the angle measurements of dip all along the fault
+        (degrees).
     strike_file : text file of floats
-        The file containing the strike orientations in radians along the fault. (degrees)
+        The file containing the strike orientations in radians along the fault
+         (degrees).
     bounds : dict
         The dictionary of the upper and lower limits for latitude/longitude.
-        Contains keys: lat_min, lon_min, lat_max, lon_max with associated (float) values.
+        Contains keys: lat_min, lon_min, lat_max, lon_max with associated
+        (float) values.
     save_path : string or file
         The location or path where the data is to be saved.
     """
@@ -575,7 +699,16 @@ def save_slab2_npz(depth_file,dip_file,strike_file,bounds,save_path):
 
 class ReferenceCurveFault(BaseFault):
     """A class for data relating to the fault"""
-    def __init__(self,latpts,lonpts,strikepts,depth_curve,dip_curve,bounds,smoothing=50000):
+    def __init__(
+        self,
+        latpts,
+        lonpts,
+        strikepts,
+        depth_curve,
+        dip_curve,
+        bounds,
+        smoothing=50000
+    ):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
@@ -587,20 +720,21 @@ class ReferenceCurveFault(BaseFault):
         strikepts : (N,) ndarray
             Array containing the strike angles at reference points on the fault
         depth_curve : callable
-            Function giving the depth along perpendicular transects of the fault.
-            The argument to the function is assumed to be the signed distance from
-            the reference fault points, with the positive direction being dipward
+            Function giving the depth along perpendicular transects of the
+            fault. The argument to the function is assumed to be the signed
+            distance from the reference fault points, with the positive
+            direction being dipward.
         dip_curve : callable
-            Function giving the dip angle along perpendicular transects of the fault.
-            The argument to the function is assumed to be the signed distance from
-            the reference fault points, with the positive direction being dipward
+            Function giving the dip angle along perpendicular transects of the
+            fault. The argument to the function is assumed to be the signed
+            distance from the reference fault points, with the positive
+            direction being dipward.
         bounds : dict
-            Dictionary containing the model bounds. Keys are 'lon_min','lon_max',
-            'lat_min', 'lat_max'
+            Dictionary containing the model bounds. Keys are 'lon_min',
+            'lon_max', 'lat_min', 'lat_max'.
         smoothing : int
             The smoothing coefficient used later in computing the weighted mean
-            strike angle.
-            Default is set to 50000.
+            strike angle. Default is set to 50000.
         """
         super().__init__(bounds)
         self.latpts = latpts
@@ -611,16 +745,18 @@ class ReferenceCurveFault(BaseFault):
         self.smoothing = smoothing
 
 
-    @staticmethod #Probably obsolete, we shoudn't need this too much...
+    @staticmethod
     def quad_interp(x,y):
         """Computes a quadratic curve for depth passing through three points.
 
         Parameters
         ----------
         x : (3,) ndarray
-            The array of 3 x-coordinates (floats) that the curve must pass through.
+            The array of 3 x-coordinates (floats) that the curve must pass
+            through.
         y : (3,) ndarray
-            The array of 3 y-coordinates (floats) that the curve must pass through.
+            The array of 3 y-coordinates (floats) that the curve must pass
+            through.
 
         Returns
         -------
@@ -636,8 +772,8 @@ class ReferenceCurveFault(BaseFault):
 
     @staticmethod
     def depth_dip_curves(x,y,surf_dist):
-        """Returns callable functions for the depth and dip curves passing through
-        three points.
+        """Returns callable functions for the depth and dip curves passing
+        through three points.
 
         Parameters
         ----------
@@ -646,21 +782,27 @@ class ReferenceCurveFault(BaseFault):
         y : (3,) ndarray
             Depth values
         surf_dist : float
-            Distance from fault reference points to the fault's intersection with
-            the Earth's surface
+            Distance from fault reference points to the fault's intersection
+            with the Earth's surface
 
         Returns
         -------
         depth_curve : (function)
             The callable function that accepts one positional arugment (ie. x)
-            and returns the quadratic depth curve passing through the 3 specified points.
+            and returns the quadratic depth curve passing through the 3
+            specified points.
         dip_curve : (function)
             The callable function that accepts one positional arugment (ie. x)
-            and returns the quadratic dip curve passing through the 3 specified points.
+            and returns the quadratic dip curve passing through the 3
+            specified points.
         """
         c = ReferenceCurveFault.quad_interp(x,y)
-        depth_curve = lambda x: (c[0]*x**2 + c[1]*x + c[2])*(x > -np.abs(surf_dist))
-        dip_curve = lambda x: np.degrees(np.arctan(2*c[0]*x + c[1]))*(x > -np.abs(surf_dist))
+        depth_curve = lambda x: (
+            (c[0]*x**2 + c[1]*x + c[2])*(x > -np.abs(surf_dist))
+        )
+        dip_curve = lambda x: (
+            np.degrees(np.arctan(2*c[0]*x + c[1]))*(x > -np.abs(surf_dist))
+        )
         return depth_curve, dip_curve
 
     @staticmethod
@@ -670,10 +812,11 @@ class ReferenceCurveFault(BaseFault):
         Parameters
         ----------
         angles : array_like
-            The ndarray of angles (in degrees) for which the mean is to be computed.
+            The ndarray of angles (in degrees) for which the mean is to be
+            computed.
         weights : array_like
-            The ndarray of weights (floats) associated with the given angles, and
-            hence must have the same dimsion as 'angles'.
+            The ndarray of weights (floats) associated with the given angles,
+            and hence must have the same dimension as 'angles'.
 
         Returns
         -------
@@ -693,18 +836,20 @@ class ReferenceCurveFault(BaseFault):
         Parameters
         ----------
         lat : float
-            The latitude coordiante (degrees) of the point on eithe side of the fault.
+            The latitude coordiante (degrees) of the point on eithe side of the
+            fault.
         lon : float
-            The longitude coordiante (degrees) of the point on eithe side of the fault.
+            The longitude coordiante (degrees) of the point on eithe side of
+            the fault.
         fault_lat : float
-            The latitude of the closest point (degrees) on the fault relative to the given
-            coordinate passed in.
+            The latitude of the closest point (degrees) on the fault relative
+            to the given coordinate passed in.
         fault_lon : float
-            The longitude of the closest point (degrees) on the fault relative to the given
-            coordinate passed in.
+            The longitude of the closest point (degrees) on the fault relative
+            to the given coordinate passed in.
         strike : float
-            The strike angle of the closest point (degrees) on the fault relative to the given
-            coordinate passed in.
+            The strike angle of the closest point (degrees) on the fault
+            relative to the given coordinate passed in.
 
         Returns
         -------
@@ -750,19 +895,20 @@ class ReferenceCurveFault(BaseFault):
         Parameters
         ----------
         lat : float
-            The latitude coordinate (degrees) near the fault for which the distance
-            is to be calculated.
+            The latitude coordinate (degrees) near the fault for which the
+            distance is to be calculated.
         lon : float
-            The latitude coordinate (degrees) near the fault for which the distance
-            is to be calculated.
+            The latitude coordinate (degrees) near the fault for which the
+            distance is to be calculated.
         retclose : bool
-            The boolean flag that indicates whether or not to return the index of the
-            closest point. Default is false.
+            The boolean flag that indicates whether or not to return the index
+            of the closest point. Default is false.
 
         Returns
         -------
         min_distance : float
-            The computed minimum distance (in meters) from the point to the fault.
+            The computed minimum distance (in meters) from the point to the
+            fault.
         index : int
             (Optionally) returns the index of the closest point on the fault.
         """
@@ -773,22 +919,9 @@ class ReferenceCurveFault(BaseFault):
             self.lonpts
         )
 
-        #I think we need an if statement here for when the distances array doesn't have more than 1 dimension.
         if np.isscalar(lat):
             out = (distances.min(axis=0), distances.argmin(axis=0))
             return out if retclose else out[0]
-
-        # if len(distances[0] == 1):
-        #     # if retclose:
-        #     #     print("DEBUGGING RETCLOSE BRANCH")
-        #     #     print(distances.min())
-        #     #     print(distances.argmin())
-        #     #     return distances.min(), distances.argmin()
-        #     # else:
-        #     #     return distances.min()
-        #     out = (distances.min(), distances.argmin())
-        #     return out if retclose else out[0]
-
         else:
             if retclose:
                 return distances.min(axis=1), distances.argmin(axis=1)
@@ -865,11 +998,11 @@ class ReferenceCurveFault(BaseFault):
                 lat,
                 lon
             )
-            distance = distance*np.sin(             #This returns the distances to each of the points defined along the referecne curve
+            distance = distance*np.sin(
                 np.deg2rad(self.strikepts-bear)
             )
-            sorted_distances = distance.sort()      #Sort the distances from smallest to largest (distances are negative, so we will pull off the top values to get the closest distances)
-            distance = np.average(distance[-3:])    #We average the three closest points
+            sorted_distances = distance.sort()
+            distance = np.average(distance[-3:]) # FIXME: should this be sorted_distances?
             side= -np.sign(distance)
             distance = np.abs(distance)
             depth = self.depth_curve(np.squeeze(side)*distance)
@@ -971,7 +1104,13 @@ class ReferenceCurveFault(BaseFault):
         """
         distance,idx = self.distance(lat,lon,retclose=True)
 
-        side = ReferenceCurveFault.side(lat,lon,self.latpts[idx],self.lonpts[idx],self.strikepts[idx])
+        side = ReferenceCurveFault.side(
+            lat,
+            lon,
+            self.latpts[idx],
+            self.lonpts[idx],
+            self.strikepts[idx]
+        )
         if idx == 0 or idx == len(self.latpts)-1:
             bearing = bearing(self.latpts[idx],self.lonpts[idx],lat,lon)
             distance = distance*np.sin(np.deg2rad(self.strikepts[idx]-bearing))
@@ -981,7 +1120,8 @@ class ReferenceCurveFault(BaseFault):
 
 
     def distance_strike(self,lat,lon):
-        """Computes both the distance from the fault, and the weighted mean strike angle.
+        """Computes both the distance from the fault, and the weighted mean
+        strike angle.
 
         Parameters
         ----------
@@ -994,20 +1134,24 @@ class ReferenceCurveFault(BaseFault):
         Returns
         -------
         min_distance : float
-            The computed minimum distance (in meters) from the point to the fault.
+            The computed minimum distance (in meters) from the point to the
+            fault.
         mean : float
             The computed weighted mean for the strike angles. (degrees)
         """
         distances = haversine(lat,lon,self.latpts,self.lonpts)
         weights = np.exp(-distances/self.smoothing)
         #weights /= weights.sum()
-        return distances.min(), ReferenceCurveFault.circmean(self.strikepts,weights)%360
+        return (
+            distances.min(),
+            ReferenceCurveFault.circmean(self.strikepts,weights)%360
+        )
 
 
 class GaussianProcessFault(BaseFault):
-    """A class for fault-related data, where depth_map, dip_map, and
-    strike_map are found by training a Gaussian process on sample depth,
-    dip, and strike data.
+    """A class for fault-related data, where depth_map, dip_map, strike_map,
+    rake_map are found by training a Gaussian process on sample depth, dip,
+    strike, and rake data.
     """
     def __init__(
         self, lats, lons, depths, dips, strikes, bounds, kers, noise=None
@@ -1033,7 +1177,7 @@ class GaussianProcessFault(BaseFault):
             Dictionary containing the kernel functions for each of the
             three Gaussian processes to fit. Keys are 'depth', 'dip', and
             'strike'.
-        noise_levels : dict
+        noise : dict
             Dictionary containing the noise level for each of the three
             Gaussian processes. Keys are 'depth', 'dip', and 'strike'.
             If
