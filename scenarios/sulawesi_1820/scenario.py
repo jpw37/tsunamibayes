@@ -179,22 +179,33 @@ class SulawesiScenario(BaseScenario):
                 sample['longitude'],
                 return_std=True
             )
-            rake = 90 # FIXME: GPFault needs to fit to rake data as well.
+            rake, rake_std = self.fault.rake_map(
+                sample['latitude'],
+                sample['longitude'],
+                return_std=True
+            )
 
             # Multiply strike, dip, depth offsets by standard deviation of
-            #  Gaussian process
-            sample['depth_offset'] *= 2*depth_std
-            sample['dip_offset'] *= 2*dip_std
-            sample['strike_offset'] *= 2*strike_std
+            # Gaussian processes
+            sample['depth_offset'] *= depth_std
+            sample['dip_offset'] *= dip_std
+            sample['strike_offset'] *= strike_std
+            sample['rake_offset'] *= rake_std
 
         else:
-            strike = self.fault.strike_map(sample['latitude'],
-                                           sample['longitude'])
-            dip = self.fault.dip_map(sample['latitude'],
-                                     sample['longitude'])
-            depth = self.fault.depth_map(sample['latitude'],
-                                         sample['longitude'])
-            rake = 90 # FIXME: GPFault needs to fit to rake data as well.
+            strike = self.fault.strike_map(
+                sample['latitude'],
+                sample['longitude']
+            )
+            dip = self.fault.dip_map(
+                sample['latitude'],
+                sample['longitude']
+            )
+            depth = self.fault.depth_map(
+                sample['latitude'],
+                sample['longitude']
+            )
+            rake = 90 # On Walanae, the rake is assumed to be just 90.
 
         model_params = dict()
         model_params['latitude'] = sample['latitude']

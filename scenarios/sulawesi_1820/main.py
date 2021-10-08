@@ -22,9 +22,7 @@ def walanae_dip(x):
 
 # Depths are assumed to be 20 km.
 def walanae_depth(dist):
-    """Gives depth based on distance from fault.
-    A negative distance is higher than the base fault depth.
-    """
+    """Gives depth based on distance from fault."""
     base_depth = 20000
     extra_depth = dist*np.tan(np.deg2rad(walanae_dip(dist)))
     return base_depth - extra_depth
@@ -64,8 +62,9 @@ def setup(config):
                 'depth': flores_kernel,
                 'dip': flores_kernel,
                 'strike': flores_kernel,
+                'rake': flores_kernel
             },
-            noise={'depth': 1, 'dip': 1, 'strike': 1},
+            noise={'depth': 1, 'dip': 1, 'strike': 1, 'rake': 1},
             **fault_initialization_data[FAULT.FLORES]
         ),
         tb.fault.ReferenceCurveFault( # Walanae uses a ReferenceCurveFault
@@ -127,15 +126,12 @@ def setup(config):
         stats.norm(scale=config.prior['delta_logw_std_wal'])
     ]
 
-    # depth offset
-    # in km to avoid numerically singular covariance matrix
+    # depth offset in km to avoid numerically singular covariance matrix
     depth_offset = [
         stats.norm(scale=config.prior['depth_offset_std_flo']),
         stats.norm(scale=config.prior['depth_offset_std_wal'])
     ]
 
-    # dip offset
-    # in degrees or radians?
     dip_offset = [
         stats.norm(scale=config.prior['dip_offset_std_flo']),
         stats.norm(scale=config.prior['dip_offset_std_wal'])
@@ -146,32 +142,32 @@ def setup(config):
         stats.norm(scale=config.prior['strike_offset_std_wal'])
     ]
 
-    # rake offset
-    # in degrees to avoid
     rake_offset = [
         stats.norm(scale=config.prior['rake_offset_std_flo']),
         stats.norm(scale=config.prior['rake_offset_std_wal'])
     ]
 
     prior = [
-        SulawesiPrior(  latlon[FAULT.FLORES],
-                        mag[FAULT.FLORES],
-                        delta_logl[FAULT.FLORES],
-                        delta_logw[FAULT.FLORES],
-                        depth_offset[FAULT.FLORES],
-                        dip_offset[FAULT.FLORES],
-                        strike_offset[FAULT.FLORES],
-                        rake_offset[FAULT.FLORES]
-                    ) ,
-
-        SulawesiPrior(  latlon[FAULT.WALANAE],
-                        mag[FAULT.WALANAE],
-                        delta_logl[FAULT.WALANAE],
-                        delta_logw[FAULT.WALANAE],
-                        depth_offset[FAULT.WALANAE],
-                        dip_offset[FAULT.WALANAE],
-                        strike_offset[FAULT.WALANAE],
-                        rake_offset[FAULT.WALANAE])
+        SulawesiPrior(
+            latlon[FAULT.FLORES],
+            mag[FAULT.FLORES],
+            delta_logl[FAULT.FLORES],
+            delta_logw[FAULT.FLORES],
+            depth_offset[FAULT.FLORES],
+            dip_offset[FAULT.FLORES],
+            strike_offset[FAULT.FLORES],
+            rake_offset[FAULT.FLORES]
+        ),
+        SulawesiPrior(
+            latlon[FAULT.WALANAE],
+            mag[FAULT.WALANAE],
+            delta_logl[FAULT.WALANAE],
+            delta_logw[FAULT.WALANAE],
+            depth_offset[FAULT.WALANAE],
+            dip_offset[FAULT.WALANAE],
+            strike_offset[FAULT.WALANAE],
+            rake_offset[FAULT.WALANAE]
+        )
     ]
 
     # load gauges

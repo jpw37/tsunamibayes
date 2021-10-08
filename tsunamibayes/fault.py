@@ -1154,8 +1154,17 @@ class GaussianProcessFault(BaseFault):
     strike, and rake data.
     """
     def __init__(
-        self, lats, lons, depths, dips, strikes, bounds, kers, noise=None
-        ):
+        self,
+        lats,
+        lons,
+        depths,
+        dips,
+        strikes,
+        rakes,
+        bounds,
+        kers,
+        noise=None
+    ):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
@@ -1175,8 +1184,8 @@ class GaussianProcessFault(BaseFault):
             'lon_max', 'lat_min', 'lat_max'.
         kernels : dict
             Dictionary containing the kernel functions for each of the
-            three Gaussian processes to fit. Keys are 'depth', 'dip', and
-            'strike'.
+            three Gaussian processes to fit. Keys are 'depth', 'dip',
+            'strike', and 'rake'.
         noise : dict
             Dictionary containing the noise level for each of the three
             Gaussian processes. Keys are 'depth', 'dip', and 'strike'.
@@ -1185,7 +1194,7 @@ class GaussianProcessFault(BaseFault):
         super().__init__(bounds)
 
         if noise is None:
-            noise = {'depth': 1, 'dip': 1, 'strike': 1}
+            noise = {'depth': 1, 'dip': 1, 'strike': 1, 'rake': 1}
 
         # Initialize the GPRs.
         self.depth_gpr = GPR(
@@ -1200,13 +1209,17 @@ class GaussianProcessFault(BaseFault):
             kernel=kers['strike'],
             noise_level=noise['strike']
         )
+        self.rake_gpr = GPR(
+            kernel=kers['rake'],
+            noise_level=noise['rake']
+        )
 
         # Train each of the GPRs.
         X = np.vstack([lats, lons]).T
         self.depth_gpr.fit(X,depths)
         self.dip_gpr.fit(X,dips)
         self.strike_gpr.fit(X,strikes)
-
+        self.rake_gpr.fit(X,rakes)
 
     @classmethod
     def from_file(cls, filename, bounds, kers, noise):
@@ -1224,10 +1237,10 @@ class GaussianProcessFault(BaseFault):
                 depths : (N,) ndarray
                 dips : (N,) ndarray
                 strikes : (N,) ndarray
+                rakes : (N,) ndarray
         """
         arrays = np.load(filename)
         return cls(**arrays, bounds=bounds, kers=kers, noise=noise)
-
 
     def strike_map(self,lat,lon,return_std=False):
         """Computes the weighted mean strike angle.
@@ -1258,7 +1271,6 @@ class GaussianProcessFault(BaseFault):
                 pred = pred.item()
 
         return pred
-
 
     def depth_map(self,lat,lon,return_std=False):
         """Computes the depth for a given lat-lon coordinate.
@@ -1296,7 +1308,6 @@ class GaussianProcessFault(BaseFault):
 
         return pred
 
-
     def dip_map(self,lat,lon,return_std=False):
         """Computes the dip for a given lat-lon coordinate.
 
@@ -1317,6 +1328,36 @@ class GaussianProcessFault(BaseFault):
         """
         latlon = np.vstack([lat, lon]).T
         pred = self.dip_gpr.predict(latlon, return_std=return_std)
+
+        # In scalar cases, ensure we don't propagate arrays.
+        if np.isscalar(lat):
+            if return_std:
+                pred = (pred[0].item(), pred[1].item())
+            else:
+                pred = pred.item()
+
+        return pred
+
+    def rake_map(self,lat,lon,return_std=False):
+        """Computes the dip for a given lat-lon coordinate.
+
+        Parameters
+        ----------
+        lat : float or np.array (n,)
+            The latitude coordinate (degrees) near the fault.
+            is to be calculated.
+        lon : float or np.array (n,)
+            The latitude coordinate (degrees) near the fault.
+
+        Returns
+        -------
+        dip : float or np.array (n,)
+            The interpolated dip (in degrees) for the given coordinate.
+        std : (optional) float or np.array (n,)
+            The standard deviation (in degrees) around each dip prediction.
+        """
+        latlon = np.vstack([lat, lon]).T
+        pred = self.rake_gpr.predict(latlon, return_std=return_std)
 
         # In scalar cases, ensure we don't propagate arrays.
         if np.isscalar(lat):
