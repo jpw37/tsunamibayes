@@ -263,12 +263,12 @@ def out_of_bounds(subfault_params, bounds):
     corners = calc_corners(subfault_params)
     if (
         np.any(corners[0] < bounds['lat_min'])
-        or np.any(corners[0] > bounds['lat_max']
+        or np.any(corners[0] > bounds['lat_max'])
     ):
         return True
     if (
         np.any(corners[1] < bounds['lon_min'])
-        or np.any(corners[1] > bounds['lon_max']
+        or np.any(corners[1] > bounds['lon_max'])
     ):
         return True
 
