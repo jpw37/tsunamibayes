@@ -1001,8 +1001,8 @@ class ReferenceCurveFault(BaseFault):
             distance = distance*np.sin(
                 np.deg2rad(self.strikepts-bear)
             )
-            sorted_distances = distance.sort()
-            distance = np.average(sorted_distances[-3:])
+            distance.sort() # The sorting occurs in-place
+            distance = np.average(distance[-3:])
             side= -np.sign(distance)
             distance = np.abs(distance)
             depth = self.depth_curve(np.squeeze(side)*distance)
