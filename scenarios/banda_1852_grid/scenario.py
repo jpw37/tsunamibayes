@@ -44,7 +44,10 @@ class BandaScenario(BaseScenario):
             Essentailly the same format as 'sample', we have simply added a multivariate normal
             to produce proposal values for lat, long, mag, etc.
         """
-        proposal = self.grid_samples[self.grid_idx]
+        proposal = pd.Series(
+            self.grid_samples[self.grid_idx],
+            index=self.sample_cols
+        )
         self.grid_idx += 1
         return proposal
 
