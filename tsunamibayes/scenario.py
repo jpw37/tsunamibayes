@@ -228,39 +228,39 @@ class BaseScenario:
             if verbose: print("Prior logpdf = {:.3E}".format(prior_logpdf))
 
             # if prior logpdf is -infinity, reject proposal and bypass forward model
-            if prior_logpdf == np.NINF:
-                # set acceptance probablity to 0
-                alpha = 0
-
-                # model_params, model_output and log-likelihood are set to nan values
-                model_params = self.model_params.iloc[0].copy()
-                model_params[...] = np.nan
-                model_output = self.model_output.iloc[0].copy()
-                model_output[...] = np.nan
-                llh = np.nan
+            # if prior_logpdf == np.NINF:
+            #     # set acceptance probablity to 0
+            #     alpha = 0
+            #
+            #     # model_params, model_output and log-likelihood are set to nan values
+            #     model_params = self.model_params.iloc[0].copy()
+            #     model_params[...] = np.nan
+            #     model_output = self.model_output.iloc[0].copy()
+            #     model_output[...] = np.nan
+            #     llh = np.nan
 
             # otherwise run the forward model, calculate the log-likelihood, and calculate
             # the Metropolis-Hastings acceptance probability
-            else:
-                if verbose: print("Running forward model...",flush=True)
-                model_output = self.forward_model.run(model_params)
-                if verbose: print("Evaluating log-likelihood:")
-                llh = self.forward_model.llh(model_output,verbose)
-                if verbose: print("Total llh = {:.3E}".format(llh))
+            # else:
+            if verbose: print("Running forward model...",flush=True)
+            model_output = self.forward_model.run(model_params)
+            if verbose: print("Evaluating log-likelihood:")
+            llh = self.forward_model.llh(model_output,verbose)
+            if verbose: print("Total llh = {:.3E}".format(llh))
 
-                # acceptance probability
-                # catch if both loglikelihoods are -inf
-                if self.bayes_data.loc[i-1,'llh'] == np.NINF and llh == np.NINF:
-                    alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
-                            self.bayes_data.loc[i-1,'prior_logpdf'] - \
-                            self.proposal_logpdf(proposal,self.samples.loc[i-1])
-                else:
-                    alpha = prior_logpdf + llh + \
-                            self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
-                            self.bayes_data.loc[i-1,'prior_logpdf'] - \
-                            self.bayes_data.loc[i-1,'llh'] - \
-                            self.proposal_logpdf(proposal,self.samples.loc[i-1])
-                alpha = np.exp(alpha)
+            # acceptance probability
+            # catch if both loglikelihoods are -inf
+            if self.bayes_data.loc[i-1,'llh'] == np.NINF and llh == np.NINF:
+                alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
+                        self.bayes_data.loc[i-1,'prior_logpdf'] - \
+                        self.proposal_logpdf(proposal,self.samples.loc[i-1])
+            else:
+                alpha = prior_logpdf + llh + \
+                        self.proposal_logpdf(self.samples.loc[i-1],proposal) - \
+                        self.bayes_data.loc[i-1,'prior_logpdf'] - \
+                        self.bayes_data.loc[i-1,'llh'] - \
+                        self.proposal_logpdf(proposal,self.samples.loc[i-1])
+            alpha = np.exp(alpha)
 
             if verbose: print("alpha = {:.3E}".format(alpha))
 
