@@ -22,7 +22,7 @@ def build_gauges():
     # Khao Lak
     name = 'Khao Lak'
     dists = dict()
-    dists['arrival'] = stats.skewnorm(loc=10.5, scale=.25, a=0)
+    dists['arrival'] = stats.skewnorm(loc=150, scale=15, a=0)
     gauge = Gauge(name,dists)
     gauge.lat = 8.733333
     gauge.lon = 98.233333
@@ -40,8 +40,8 @@ def build_gauges():
     # Banda Aceh
     name = 'Banda Aceh'
     dists = dict()
-    dists['height'] = stats.skewnorm(loc=30, scale=12, a=-10)
-    dists['arrival'] = stats.skewnorm(loc=8.8, scale=.5, a=-1)
+    dists['height'] = stats.skewnorm(loc=30, scale=12, a=-8)
+    dists['arrival'] = stats.skewnorm(loc=50, scale=20, a=-1)
     gauge = Gauge(name,dists)
     gauge.lat = 5.562639
     gauge.lon = 95.293194
@@ -60,7 +60,7 @@ def build_gauges():
     name = 'Trincomalee'
     dists = dict()
     dists['height'] = stats.skewnorm(loc=14, scale=2, a=0)
-    dists['inundation'] = stats.skewnorm(loc=1, scale=.05, a=0)
+    #dists['inundation'] = stats.skewnorm(loc=1, scale=.05, a=0)
     gauge = Gauge(name,dists)
     gauge.lat = 8.597222
     gauge.lon = 81.222222
@@ -77,10 +77,19 @@ def build_gauges():
     gauge.lon = 91.772222
     gauges.append(gauge)
 
+    # Cox's Bazar
+    name = 'Cox\'s Bazar'
+    dists = dict()
+    dists['height'] = stats.skewnorm(loc=1.5, scale=.5, a=1)
+    gauge = Gauge(name,dists)
+    gauge.lat = 21.4272
+    gauge.lon = 92.0058
+    gauges.append(gauge)
+    
     # Puducherry
     name = 'Puducherry'
     dists = dict()
-    dists['height'] = stats.skewnorm(loc=12.5, scale=3, a=0)
+    dists['height'] = stats.skewnorm(loc=8, scale=4, a=-1)
     gauge = Gauge(name,dists)
     gauge.lat = 11.9275
     gauge.lon = 70.834167

@@ -1,17 +1,29 @@
 import numpy as np
+import pandas as pd
 from tsunamibayes import BasePrior
 from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 
-class BandaPrior(BasePrior):
+class SumatraPrior(BasePrior):
     """The child class of Base Prior that creates a prior distribution,
-    specifically for the Banda 1852 event."""
-    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset):
+    specifically for the Banda 1852 event.
+    """
+    def __init__(
+        self,
+        latlon,
+        mag,
+        delta_logl,
+        delta_logw,
+        depth_offset,
+        dip_offset
+        strike_offset,
+        rake_offset
+    ):
         """Initializes all the necessary variables for the subclass.
         
         Parameters
         ----------
         latlon : LatLonPrior Object
-            Contains attirbutes fault and depth_dist, with methods logpdf, pdf, and rvs.
+            Contains attirbutes fault and depth_dist, with methods logpdf and rvs.
         mag : scipy.stats rv_frozen object
             A truncated continous random variable describing the sample's 
             magnitude with fixed parameters shape, location and scale.
@@ -23,6 +35,15 @@ class BandaPrior(BasePrior):
             the log of the width, also with fixed parameters. 
         depth_offset : scipy.stats rv_frozen object
             The continous random variable describing the sample's depth offset, 
+            also with fixed parameters. 
+        dip_offset : scipy.stats rv_frozen object
+            The continous random variable describing the sample's dip offset, 
+            also with fixed parameters. 
+        strike_offset : scipy.stats rv_frozen object
+            The continous random variable describing the sample's strike offset, 
+            also with fixed parameters. 
+        rake_offset : scipy.stats rv_frozen object
+            The continous random variable describing the sample's rake offset, 
             also with fixed parameters. 
         """
         self.latlon = latlon
@@ -41,7 +62,8 @@ class BandaPrior(BasePrior):
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values. 
+            'delta_logw', 'depth_offset', 'dip_offset', 'strike_offset', and 
+            'rake_offset'  with their associated float values. 
         
         Returns
         -------
@@ -54,12 +76,18 @@ class BandaPrior(BasePrior):
         delta_logl = sample["delta_logl"]
         delta_logw = sample["delta_logw"]
         depth_offset = sample["depth_offset"]
+        dip_offset = sample["dip_offset"]
+        rake_offset = sample["rake_offset"]
+        strike_offset = sample["strike_offset"]
 
         lpdf = self.latlon.logpdf(sample)
         lpdf += self.mag.logpdf(mag)
         lpdf += self.delta_logl.logpdf(delta_logl)
         lpdf += self.delta_logw.logpdf(delta_logw)
         lpdf += self.depth_offset.logpdf(depth_offset)
+        lpdf += self.dip_offset.logpdf(dip_offset)
+        lpdf += self.rake_offset.logpdf(rake_offset)
+        lpdf += self.strike_offset.logpdf(strike_offset)
 
         return lpdf
 
@@ -79,12 +107,18 @@ class BandaPrior(BasePrior):
         delta_logw = self.delta_logw.rvs()
         depth_offset = self.depth_offset.rvs()
         params = np.array(latlon+[mag,delta_logl,delta_logw,depth_offset])
-        return pd.Series(params,["latitude",
-                                 "longitude",
-                                 "magnitude",
-                                 "delta_logl",
-                                 "delta_logw",
-                                 "depth_offset"])
+        columns = [
+            "latitude",
+            "longitude",
+            "magnitude",
+            "delta_logl",
+            "delta_logw",
+            "depth_offset",
+            "dip_offset",
+            "strike_offset",
+            "rake_offset"
+        ]
+        return pd.Series(params, columns)
 
 class LatLonPrior(BasePrior):
     def __init__(self,fault,depth_dist):
@@ -110,7 +144,8 @@ class LatLonPrior(BasePrior):
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
             Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values.
+            'delta_logw', 'depth_offset', 'dip_offset', 'rake_offset', and 
+            'strike_offset' with their associated float values.
         Returns
         -------
         NINF -or- logpdf : float
@@ -121,12 +156,17 @@ class LatLonPrior(BasePrior):
         # compute subfaults (for out-of-bounds calculation)
         length = calc_length(sample['magnitude'],sample['delta_logl'])
         width = calc_width(sample['magnitude'],sample['delta_logw'])
-        subfault_params = self.fault.subfault_split(sample['latitude'],
-                                                    sample['longitude'],
-                                                    length,
-                                                    width,
-                                                    1,
-                                                    sample['depth_offset'])
+        
+        subfault_params = self.fault.subfault_split_RefCurve(
+            lat = sample['latitude'],
+            lon = sample['longitude'],
+            length = length,
+            width = width,
+            slip = 1,
+            depth_offset = sample['depth_offset'],
+            dip_offset = sample['dip_offset'],
+            rake_offset = sample['rake_offset']
+        )
         
         if subfault_params.isnull().values.any():
             return np.NINF
@@ -135,39 +175,6 @@ class LatLonPrior(BasePrior):
         else:
             depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
             return self.depth_dist.logpdf(depth)
-
-    def pdf(self,sample):
-        """Checks to insure that the sample's subfaults are not out of bounds,
-        then evaluates the depth distribution's probability density function 
-        at the sample's depth. 
-        
-        Parameters
-        ----------
-        sample : pandas Series of floats
-            The series containing the arrays of information for a sample.
-            Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values.
-        Returns
-        -------
-        pdf : float
-            The value of the probability density function for the depth distribution
-            evaluated at the depth of the sample. 
-        """
-        # compute subfaults (for out-of-bounds calculation)
-        length = calc_length(sample['magnitude'],sample['delta_logl'])
-        width = calc_width(sample['magnitude'],sample['delta_logw'])
-        subfault_params = self.fault.subfault_split(sample['latitude'],
-                                                    sample['longitude'],
-                                                    length,
-                                                    width,
-                                                    1,
-                                                    sample['depth_offset'])
-
-        if out_of_bounds(subfault_params,self.fault.bounds):        #FAULT: Which bounds will this call?
-            return 0
-        else:
-            depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
-            return self.depth_dist.pdf(depth)
 
     def rvs(self):
         """Produces two random variate values for latitude and longitude
@@ -179,6 +186,9 @@ class LatLonPrior(BasePrior):
             The random variates for latitude and longitude within the fault's bounds.
         """
         d = self.depth_dist.rvs()
-        I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
+        I,J = np.nonzero(
+            (d - 500 < self.fault.depth)
+            & (self.fault.depth < d + 500)
+        )
         idx = np.random.randint(len(I))
         return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]

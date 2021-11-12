@@ -9,30 +9,30 @@ def convert_lat_lon(lat, lon):
     longitude = sum(float(x) / 60 ** n for n, x in enumerate(lon[:-1].split('-'))) * (1 if 'E' == lon[-1] else -1)
     return latitude, longitude
 
-def load_data(data):
+def load_data():
     #pass in data as arrays
 
     #small referes to 5.0-5.9 magnitude
-    small = pd.read_excel(data)
-    lat_small = pd.DataFrame(small, columns = ['Lat']).to_numpy().flatten()
-    long_small = pd.DataFrame(small, columns = ['Long']).to_numpy().flatten()
+    small = pd.read_excel('Sumatra version 3.xlsx')
+    lat_small = pd.DataFrame(small, columns = ['Lat N']).to_numpy().flatten()
+    long_small = pd.DataFrame(small, columns = ['Long E']).to_numpy().flatten()
     mag_small = pd.DataFrame(small, columns = ['Magnitude']).to_numpy().flatten()
     depth_small = pd.DataFrame(small, columns = ['Depth km']).to_numpy().flatten()
     plate_boundary_small = pd.DataFrame(small, columns = ['Distance from plate boundary km (estimated)']).to_numpy().flatten()
     dist_ratio_small = pd.DataFrame(small, columns = ['Calculated distance ratio (depth/TAN(Dip))']).to_numpy().flatten()
-    strike_small = pd.DataFrame(small, columns = ['Strike']).to_numpy().flatten()
+    strike_small = pd.DataFrame(small, columns = ['Stike']).to_numpy().flatten()
     dip_small = pd.DataFrame(small, columns = ['Dip']).to_numpy().flatten()
     rake_small = pd.DataFrame(small, columns = ['Rake']).to_numpy().flatten()
 
     #large refers to 6.0-7.2 magnitude
-    large = pd.read_excel(data)
-    lat_large = pd.DataFrame(large, columns = ['Lat']).to_numpy().flatten()
-    long_large = pd.DataFrame(large, columns = ['Long']).to_numpy().flatten()
+    large = pd.read_excel('Sumatra version 3.xlsx')
+    lat_large = pd.DataFrame(large, columns = ['Lat N']).to_numpy().flatten()
+    long_large = pd.DataFrame(large, columns = ['Long E']).to_numpy().flatten()
     mag_large = pd.DataFrame(large, columns = ['Magnitude']).to_numpy().flatten()
     depth_large = pd.DataFrame(large, columns = ['Depth km']).to_numpy().flatten()
     plate_boundary_large = pd.DataFrame(large, columns = ['Distance from plate boundary km (estimated)']).to_numpy().flatten()
     dist_ratio_large = pd.DataFrame(large, columns = ['Calculated distance ratio (depth/TAN(Dip))']).to_numpy().flatten()
-    strike_large = pd.DataFrame(large, columns = ['Strike']).to_numpy().flatten()
+    strike_large = pd.DataFrame(large, columns = ['Stike']).to_numpy().flatten()
     dip_large = pd.DataFrame(large, columns = ['Dip']).to_numpy().flatten()
     rake_large = pd.DataFrame(large, columns = ['Rake']).to_numpy().flatten()
 
@@ -40,14 +40,17 @@ def load_data(data):
     datalarge = [] #a list will be returned of lat and long
     for i in range(len(lat_large)):
         if isinstance(lat_large[i], float) and isinstance(long_large[i], float):
-            datalarge.append(lat_large[i], long_large[i])            
+            datalarge.append((lat_large[i], long_large[i]))            
         else:
             datalarge.append(convert_lat_lon(lat_large[i], long_large[i]))
 
 
     datasmall = [] #a list will be returned of lat and long
     for i in range(len(lat_small)):
-        datasmall.append(convert_lat_lon(lat_small[i], long_small[i]))
+        if isinstance(lat_small[i], float) and isinstance(long_small[i], float):
+            datasmall.append((lat_small[i], long_small[i]))            
+        else:
+            datasmall.append(convert_lat_lon(lat_small[i], long_small[i]))
 
     a_datalarge = np.array(datalarge) #convert list to array
     a_data_lat_large = a_datalarge[:,0]

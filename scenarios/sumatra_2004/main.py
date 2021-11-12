@@ -2,14 +2,15 @@ import numpy as np
 import scipy.stats as stats
 import json
 import tsunamibayes as tb
-from prior import LatLonPrior, BandaPrior
+from tsunamibayes.gaussian_process_regressor import GPR
+from prior import LatLonPrior, SumatraPrior
 from gauges import build_gauges
-from scenario import BandaScenario
+from scenario import SumatraScenario
 
 def setup(config):
-    """Extracts the data from the config object to create the BandaFault object, 
+    """Extracts the data from the config object to create the SumatraFault object, 
     and then declares the scenario's initial prior, forward model, and covariance 
-    in order to create the BandaScenario. 
+    in order to create the SumatraScenario. 
     
     Parameters
     ----------
@@ -19,11 +20,22 @@ def setup(config):
     
     Returns
     -------
-    BandaScenario : BandaScenario object
+    SumatraScenario : SumatraScenario object
     """
-    # Banda Arc fault object
+    # Sumatra fault object
     arrays = np.load(config.fault['grid_data_path'])
-    fault = tb.GridFault(bounds=config.model_bounds,**arrays)
+    kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
+    fault = tb.GaussianProcessFault(
+        bounds=config.model_bounds,
+        kers={
+            'depth':kernel,
+            'dip': kernel,
+            'strike': kernel,
+            'rake': kernel
+        },
+        noise={'depth':1, 'dip':1, 'strike':1, 'rake':1},
+        **arrays
+    )
 
     # Priors
     # latitude/longitude
@@ -31,30 +43,60 @@ def setup(config):
     depth_std = config.prior['depth_std']
     mindepth = config.prior['mindepth']
     maxdepth = config.prior['maxdepth']
+    
     a,b = (mindepth - depth_mu) / depth_std, (maxdepth - depth_mu) / depth_std
+    
     depth_dist = stats.truncnorm(a,b,loc=depth_mu,scale=depth_std)
-    latlon = LatLonPrior(fault,depth_dist)
+    
+    latlon = LatLonPrior(fault, depth_dist)
 
     # magnitude
-    mag = stats.truncexpon(b=config.prior['mag_b'],loc=config.prior['mag_loc'])
+    mag = stats.truncexpon(
+        b=config.prior['mag_b'],
+        loc=config.prior['mag_loc']
+    )
 
     # delta_logl
-    delta_logl = stats.norm(scale=config.prior['delta_logl_std']) # sample standard deviation from data
+    # sample standard deviation from data
+    delta_logl = stats.norm(scale=config.prior['delta_logl_std']) 
 
     # delta_logw
-    delta_logw = stats.norm(scale=config.prior['delta_logw_std']) # sample standard deviation from data
+    # sample standard deviation from data
+    delta_logw = stats.norm(scale=config.prior['delta_logw_std']) 
 
-    # depth offset
-    depth_offset = stats.norm(scale=config.prior['depth_offset_std']) # in km to avoid numerically singular covariance matrix
-    prior = BandaPrior(latlon,mag,delta_logl,delta_logw,depth_offset)
+    # depth offset in km to avoid numerically singular covariance matrix
+    depth_offset = stats.norm(scale=config.prior['depth_offset_std']) 
+    
+    dip_offset = stats.norm(scale=config.prior['dip_offset_std'])
+    
+    strike_offset = stats.norm(scale=config.prior['strike_offset_std'])
+    
+    rake_offset = stats.norm(scale = config.prior['rake_offsset_std'])
+    
+    prior = SumatraPrior(
+        latlon,
+        mag,
+        delta_logl,
+        delta_logw,
+        depth_offset,
+        dip_offset,
+        strike_offset,
+        rake_offset
+    )
 
     # load gauges
     gauges = build_gauges()
 
     # Forward model
-    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
-    forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
-                                           config.geoclaw['dtopo_path'])
+    config.fgmax['min_level_check'] = (
+        len(config.geoclaw['refinement_ratios'])+1
+    )
+    forward_model = tb.GeoClawForwardModel(
+        gauges,
+        fault,
+        config.fgmax,
+        config.geoclaw['dtopo_path']
+    )
 
     # Proposal kernel
     lat_std = config.proposal_kernel['lat_std']
@@ -63,16 +105,24 @@ def setup(config):
     delta_logl_std = config.proposal_kernel['delta_logl_std']
     delta_logw_std = config.proposal_kernel['delta_logw_std']
     depth_offset_std = config.proposal_kernel['depth_offset_std'] #in km to avoid singular covariance matrix
+    dip_offset_std = config.proposal_kernel['dip_offset_std']
+    strike_offset_std = config.proposal_kernel['strike_offset_std']
+    rake_offset_std = config.proposal_kernel['rake_offset_std']
 
     # square for std => cov
-    covariance = np.diag(np.square([lat_std,
-                             lon_std,
-                             mag_std,
-                             delta_logl_std,
-                             delta_logw_std,
-                             depth_offset_std]))
+    covariance = np.diag(np.square([
+        lat_std,
+        lon_std,
+        mag_std,
+        delta_logl_std,
+        delta_logw_std,
+        depth_offset_std,
+        dip_offset_std,
+        strike_offset_std,
+        rake_offset_std
+    ]))
 
-    return BandaScenario(prior,forward_model,covariance)
+    return SumatraScenario(prior,forward_model,covariance)
 
 if __name__ == "__main__":
     import os
@@ -104,16 +154,27 @@ if __name__ == "__main__":
 
     # resume in-progress chain
     if args.resume:
-        if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
+        if args.verbose: 
+            print("Resuming chain from: {}".format(args.output_dir),flush=True)
         scenario.resume_chain(args.output_dir)
     
     # initialize new chain
     else: 
         if config.init['method'] == 'manual':
-            u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
+            u0 = {
+                key:val for key,val in config.init.items() 
+                if key in scenario.sample_cols
+            }
             scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
-            scenario.init_chain(method='prior_rvs',verbose=args.verbose)
+            scenario.init_chain(
+                method='prior_rvs',
+                verbose=args.verbose
+            )
   
-    scenario.sample(args.n_samples,output_dir=args.output_dir,
-                    save_freq=args.save_freq,verbose=args.verbose)
+    scenario.sample(
+        args.n_samples,
+        output_dir=args.output_dir,
+        save_freq=args.save_freq,
+        verbose=args.verbose
+    )
