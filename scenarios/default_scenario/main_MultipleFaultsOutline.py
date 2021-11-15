@@ -1,10 +1,11 @@
-import numpy as np
-import scipy.stats as stats
-import json
-import pickle
-import tsunamibayes as tb
-from tsunamibayes.gaussian_process_regressor import GPR
-from prior import LatLonPrior, SulawesiPrior            #Forgot to change this
+#First, we import important packages for the program.
+import numpy as np                                              #Numpy allows us to use helpful math functions.
+import scipy.stats as stats                                     #This stats package allow for creation of probability distributions.
+import json                                                     #The json package is a way to compress data.
+import pickle                                                   #Pickle files used to store fault data for a particular fault object.
+import tsunamibayes as tb                                       #This is our bayesian inference model
+from tsunamibayes.gaussian_process_regressor import GPR         #Certain types of faults are described using Guassian processes, this imports necessary associated functions.
+from prior import LatLonPrior, SulawesiPrior                    #We use two types of priors 
 from gauges import build_gauges
 from scenario import SulawesiScenario, MultiFaultScenario
 from enum import IntEnum
@@ -22,12 +23,12 @@ class FAULT(IntEnum):
 def FAULT_1_dip(x):
     return np.ones(np.shape(x))*(INSERT_DEFAULT_ANGLE_IN_DEGREES)
 
-# Depths are assumed to be 20 km.
+# Define an array of the default depth for FAULT_1. Depth away from fault line are computed using dip angle at that point and lateral distance away from the fault.
 def FAULT_1_depth(dist):
     """Gives depth based on distance from fault.
     A negative distance is higher than the base fault depth.
     """
-    base_depth = INSERT_DEFAULT_DEPTH_IN_METERS             #Should be positive.
+    base_depth = INSERT_DEFAULT_DEPTH_IN_METERS             #Should be positive, in km
     extra_depth = dist*np.tan(np.deg2rad(FAULT_1_dip(dist)))
     return base_depth - extra_depth
 
@@ -48,16 +49,25 @@ def setup(config):
     BandaScenario : BandaScenario object
     """
     #FAULT_0 and FAULT_1 fault objects
+
+    #In 'defaults.cfg', you need to specify the location of your fault data.
+    #For Fault_1 (A Reference Curve Object), data needs to be stored in a pickle file. (Additonal instructions for file format in user guide)
     with open(config.fault['FAULT_1_data_path'], 'rb') as file:
         FAULT_1_initialization_data = pickle.load(file)
 
+
+    #This next line loads the data for FAULT_0 (A Gridfault Object) from a .npz file containing the fault data.
     fault_initialization_data = [
         np.load(config.fault['FAULT_0_data_path']),
         FAULT_1_initialization_data
     ]
+
+
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
-    FAULT_0_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75) #This is potentially our problem?
+    FAULT_0_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75) 
+
+    #Initializes an array with both faults concatenated. 
     fault = [
         tb.fault.GaussianProcessFault( # The FAULT_0 fault uses a GaussianProcessFault
             bounds=config.model_bounds, # Model bounds are currently same for both
@@ -78,11 +88,14 @@ def setup(config):
 
     # Priors
     # latitude/longitude
-    depth_mu = [config.prior['depth_mu_flo'], config.prior['depth_mu_wal']]
-    depth_std = [config.prior['depth_std_flo'], config.prior['depth_std_wal']]
-    mindepth = [config.prior['mindepth_flo'], config.prior['mindepth_wal']]
-    maxdepth = [config.prior['maxdepth_flo'], config.prior['maxdepth_wal']]
+    #All of the following load data for the prior from defaults.cfg
+    depth_mu = [config.prior['depth_mu_flo'], config.prior['depth_mu_wal']]         #Loads the mean depth of each fault
+    depth_std = [config.prior['depth_std_flo'], config.prior['depth_std_wal']]      #Loads depth standard deviation
+    mindepth = [config.prior['mindepth_flo'], config.prior['mindepth_wal']]         #Loads the minimum depth cutoff for each fault (the minimum depth above which tsunamis could not realistically occur)
+    maxdepth = [config.prior['maxdepth_flo'], config.prior['maxdepth_wal']]         #Loads the maximum depth (ie. The depth below which the plates are too hot and soft to generate an earthquake)
 
+
+    #Depth distributions are created for each fault. No new information needs to be changed or inputted here.
     lower_bound_depth = [
         (md-dmu)/dstd for md, dmu, dstd in zip(mindepth, depth_mu, depth_std)
     ]
@@ -97,6 +110,8 @@ def setup(config):
         )
     ]
 
+
+    #Here, we put the prior objects for both faults together. 
     latlon = [
         LatLonPrior(fault[FAULT.FAULT_0], depth_dist[FAULT.FAULT_0]),
         LatLonPrior(fault[FAULT.FAULT_1], depth_dist[FAULT.FAULT_1])
@@ -176,7 +191,7 @@ def setup(config):
     ]
 
     # load gauges
-    gauges = build_gauges() # TODO: Ashley should be working on this.
+    gauges = build_gauges()
 
     # Forward model
     config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
@@ -185,9 +200,6 @@ def setup(config):
         tb.GeoClawForwardModel(gauges,fault[FAULT.FAULT_1],config.fgmax,config.geoclaw['dtopo_path'])
     ]
 
-    # TODO: how does proposal kernel need to change?
-    # TODO: I added rake/dip offsets, but do there need to be
-    #  different values for each fault?
     # Proposal kernel
     lat_std = [
         config.proposal_kernel['lat_std_flo'],
