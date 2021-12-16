@@ -178,11 +178,14 @@ class GeoClawForwardModel(BaseForwardModel):
             depth_offset=model_params['depth_offset'],
             dip_offset=model_params['dip_offset'],
             rake_offset=model_params['rake_offset'],
+            strike_offset=model_params['strike_offset'],
             rake=model_params['rake']
         )
 
         # create and write dtopo file
-        write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
+        write_dtopo(
+            subfault_params, self.fault.bounds, self.dtopo_path, verbose
+        )
 
         # clear .output
         os.system('rm .output')

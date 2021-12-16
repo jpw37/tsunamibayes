@@ -6,7 +6,7 @@ from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 
 class SulawesiPrior(BasePrior):
     """The child class of Base Prior that creates a prior distribution,
-    specifically for the Banda 1820 event.
+    specifically for the Sulawesi 1820 event.
     """
     def __init__(
         self,
@@ -50,7 +50,7 @@ class SulawesiPrior(BasePrior):
 
     def logpdf(self,sample):
         """Computes the log of the probability density function. Adds
-        together the logs of all the probability denisty functions for each
+        together the logs of all the probability density functions for each
         of sample's attributes.
 
         Parameters
@@ -98,7 +98,7 @@ class SulawesiPrior(BasePrior):
         return lpdf
 
     def rvs(self):
-        """Computes random variates for each of Banda Prior's data members,
+        """Computes random variates for each of Sulawesi Prior's data members,
         then returns the organized set of random variates for each.
 
         Returns
@@ -179,7 +179,7 @@ class LatLonPrior(BasePrior):
 
         if subfault_params.isnull().values.any():
             return np.NINF
-        if out_of_bounds(subfault_params,self.fault.bounds):
+        if out_of_bounds(subfault_params,self.fault.model_bounds):
             return np.NINF
         else:
             depth = (
@@ -224,7 +224,7 @@ class LatLonPrior(BasePrior):
 
         if subfault_params.isnull().values.any():
             return 0
-        if out_of_bounds(subfault_params,self.fault.bounds):
+        if out_of_bounds(subfault_params,self.fault.model_bounds):
             return 0
         else:
             depth = (

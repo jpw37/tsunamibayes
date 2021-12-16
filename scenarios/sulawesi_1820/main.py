@@ -52,12 +52,15 @@ def setup(config):
         np.load(config.fault['flores_data_path']),
         walanae_initialization_data
     ]
+    geoclaw_bounds = config.geoclaw_bounds
+    bounds = [config.model_bounds_flo, config.model_bounds_wal]
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
     flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
     fault = [
         tb.fault.GaussianProcessFault( # Flores uses a GaussianProcessFault
-            bounds=config.model_bounds,
+            bounds=geoclaw_bounds,
+            model_bounds=bounds[FAULT.FLORES],
             kers={
                 'depth': flores_kernel,
                 'dip': flores_kernel,
@@ -68,7 +71,8 @@ def setup(config):
             **fault_initialization_data[FAULT.FLORES]
         ),
         tb.fault.ReferenceCurveFault( # Walanae uses a ReferenceCurveFault
-            bounds=config.model_bounds,
+            bounds=geoclaw_bounds
+            model_bounds=bounds[FAULT.WALANAE],
             **fault_initialization_data[FAULT.WALANAE]
         )
     ]
@@ -270,6 +274,7 @@ def setup(config):
         )
     ]
     return MultiFaultScenario(scenarios)
+
 
 if __name__ == "__main__":
     import os
