@@ -205,7 +205,7 @@ class SulawesiScenario(BaseScenario):
                 sample['latitude'],
                 sample['longitude']
             )
-            rake = 90 # On Walanae, the rake is assumed to be just 90.
+            rake = 80 # On Walanae, the rake is assumed to be 80.
 
         model_params = dict()
         model_params['latitude'] = sample['latitude']
