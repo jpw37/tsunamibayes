@@ -8,19 +8,19 @@ from .utils import displace, haversine, bearing
 
 class BaseFault:
     """A class for data relating to the fault"""
-    def __init__(self,bounds):
+    def __init__(self,geoclaw_bounds):
         """Creates and initializes the BaseFault object with specified lat/lon
         bounds. However, one must use a subclass to call to the functions of
         this parent class.
 
         Parameters
         ----------
-        bounds : dict
+        geoclaw_bounds : dict
             The dictionary of the upper and lower limits for latitude/longitude
-            for the model. Keys are 'lon_min','lon_max','lat_min', 'lat_max',
+            for geoclaw. Keys are 'lon_min','lon_max','lat_min', 'lat_max',
             with associated (float) values.
         """
-        self.bounds = bounds
+        self.bounds = geoclaw_bounds
 
     def depth_map(self,lat,lon):
         raise NotImplementedError("depth_map must be implemented in classes "
@@ -312,6 +312,7 @@ class BaseFault:
         depth_offset=0,
         dip_offset=0,
         rake_offset=0,
+        strike_offset=0,
         rake=90,
         n=1,
         m=3
@@ -431,6 +432,7 @@ class BaseFault:
 
         Depths += depth_offset
         Dips += dip_offset
+        Strikes += strike_offset
         data = [Lats,Lons,Strikes,Dips,Depths]
         data = [arr.flatten() for arr in data]
         subfault_params = pd.DataFrame(
@@ -707,6 +709,7 @@ class ReferenceCurveFault(BaseFault):
         depth_curve,
         dip_curve,
         bounds,
+        model_bounds,
         smoothing=50000
     ):
         """Initializes all the necessary variables for the subclass.
@@ -737,13 +740,13 @@ class ReferenceCurveFault(BaseFault):
             strike angle. Default is set to 50000.
         """
         super().__init__(bounds)
+        self.model_bounds = model_bounds
         self.latpts = latpts
         self.lonpts = lonpts
         self.strikepts = strikepts
         self.depth_curve = depth_curve
         self.dip_curve = dip_curve
         self.smoothing = smoothing
-
 
     @staticmethod
     def quad_interp(x,y):
@@ -887,7 +890,6 @@ class ReferenceCurveFault(BaseFault):
 
         return sides
 
-
     def distance(self,lat,lon,retclose=False):
         """Computes the distance from a given lat/lon coordinate to the fault.
         Optionally return the index of the closest point.
@@ -928,7 +930,6 @@ class ReferenceCurveFault(BaseFault):
             else:
                 return distances.min(axis=1)
 
-
     def strike_map(self,lat,lon):
         """Computes the weighted mean strike angle.
 
@@ -954,7 +955,6 @@ class ReferenceCurveFault(BaseFault):
         weights = np.exp(-distances/self.smoothing)
         strikes = (ReferenceCurveFault.circmean(self.strikepts,weights)%360)
         return strikes
-
 
     def depth_map(self,lat,lon,retside=False):
         """Computes the depth for a given lat-lon coordinate.
@@ -1025,7 +1025,6 @@ class ReferenceCurveFault(BaseFault):
 
         return ((depth,side) if retside else depth)
 
-
     def dip_map(self,lat,lon):
         """Computes the dip for a given lat-lon coordinate.
 
@@ -1083,7 +1082,6 @@ class ReferenceCurveFault(BaseFault):
 
         return self.dip_curve(np.squeeze(side)*distance)
 
-
     def depth_dip(self,lat,lon):
         """Computes both the depth and dip for a given lat-lon coordinate.
 
@@ -1117,7 +1115,6 @@ class ReferenceCurveFault(BaseFault):
             side = -np.sign(distance)
             distance = np.abs(distance)
         return self.depth_curve(side*distance),self.dip_curve(side*distance)
-
 
     def distance_strike(self,lat,lon):
         """Computes both the distance from the fault, and the weighted mean
@@ -1162,6 +1159,7 @@ class GaussianProcessFault(BaseFault):
         strikes,
         rakes,
         bounds,
+        model_bounds,
         kers,
         noise=None
     ):
@@ -1192,6 +1190,7 @@ class GaussianProcessFault(BaseFault):
             If
         """
         super().__init__(bounds)
+        self.model_bounds = model_bounds
 
         if noise is None:
             noise = {'depth': 1, 'dip': 1, 'strike': 1, 'rake': 1}
@@ -1339,7 +1338,7 @@ class GaussianProcessFault(BaseFault):
         return pred
 
     def rake_map(self,lat,lon,return_std=False):
-        """Computes the dip for a given lat-lon coordinate.
+        """Computes the rake for a given lat-lon coordinate.
 
         Parameters
         ----------
