@@ -71,7 +71,7 @@ def setup(config):
             **fault_initialization_data[FAULT.FLORES]
         ),
         tb.fault.ReferenceCurveFault( # Walanae uses a ReferenceCurveFault
-            bounds=geoclaw_bounds
+            bounds=geoclaw_bounds,
             model_bounds=bounds[FAULT.WALANAE],
             **fault_initialization_data[FAULT.WALANAE]
         )
