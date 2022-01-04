@@ -9,7 +9,7 @@ class BandaScenario(BaseScenario):
     model_param_cols = ['latitude','longitude','length','width','slip','strike',
                         'dip','depth','rake','depth_offset']
 
-    def __init__(self,prior,forward_model,covariance):
+    def __init__(self,prior,forward_model,covariance,start_idx):
         """Initializes all the necessary variables for the BandaScenario subclass.
 
         Parameters
@@ -26,7 +26,7 @@ class BandaScenario(BaseScenario):
         self.fault = forward_model.fault
         self.cov = covariance
         self.grid_samples = np.load('data/grid_samples.npy')
-        self.grid_idx = 0
+        self.grid_idx = start_idx
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.

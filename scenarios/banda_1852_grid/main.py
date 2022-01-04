@@ -7,16 +7,16 @@ from gauges import build_gauges
 from scenario import BandaScenario
 
 def setup(config):
-    """Extracts the data from the config object to create the BandaFault object, 
-    and then declares the scenario's initial prior, forward model, and covariance 
-    in order to create the BandaScenario. 
-    
+    """Extracts the data from the config object to create the BandaFault object,
+    and then declares the scenario's initial prior, forward model, and covariance
+    in order to create the BandaScenario.
+
     Parameters
     ----------
     config : Config object
         The config object that contains the default scenario data to use for the sampling.
         Essentially, this sets all the initial conditions for the bounds, prior, fault, etc.
-    
+
     Returns
     -------
     BandaScenario : BandaScenario object
@@ -72,7 +72,9 @@ def setup(config):
                              delta_logw_std,
                              depth_offset_std]))
 
-    return BandaScenario(prior,forward_model,covariance)
+    start_idx = config.init['start_idx']
+
+    return BandaScenario(prior,forward_model,covariance,start_idx)
 
 if __name__ == "__main__":
     import os
@@ -106,14 +108,14 @@ if __name__ == "__main__":
     if args.resume:
         if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
         scenario.resume_chain(args.output_dir)
-    
+
     # initialize new chain
-    else: 
+    else:
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
             scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenario.init_chain(method='prior_rvs',verbose=args.verbose)
-  
+
     scenario.sample(args.n_samples,output_dir=args.output_dir,
                     save_freq=args.save_freq,verbose=args.verbose)
