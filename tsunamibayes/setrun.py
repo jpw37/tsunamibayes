@@ -99,11 +99,11 @@ def make_setrun(config):
         clawdata.num_dim = num_dim
 
         # Lower and upper edge of computational domain:
-        clawdata.lower[0] = config.model_bounds['lon_min'] # west longitude
-        clawdata.upper[0] = config.model_bounds['lon_max'] # east longitude
+        clawdata.lower[0] = config.geoclaw_bounds['lon_min'] # west longitude
+        clawdata.upper[0] = config.geoclaw_bounds['lon_max'] # east longitude
 
-        clawdata.lower[1] = config.model_bounds['lat_min'] # south latitude
-        clawdata.upper[1] = config.model_bounds['lat_max'] # north latitude
+        clawdata.lower[1] = config.geoclaw_bounds['lat_min'] # south latitude
+        clawdata.upper[1] = config.geoclaw_bounds['lat_max'] # north latitude
 
         # Number of grid cells: Coarsest grid
         clawdata.num_cells[0] = config.geoclaw['xcoarse_grid']
