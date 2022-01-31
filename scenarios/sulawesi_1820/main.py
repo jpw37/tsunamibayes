@@ -108,11 +108,13 @@ def setup(config):
     mag = [
         stats.truncexpon(
             b=config.prior['mag_b_flo'],
-            loc=config.prior['mag_loc_flo']
+            loc=config.prior['mag_loc_flo'],
+            scale=config.prior['mag_scale_flo']
         ),
         stats.truncexpon(
             b=config.prior['mag_b_wal'],
-            loc=config.prior['mag_loc_wal']
+            loc=config.prior['mag_loc_wal'],
+            scale=config.prior['mag_scale_wal']
         )
     ]
 

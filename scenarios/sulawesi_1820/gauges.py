@@ -14,7 +14,7 @@ def build_gauges():
     # Bulukumba
     name = 'Bulukumba'
     dists = dict()
-    dists['height'] = stats.norm(loc=24,scale=5)
+    dists['height'] = stats.norm(loc=18,scale=5) # record says 60-80 feet;
     dists['arrival'] = stats.norm(loc=15,scale=10)
     gauge = Gauge(name,dists)
     gauge.lat = [-5.566, -5.5675, -5.563]
