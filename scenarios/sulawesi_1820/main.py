@@ -19,13 +19,10 @@ class FAULT(IntEnum):
 def walanae_dip(x):
     return np.ones(np.shape(x))*25
 
-
-# Depths are assumed to be 20 km.
 def walanae_depth(dist):
-    """Gives depth based on distance from fault."""
-    base_depth = 20000
-    extra_depth = dist*np.tan(np.deg2rad(walanae_dip(dist)))
-    return base_depth - extra_depth
+    """Gives depth based on distance from fault line."""
+    depth = dist*np.tan(np.deg2rad(walanae_dip(dist)))
+    return depth
 
 
 def setup(config):
