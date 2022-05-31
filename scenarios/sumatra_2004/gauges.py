@@ -60,7 +60,7 @@ def build_gauges():
     name = 'Trincomalee'
     dists = dict()
     dists['height'] = stats.skewnorm(loc=14, scale=2, a=0)
-    #dists['inundation'] = stats.skewnorm(loc=1, scale=.05, a=0)
+    dists['inundation'] = stats.skewnorm(loc=1000, scale=100, a=0)
     gauge = Gauge(name,dists)
     gauge.lat = 8.597222
     gauge.lon = 81.222222
