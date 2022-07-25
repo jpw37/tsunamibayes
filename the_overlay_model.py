@@ -26,6 +26,7 @@ in the paper "Developing a Scenario to Validate the Tsunamibayes Methodology". T
 to remake the model with the necessary tools quickly and adjust the parameters with interface.
 """
 
+from sys import argv
 def Model(Input_Topography=,#input topography filename as string 
           Input_Bathymetry=,#input filepath of bathymetry file 
           Input_Topo_2=, #input topography filename as string
