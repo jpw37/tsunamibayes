@@ -7,6 +7,25 @@ Original file is located at
     https://colab.research.google.com/drive/1Z5CaUrrjjABkfbBDsdcEwgGaqzvYCo0w
 """
 
+"""
+There are TWO Model functions listed below. The first is a generalized version of the model where
+you can input the file and filepaths. This was edited from the second Model function (which is 
+the original code but specific to a file and a filepath) so there MIGHT be some parameters that 
+specific to the example file (phiphiandsouthphuket_topography). To use the first Model function,
+go to the GIS lab in the BYU library, set up your network drive, open a new project in ArcGIS, import
+all of your files, go to the Analysis tab, click on Python, copy and paste the first Model function,
+edit and input your files and filepaths. Make sure you read all the comments below before running.
+
+The second Model function is the original code but pertaining to a specific file 
+(phiphiandsouthphuket_topography). If you run into any syntax errors from the first Model function,
+you can check them with the syntax of the second Model function.
+
+ALTERNATIVELY and recommended, while the GIS employees could help you with the parameters in the 
+Python code, they are more familiar with the model interface. This is available as a figure (image) 
+in the paper "Developing a Scenario to Validate the Tsunamibayes Methodology". This will allow them 
+to remake the model with the necessary tools quickly and adjust the parameters with interface.
+"""
+
 def Model(Input_Topography=,#input topography filename as string 
           Input_Bathymetry=,#input filepath of bathymetry file 
           Input_Topo_2=, #input topography filename as string
@@ -15,6 +34,8 @@ def Model(Input_Topography=,#input topography filename as string
           ):
 
     # To allow overwriting outputs change overwriteOutput option to True.
+    # ArcGIS will throw an error when rerunning a cell that would overwrite a file. I suggest
+    # changing this to True
     arcpy.env.overwriteOutput = False
 
     # Check out any necessary licenses.
@@ -25,16 +46,12 @@ def Model(Input_Topography=,#input topography filename as string
 
     # Process: Resample (Resample) (management)
     Ocean_resample = project_path+"\\my_gis_project.gdb\\Ocean_resample"
-    #remove \n\ from outputCoordinateSystem and put it all on one line
-    oCS = """GEOGCS['GCS_WGS_1984',
-    DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],
-    PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]]"""
+    oCS = "GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]]"
     with arcpy.EnvManager(outputCoordinateSystem=oCS, 
                           snapRaster=Input_Topo_2):
         arcpy.management.Resample(in_raster=Input_Bathymetry, 
                                   out_raster=Ocean_resample, 
-                                  cell_size=
-                                  "1.66666666666667E-03 1.66666666666667E-03", 
+                                  cell_size="1.66666666666667E-03 1.66666666666667E-03", 
                                   resampling_type="NEAREST")
         Ocean_resample = arcpy.Raster(Ocean_resample)
 
@@ -56,8 +73,7 @@ def Model(Input_Topography=,#input topography filename as string
                                          out_polygon_features=Ocean_Water_Mask, 
                                          simplify="SIMPLIFY", 
                                          raster_field="Value", 
-                                         create_multipart_features=
-                                         "MULTIPLE_OUTER_PART", #(see above)
+                                         create_multipart_features="MULTIPLE_OUTER_PART",
                                          max_vertices_per_feature=None)
 
     # Process: Select (Select) (analysis)
