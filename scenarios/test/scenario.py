@@ -40,34 +40,62 @@ class MultiFaultScenario():
 
 class SulawesiScenario(BaseScenario):
     sample_cols = [
-        'latitude',
-        'longitude',
-        'magnitude',
-        'delta_logl',
-        'delta_logw',
-        'depth_offset',
-        'dip_offset',
-        'strike_offset',
-        'rake_offset'
+        'flores_latitude',
+        'flores_longitude',
+        'flores_magnitude',
+        'flores_delta_logl',
+        'flores_delta_logw',
+        'flores_depth_offset',
+        'flores_dip_offset',
+        'flores_strike_offset',
+        'flores_rake_offset',
+        'walanae_latitude',
+        'walanae_longitude',
+        'walanae_magnitude',
+        'walanae_delta_logl',
+        'walanae_delta_logw'
+        ########################################################################
+        # 'walanae_depth_offset',
+        # 'walanae_dip_offset',
+        # 'walanae_strike_offset',
+        # 'walanae_rake_offset'
+        ########################################################################
+
     ]
     model_param_cols = [
-        'latitude',
-        'longitude',
-        'length',
-        'width',
-        'slip',
-        'strike',
-        'dip',
-        'depth',
-        'rake',
-        'depth_offset',
-        'rake_offset',
-        'dip_offset',
-        'strike_offset'
+        'flores_latitude',
+        'flores_longitude',
+        'flores_length',
+        'flores_width',
+        'flores_slip',
+        'flores_strike',
+        'flores_dip',
+        'flores_depth',
+        'flores_rake',
+        'flores_depth_offset',
+        'flores_rake_offset',
+        'flores_dip_offset',
+        'flores_strike_offset',
+        'walanae_latitude',
+        'walanae_longitude',
+        'walanae_length',
+        'walanae_width',
+        'walanae_slip',
+        'walanae_strike',
+        'walanae_dip',
+        'walanae_depth',
+        'walanae_rake'
+        ########################################################################
+        # 'walanae_depth_offset',
+        # 'walanae_rake_offset',
+        # 'walanae_dip_offset',
+        # 'walanae_strike_offset'
+        ########################################################################
     ]
 
-    def __init__(self, flores_prior, flores_forward_model, flores_covariance,
-                        walanae_prior, walanae_forward_model, walanae_covariance):
+
+    def __init__(self, forward_model, flores_prior, flores_covariance,
+                        walanae_prior, walanae_covariance):
         """Initializes all the necessary variables for the BandaScenario
         subclass.
 
@@ -84,15 +112,23 @@ class SulawesiScenario(BaseScenario):
             standard deviations for the scenario's latitude, longitude,
             magnitude, delta logl & logw, and depth offset.
         """
+
+        ########################################################################
         # It looks like this class initializes using the parent directory
         # I'm not sure what this looks like, so I'm going to make the inputs
         # lists and see what happens
         # super().__init__(prior, forward_model)
-        super().__init__([flores_prior, walanae_prior], [flores_forward_model, walanae_forward_model])
-        self.flores_fault = flores_forward_model.fault
-        self.flores_cov = flores_covariance
-        self.walanae_fault = walanae_forward_model.fault
-        self.walanae_cov = walanae_covariance
+        super().__init__([flores_prior, walanae_prior], forward_model)
+
+        # I'm assuming here that forward_model has two parts:
+        # one one indexed at 0 is the flores forward model, and
+        # the one indexed at 1 is the walanae forward model
+        self.flores_fault = forward_model.fault[0]
+        self.walanae_fault = forward_model.fault[1]
+        ########################################################################
+
+        # construct a single covariance matrix using the covariance matrices for flores and walanae
+        self.cov = np.diag( np.hstack(( np.diag(flores_covariance), np.diag(walanae_covariance) )) )
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.
@@ -134,7 +170,7 @@ class SulawesiScenario(BaseScenario):
         """
         return 0
 
-    def map_to_model_params(self, flores_sample, walanae_sample):
+    def map_to_model_params(self, sample):
         """Evaluate the map from sample parameters to forward model parameters.
 
         Parameters
@@ -153,73 +189,83 @@ class SulawesiScenario(BaseScenario):
             'strike','length', 'width','slip','depth','dip','rake', and whose
             associated values are the newly calculated values from the sample.
         """
-        flores_length = calc_length(flores_sample['magnitude'], flores_sample['delta_logl'])
-        flores_width = calc_width(flores_sample['magnitude'], flores_sample['delta_logw'])
-        flores_slip = calc_slip(flores_sample['magnitude'], flores_length, flores_width)
+        flores_length = calc_length(sample['flores_magnitude'], sample['flores_delta_logl'])
+        flores_width = calc_width(sample['flores_magnitude'], sample['flores_delta_logw'])
+        flores_slip = calc_slip(sample['flores_magnitude'], flores_length, flores_width)
 
-        walanae_length = calc_length(walanae_sample['magnitude'], walanae_sample['delta_logl'])
-        walanae_width = calc_width(walanae_sample['magnitude'], walanae_sample['delta_logw'])
-        walanae_slip = calc_slip(walanae_sample['magnitude'], walanae_length, walanae_width)
+        walanae_length = calc_length(sample['walanae_magnitude'], sample['walanae_delta_logl'])
+        walanae_width = calc_width(sample['walanae_magnitude'], sample['walanae_delta_logw'])
+        walanae_slip = calc_slip(sample['walanae_magnitude'], walanae_length, walanae_width)
 
         flores_strike, flores_strike_std = self.flores_fault.strike_map(
-            flores_sample['latitude'],
-            flores_sample['longitude'],
+            sample['flores_latitude'],
+            sample['flores_longitude'],
             return_std=True
         )
         flores_dip, flores_dip_std = self.flores_fault.dip_map(
-            flores_sample['latitude'],
-            flores_sample['longitude'],
+            sample['flores_latitude'],
+            sample['flores_longitude'],
             return_std=True
         )
         flores_depth, flores_depth_std = self.flores_fault.depth_map(
-            flores_sample['latitude'],
-            flores_sample['longitude'],
+            sample['flores_latitude'],
+            sample['flores_longitude'],
             return_std=True
         )
         flores_rake, flores_rake_std = self.flores_fault.rake_map(
-            flores_sample['latitude'],
-            flores_sample['longitude'],
+            sample['flores_latitude'],
+            sample['flores_longitude'],
             return_std=True
         )
 
-        # WHY IS THIS BLOCK NOT REPEATED FOR WALANAE?!?!
-        ########################################################################
         # Multiply strike, dip, depth offsets by standard deviation of
         # Gaussian processes
-        flores_sample['depth_offset'] *= flores_depth_std
-        flores_sample['dip_offset'] *= flores_dip_std
-        flores_sample['strike_offset'] *= flores_strike_std
-        flores_sample['rake_offset'] *= flores_rake_std
-        ########################################################################
+        sample['flores_depth_offset'] *= flores_depth_std
+        sample['flores_dip_offset'] *= flores_dip_std
+        sample['flores_strike_offset'] *= flores_strike_std
+        sample['flores_rake_offset'] *= flores_rake_std
+
 
         walanae_strike = self.walanae_fault.strike_map(
-            walanae_sample['latitude'],
-            walanae_sample['longitude']
+            sample['walanae_latitude'],
+            sample['walanae_longitude']
         )
         walanae_dip = self.walanae_fault.dip_map(
-            walanae_sample['latitude'],
-            walanae_sample['longitude']
+            sample['walanae_latitude'],
+            sample['walanae_longitude']
         )
         walanae_depth = self.walanae_fault.depth_map(
-            walanae_sample['latitude'],
-            walanae_sample['longitude']
+            sample['walanae_latitude'],
+            sample['walanae_longitude']
         )
         walanae_rake = 80 # On Walanae, the rake is assumed to be 80.
 
-
         model_params = dict()
-        model_params['latitude']        = [flores_sample['latitude'], walanae_sample['latitude']]
-        model_params['longitude']       = [flores_sample['longitude'], walanae_sample['longitude']]
-        model_params['length']          = [flores_length, walanae_length]
-        model_params['width']           = [flores_width, walanae_width]
-        model_params['slip']            = [flores_slip, walanae_slip]
-        model_params['strike']          = [flores_strike, walanae_strike]
-        model_params['strike_offset']   = [flores_sample['strike_offset'], walanae_sample['strike_offset']]
-        model_params['dip']             = [flores_dip, walanae_dip]
-        model_params['dip_offset']      = [flores_sample['dip_offset'], walanae_sample['dip_offset']]
-        model_params['depth']           = [flores_depth, walanae_depth]
-        model_params['depth_offset']    = [flores_sample['depth_offset'], walanae_sample['depth_offset']]
-        model_params['rake']            = [flores_rake, walanae_rake]
-        model_params['rake_offset']     = [flores_sample['rake_offset'], walanae_sample['rake_offset']]
+        model_params['flores_latitude']         = sample['flores_latitude']
+        model_params['flores_longitude']        = sample['flores_longitude']
+        model_params['flores_length']           = flores_length
+        model_params['flores_width']            = flores_width
+        model_params['flores_slip']             = flores_slip
+        model_params['flores_strike']           = flores_strike
+        model_params['flores_strike_offset']    = sample['flores_strike_offset']
+        model_params['flores_dip']              = flores_dip
+        model_params['flores_dip_offset']       = sample['flores_dip_offset']
+        model_params['flores_depth']            = flores_depth
+        model_params['flores_depth_offset']     = sample['flores_depth_offset']
+        model_params['flores_rake']             = flores_rake
+        model_params['flores_rake_offset']      = sample['flores_rake_offset']
+        model_params['walanae_latitude']        = sample['walanae_latitude']
+        model_params['walanae_longitude']       = sample['walanae_longitude']
+        model_params['walanae_length']          = walanae_length
+        model_params['walanae_width']           = walanae_width
+        model_params['walanae_slip']            = walanae_slip
+        model_params['walanae_strike']          = walanae_strike
+        # model_params['walanae_strike_offset']   = sample['walanae_strike_offset']
+        model_params['walanae_dip']             = walanae_dip
+        # model_params['walanae_dip_offset']      = sample['walanae_dip_offset']
+        model_params['walanae_depth']           = walanae_depth
+        # model_params['walanae_depth_offset']    = sample['walanae_depth_offset']
+        model_params['walanae_rake']            = walanae_rake
+        # model_params['walanae_rake_offset']     = sample['walanae_rake_offset']
 
         return model_params
