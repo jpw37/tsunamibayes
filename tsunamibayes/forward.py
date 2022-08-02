@@ -168,6 +168,7 @@ class GeoClawForwardModel(BaseForwardModel):
             scenario's gauges names plus 'arrivals', 'height', or 'inundation'.
             The associated values are floats.
         """
+        ########################################################################
         # split fault into subfaults aligning to fault zone geometry
         subfault_params = self.fault.subfault_split_RefCurve(
             lat=model_params['latitude'],
@@ -181,11 +182,16 @@ class GeoClawForwardModel(BaseForwardModel):
             strike_offset=model_params['strike_offset'],
             rake=model_params['rake']
         )
+        ########################################################################
+
+        ########################################################################
+        # I think every mention of fault will have to be replaced by fault[index]
 
         # create and write dtopo file
         write_dtopo(
             subfault_params, self.fault.bounds, self.dtopo_path, verbose
         )
+        ########################################################################
 
         # clear .output
         os.system('rm .output')
@@ -373,7 +379,9 @@ class TestForwardModel(BaseForwardModel):
         for gauge in self.gauges:
             if 'power' in gauge.obstypes:
                 d[gauge.name+' power'] = np.log(
+        ########################################################################
                     model_params['length']*model_params['width']
+        ########################################################################
                 )
         return d
 
