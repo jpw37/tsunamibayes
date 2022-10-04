@@ -135,7 +135,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, forward_model, model_para
                     1.0974498706605313 + delta_logl)
     width=sy.Pow(10, 0.29922483873212863 * mag +
                    2.608734705074858 + delta_logw)
-    slip=sy.Pow(10, 1.5 * mag + 9.05 - log(mu * length * width, 10))
+    slip=sy.Pow(10, 1.5 * mag + 9.05 - sy.log(mu * length * width, 10))
     
 
     # get gauge info, need lat and lon

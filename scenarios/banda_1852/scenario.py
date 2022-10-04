@@ -3,6 +3,7 @@ import pandas as pd
 from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
 from gradient import dU # , gradient_setup
+import time
 
 
 class BandaScenario(BaseScenario):
@@ -27,9 +28,10 @@ class BandaScenario(BaseScenario):
         super().__init__(prior, forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
-#         if config.init['mcmc_mode'] == 'mala':
-#             gradient_setup(self.fault.dip_map,
-#                            self.fault.depth_map, config, forward_model)
+        if config.init['mcmc_mode'] == 'mala':
+            gradient_setup(self.fault.dip_map,
+                           self.fault.depth_map, config, forward_model)
+        self.config = config
 
     def propose(self, sample, mode='random_walk', time_steps=200, epsilon=.01, delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.
@@ -69,11 +71,12 @@ class BandaScenario(BaseScenario):
             current_p = p.copy()
                                               
             curr_dU = dU(q, 
-                         model_params, 
                          self.fault.strike_map, 
                          self.fault.dip_map, 
                          self.fault.depth_map,
-                         config)
+                         self.config,
+                         self.forward_model,
+                         self.model_params)
                                               
             p = p - epsilon *  curr_dU/ 2
             
@@ -232,11 +235,14 @@ class BandaScenario(BaseScenario):
             # the Metropolis-Hastings acceptance probability
             else:
                 if verbose:
-                    print("Running forward model...", flush=True)
+                    print('returning dummy for forward model')
+#                     print("Running forward model...", flush=True)
                 model_output = self.forward_model.run(model_params)
                 if verbose:
-                    print("Evaluating log-likelihood:")
-                llh = self.forward_model.llh(model_output, verbose)
+                      print('returning dummy for llh')
+#                     print("Evaluating log-likelihood:")
+#               llh = self.forward_model.llh(model_output, verbose)
+                llh = 43 
                 if verbose:
                     print("Total llh = {:.3E}".format(llh))
 
