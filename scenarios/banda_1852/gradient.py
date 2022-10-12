@@ -7,6 +7,8 @@ global neg_llh_grad, neg_lprior_grad
 neg_llh_grad = None
 neg_lprior_grad = None
 
+from forward import NeuralNetEmulator
+
 
 def centered_difference(depth_map, lat, lon, step):
     """Compute an approximation to the gradient at (x,y) on a discretized domain
@@ -103,7 +105,7 @@ def compute_nn_grads(grad, sample, strike_map, dip_map, depth_map, step):
     return {'dN_dm': dm, 'dN_ddll': dll, 'dN_ddlw': dlw, 'dN_dlat': dlat, 'dN_dlon': dlon, 'dN_ddo': ddo}
 
 
-def dU(sample, strike_map, dip_map, depth_map, config, forward_model, model_params, step=0.01):
+def dU(sample, strike_map, dip_map, depth_map, config, model_params, step=0.01):
     """Use the simplified tsunami formula to compute the gradient
 
     Parameters
@@ -125,32 +127,31 @@ def dU(sample, strike_map, dip_map, depth_map, config, forward_model, model_para
     # Variables
     delta_logl, delta_logw, lat, lon, mag=sy.symbols(
         'delta_logl delta_logw lat lon mag')
-    gauge_names=['Pulu Ai', 'Ambon', 'Banda Neira', 'Buru', 'Hulaliu',
-                 'Saparua', 'Kulur', 'Ameth', 'Amahai']
+
+    gauge_names = ['Pulu Ai', 'Ambon', 'Banda Neira', 'Buru', 'Hulaliu',
+                   'Saparua', 'Kulur', 'Ameth', 'Amahai']
 
     # Values independent of gauge
     mu=4e10  # Scaling factor, found in code as 4e10 by default and never changed
 
-    length=sy.Pow(10, 0.5233956445903871 * mag +
+    length = sy.Pow(10, 0.5233956445903871 * mag +
                     1.0974498706605313 + delta_logl)
-    width=sy.Pow(10, 0.29922483873212863 * mag +
+    width = sy.Pow(10, 0.29922483873212863 * mag +
                    2.608734705074858 + delta_logw)
-    slip=sy.Pow(10, 1.5 * mag + 9.05 - sy.log(mu * length * width, 10))
-    
+    slip = sy.Pow(10, 1.5 * mag + 9.05 - sy.log(mu * length * width, 10))
+
+    def to_rad(x): return sy.pi * x / 180
 
     # get gauge info, need lat and lon
     gauges=build_gauges()
+    nn_model = NeuralNetEmulator(gauges, fault)
     grads, outputs = forward_model.compute_gradient(model_inputs)
-    
-    # H_0=2_000  # TODO Look up actual depth at lat,lon
-    # H_bar=2_000  # TODO Calculate actual average water depth?
-    # psi=0.5 + 0.575 * sy.exp(-0.0175 * length / H_bar)
 
     # Values dependent on gauge location
     for i, gauge in enumerate(gauges):
         grad, H = grads[f'{gauge.name} height'], outputs[f'{gauge.name} height']
         NN_grads = compute_nn_grads(grad, sample.values, strike_map, dip_map, depth_map, step)
-        
+
         # parameters from gauge likelihood (in gauge.py)
         loc=gauge.loc
         scale=gauge.scale
@@ -176,7 +177,6 @@ def dU(sample, strike_map, dip_map, depth_map, config, forward_model, model_para
             neg_llh_grad=[dh_dlat, dh_dlon,
                             dh_dmag, dh_ddll, dh_ddlw, dh_ddo]
         else:
-            # Should be addition for llh
             neg_llh_grad[0] += dh_dlat
             neg_llh_grad[1] += dh_dlon
             neg_llh_grad[2] += dh_dmag
@@ -211,8 +211,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, forward_model, model_para
     def d_do_prior(lat, lon, do): return (
         depth_mu - (depth_map(lat, lon, step) + 1000 * do)) / depth_std * 1000 + do / do_std**2
 
-    def neg_lprior_grad(sample): return np.array([d_lat_prior(sample[0], sample[1], sample[5]), d_lon_prior(sample[0], sample[1], sample[5]),
-                                                  d_mag_prior, d_dll_prior(sample[3]), d_dlw_prior(sample[4]), d_do_prior(sample[0], sample[1], sample[5])])
+    def neg_lprior_grad(sample): return np.array([d_lat_prior(sample[0], sample[1], sample[5]), d_lon_prior(sample[0], sample[1], sample[5]), d_mag_prior, d_dll_prior(sample[3]), d_dlw_prior(sample[4]), d_do_prior(sample[0], sample[1], sample[5])])
 
     if mode == 'height':
         # This if statement is for debugging only, can be deleted
@@ -220,7 +219,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, forward_model, model_para
             raise ValueError('neg_llh_grad is empty list')
 
         return neg_lprior_grad(sample.values) + neg_llh_grad(sample.values)
-    
+
     elif mode == 'both':
         # TODO implement arrival time gradient
         raise NotImplementedError()

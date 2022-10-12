@@ -6,6 +6,7 @@ from gradient import dU # , gradient_setup
 import time
 
 
+
 class BandaScenario(BaseScenario):
     sample_cols = ['latitude', 'longitude', 'magnitude', 'delta_logl', 'delta_logw',
                    'depth_offset']
@@ -31,7 +32,7 @@ class BandaScenario(BaseScenario):
         if config.init['mcmc_mode'] == 'mala':
             gradient_setup(self.fault.dip_map,
                            self.fault.depth_map, config, forward_model)
-        self.config = config
+
 
     def propose(self, sample, mode='random_walk', time_steps=200, epsilon=.01, delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.
@@ -64,6 +65,7 @@ class BandaScenario(BaseScenario):
             proposal += -delta**2 / 2 * dU(proposal) + delta * v
             
         elif mode == 'hmc':
+<<<<<<< Updated upstream
             model_params = self.map_to_model_params(sample)
             q = sample.copy()
             p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
@@ -87,10 +89,6 @@ class BandaScenario(BaseScenario):
                                               
             p = p - epsilon * dU(q)/2
             p = -p
-#             current_U = U(sample)
-#             current_K = np.sum(current_p^2) / 2
-#             proposed_U = U(q)
-#             proposed_K = np.sum(p**2) / 2
             
             return q, current_p, p
                          
@@ -156,7 +154,6 @@ class BandaScenario(BaseScenario):
         model_params['depth'] = depth
         model_params['rake'] = rake
         return model_params
-
 
     def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=200, epsilon=.01, output_dir=None, save_freq=1, verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
