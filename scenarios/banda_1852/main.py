@@ -5,6 +5,7 @@ import tsunamibayes as tb
 from prior import LatLonPrior, BandaPrior
 from gauges import build_gauges
 from scenario import BandaScenario
+from forward import NeuralNetEmulator
 
 def setup(config):
     """Extracts the data from the config object to create the BandaFault object, 
@@ -53,8 +54,9 @@ def setup(config):
 
     # Forward model
     config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
-    forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
-                                           config.geoclaw['dtopo_path'])
+    #forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
+    #                                       config.geoclaw['dtopo_path'])
+    forward_model = NeuralNetEmulator(gauges, fault)
 
     # Proposal kernel
     lat_std = config.proposal_kernel['lat_std']

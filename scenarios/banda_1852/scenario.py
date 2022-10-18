@@ -4,6 +4,7 @@ from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
 from gradient import dU # , gradient_setup
 import time
+from datetime import timedelta
 
 
 
@@ -29,9 +30,10 @@ class BandaScenario(BaseScenario):
         super().__init__(prior, forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
-        if config.init['mcmc_mode'] == 'mala':
-            gradient_setup(self.fault.dip_map,
-                           self.fault.depth_map, config, forward_model)
+        self.config = config
+#         if config.init['mcmc_mode'] == 'mala':
+#             gradient_setup(self.fault.dip_map,
+#                            self.fault.depth_map, config, forward_model)
 
 
     def propose(self, sample, mode='random_walk', time_steps=200, epsilon=.01, delta=0.01):
@@ -62,32 +64,55 @@ class BandaScenario(BaseScenario):
         elif mode == 'mala':
             v = np.random.multivariate_normal(
                 np.zeros(len(self.sample_cols)), cov=self.cov)
-            proposal += -delta**2 / 2 * dU(proposal) + delta * v
+            proposal += -delta**2 / 2 * dU(q, 
+                                           self.fault.strike_map, 
+                                           self.fault.dip_map, 
+                                           self.fault.depth_map,
+                                           self.config,
+                                           self.fault,
+                                           self.model_params) + delta * v
             
         elif mode == 'hmc':
-<<<<<<< Updated upstream
             model_params = self.map_to_model_params(sample)
             q = sample.copy()
             p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
                                          
             current_p = p.copy()
-                                              
+            print('-----------------------------------------------')   
+            print('COMPUTING dU ONCE')
+            print()
             curr_dU = dU(q, 
                          self.fault.strike_map, 
                          self.fault.dip_map, 
                          self.fault.depth_map,
                          self.config,
-                         self.forward_model,
+                         self.fault,
                          self.model_params)
-                                              
+            
             p = p - epsilon *  curr_dU/ 2
             
             for i in range(time_steps):
+                print('-----------------------------------------------') 
+                print('COMPUTING dU IN LOOP')
+              
                 q = q + epsilon * p
+                print(q)
                 if i != time_steps - 1:
-                    p = p - epsilon * dU(q)
+                    p = p - epsilon * dU(q, 
+                                         self.fault.strike_map, 
+                                         self.fault.dip_map, 
+                                         self.fault.depth_map,
+                                         self.config,
+                                         self.fault,
+                                         self.model_params)
                                               
-            p = p - epsilon * dU(q)/2
+            p = p - epsilon * dU(q, 
+                                 self.fault.strike_map, 
+                                 self.fault.dip_map, 
+                                 self.fault.depth_map,
+                                 self.config,
+                                 self.fault,
+                                 self.model_params)/2
             p = -p
             
             return q, current_p, p
@@ -238,8 +263,8 @@ class BandaScenario(BaseScenario):
                 if verbose:
                       print('returning dummy for llh')
 #                     print("Evaluating log-likelihood:")
-#               llh = self.forward_model.llh(model_output, verbose)
-                llh = 43 
+                print(model_output)
+                llh = self.forward_model.llh(model_output, verbose)
                 if verbose:
                     print("Total llh = {:.3E}".format(llh))
 
@@ -278,7 +303,9 @@ class BandaScenario(BaseScenario):
                         self.bayes_data.loc[i - 1]['llh']
                     proposed_U = -prior_logpdf - llh
                     current_K = np.sum(current_p**2) / 2
-                    proposed_K = np.sum(p**2) / 2
+                    proposed_K = np.sum(proposal_p**2) / 2
+                    alpha = np.exp(current_U-proposed_U+current_K-proposed_K)
+                    accepted = np.random.rand() < alpha
 
 
                 else:
@@ -341,4 +368,5 @@ class BandaScenario(BaseScenario):
             print("Chain complete. total time: {}, time per sample: {}\
                               ".format(timedelta(seconds=total_time),
                                        timedelta(seconds=total_time / nsamples)))
+          
         return self.samples
