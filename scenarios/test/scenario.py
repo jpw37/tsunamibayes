@@ -21,13 +21,7 @@ class MultiFaultScenario():
         """Resumes a chain associated with scenarios[0]."""
         self.scenarios[0].resume_chain(output_dir)
 
-    def sample(
-        self,
-        nsamples,
-        output_dir=None,
-        save_freq=1,
-        verbose=False,
-    ):
+    def sample(self, nsamples, output_dir=None, save_freq=1, verbose=False):
         """Samples from the chain."""
         self.scenarios[0].sample(
             nsamples,

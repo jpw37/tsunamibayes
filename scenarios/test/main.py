@@ -50,7 +50,7 @@ def setup(config):
         walanae_initialization_data
     ]
     geoclaw_bounds = config.geoclaw_bounds
-    bounds = [config.model_bounds_flo, config.model_bounds_wal]
+    bounds = geoclaw_bounds
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
     flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
@@ -180,20 +180,12 @@ def setup(config):
     config.fgmax['min_level_check'] = (
         len(config.geoclaw['refinement_ratios']) + 1
     )
-    forward_model = [
-        tb.GeoClawForwardModel(
+    forward_model = tb.GeoClawForwardModel(
             gauges,
-            fault[FAULT.FLORES],
-            config.fgmax,
-            config.geoclaw['dtopo_path']
-        ),
-        tb.GeoClawForwardModel(
-            gauges,
-            fault[FAULT.WALANAE],
+            fault,  # notice that fault is now a MultiFault object
             config.fgmax,
             config.geoclaw['dtopo_path']
         )
-    ]
 
     # Proposal kernel
     lat_std = [
@@ -260,16 +252,13 @@ def setup(config):
         ]))
     ]
 
-    scenarios = [
-        SulawesiScenario(
+    scenarios = SulawesiScenario(
+            forward_model,
             prior[FAULT.FLORES],
-            forward_model[FAULT.FLORES],
             covariance[FAULT.FLORES],
             prior[FAULT.WALANAE],
-            forward_model[FAULT.WALANAE],
             covariance[FAULT.WALANAE]
         )
-    ]
     return MultiFaultScenario(scenarios)
 
 
