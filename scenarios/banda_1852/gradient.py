@@ -22,7 +22,7 @@ def centered_difference(depth_map, lat, lon, step):
     -------
     gradient_approx : [d depth_map / d lat, d depth_map / d_lat]
     """
-    print(f'CD FUN: {step}({type(step)}), {lat}({type(lat)}), {lon}({type(lon)}, {depth_map(lat+step, lon)}')
+#     print(f'CD FUN: {step}({type(step)}), {lat}({type(lat)}), {lon}({type(lon)}, {depth_map(lat+step, lon)}')
     lat_deriv = (0.5 * depth_map(lat + step, lon) -
                  0.5 * depth_map(lat - step, lon)) / step
     lon_deriv = (0.5 * depth_map(lat, lon + step) -
@@ -70,7 +70,7 @@ def compute_nn_grads(grad, sample, strike_map, dip_map, depth_map, step):
     dslip_dll = sy.Lambda((mag, mu, delta_logw, delta_logl), sy.diff(slip, delta_logl))
     
     # Partials of depth function
-    print(f'Centered diff output: {centered_difference(depth_map, sample_lat, sample_lon, step)}')
+#     print(f'Centered diff output: {centered_difference(depth_map, sample_lat, sample_lon, step)}')
     ddepth_dlat, ddepth_dlon = centered_difference(depth_map, sample_lat, sample_lon, step)
     dstrike_dlat, dstrike_dlon = centered_difference(strike_map, sample_lat, sample_lon, step)
     ddip_dlat, ddip_dlon = centered_difference(dip_map, sample_lat, sample_lon, step)
@@ -149,8 +149,8 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, step
     # get gauge info, need lat and lon
     gauges=build_gauges()
     nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
-    print(model_params)
-    print(type(model_params))
+#     print(model_params)
+#     print(type(model_params))
     grads, outputs = nn_model.compute_gradient(model_params)
 
     # Values dependent on gauge location
@@ -193,7 +193,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, step
     for i in range(len(neg_llh_grad)):
         neg_llh_grad[i]=sy.Lambda(
             (lat, lon, mag, delta_logl, delta_logw), neg_llh_grad[i])
-    print('llhgrad', neg_llh_grad)
+#     print('llhgrad', neg_llh_grad)
 
     def neg_llh_grad_fun(sample): return [float(grad(
         *sample[:-1])) for grad in neg_llh_grad]
@@ -210,10 +210,10 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, step
 
     # Precomputed derivative values based on prior distributions in main.py, and prior.py
     def d_lat_prior(lat, lon, do): 
-        print('lat',lat)
-        print('long',lon)
-        print('step',step)
-        print('depth_map',depth_map(lat, lon))
+#         print('lat',lat)
+#         print('long',lon)
+#         print('step',step)
+#         print('depth_map',depth_map(lat, lon))
 
         return float((depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std * d_depth_dlatlon[0])
     def d_lon_prior(lat, lon, do): return float((
@@ -230,7 +230,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, step
 #         # This if statement is for debugging only, can be deleted
 #         if neg_llh_grad is None or len(neg_llh_grad) == 0:
 #             raise ValueError('neg_llh_grad is empty list')
-    print(f'SAMPLE VALS: {sample.values}')
+#     print(f'SAMPLE VALS: {sample.values}')
     return neg_lprior_grad_fun(sample.values) + neg_llh_grad_fun(sample.values)
 
 #     elif mode == 'both':

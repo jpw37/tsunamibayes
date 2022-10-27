@@ -78,8 +78,8 @@ class BandaScenario(BaseScenario):
             p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
                                          
             current_p = p.copy()
-            print('-----------------------------------------------')   
-            print('COMPUTING dU ONCE')
+#             print('-----------------------------------------------')   
+#             print('COMPUTING dU ONCE')
             print()
             curr_dU = dU(q, 
                          self.fault.strike_map, 
@@ -92,11 +92,11 @@ class BandaScenario(BaseScenario):
             p = p - epsilon *  curr_dU/ 2
             
             for i in range(time_steps):
-                print('-----------------------------------------------') 
-                print('COMPUTING dU IN LOOP')
+#                 print('-----------------------------------------------') 
+# #                 print('COMPUTING dU IN LOOP')
               
-                q = q + epsilon * p
-                print(q)
+#                 q = q + epsilon * p
+#                 print(q)
                 if i != time_steps - 1:
                     p = p - epsilon * dU(q, 
                                          self.fault.strike_map, 
@@ -263,7 +263,7 @@ class BandaScenario(BaseScenario):
                 if verbose:
                       print('returning dummy for llh')
 #                     print("Evaluating log-likelihood:")
-                print(model_output)
+#                 print(model_output)
                 llh = self.forward_model.llh(model_output, verbose)
                 if verbose:
                     print("Total llh = {:.3E}".format(llh))
@@ -304,7 +304,14 @@ class BandaScenario(BaseScenario):
                     proposed_U = -prior_logpdf - llh
                     current_K = np.sum(current_p**2) / 2
                     proposed_K = np.sum(proposal_p**2) / 2
+                    print(f'current_U: {current_U}')
+                    print(f'proposed_U: {proposed_U}')
+                    print(f'current_K: {current_K}')
+                    print(f'proposed_K: {proposed_K}')
+                    
                     alpha = np.exp(current_U-proposed_U+current_K-proposed_K)
+                    print(f'alpha: {alpha}')
+                    print('------------------------------------')
                     accepted = np.random.rand() < alpha
 
 
