@@ -148,6 +148,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, step
 
     # get gauge info, need lat and lon
     gauges=build_gauges()
+    print(model_params)
     nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
 #     print(model_params)
 #     print(type(model_params))

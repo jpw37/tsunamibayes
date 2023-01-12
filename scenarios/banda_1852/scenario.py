@@ -95,7 +95,7 @@ class BandaScenario(BaseScenario):
 #                 print('-----------------------------------------------') 
 # #                 print('COMPUTING dU IN LOOP')
               
-#                 q = q + epsilon * p
+                q = q + epsilon * p
 #                 print(q)
                 if i != time_steps - 1:
                     p = p - epsilon * dU(q, 
@@ -226,6 +226,7 @@ class BandaScenario(BaseScenario):
             if mode == 'hmc':
                 proposal, current_p, proposal_p = self.propose(
                     self.samples.loc[i - 1], mode=mode, time_steps=time_steps, epsilon=epsilon, delta=delta)
+                print(proposal)
             else:
                 proposal = self.propose(
                     self.samples.loc[i - 1], mode=mode, delta=delta)
@@ -257,12 +258,12 @@ class BandaScenario(BaseScenario):
             # the Metropolis-Hastings acceptance probability
             else:
                 if verbose:
-                    print('returning dummy for forward model')
-#                     print("Running forward model...", flush=True)
+#                     print('returning dummy for forward model')
+                    print("Running forward model...", flush=True)
                 model_output = self.forward_model.run(model_params)
                 if verbose:
-                      print('returning dummy for llh')
-#                     print("Evaluating log-likelihood:")
+#                       print('returning dummy for llh')
+                    print("Evaluating log-likelihood:")
 #                 print(model_output)
                 llh = self.forward_model.llh(model_output, verbose)
                 if verbose:
@@ -310,10 +311,13 @@ class BandaScenario(BaseScenario):
                     print(f'proposed_K: {proposed_K}')
                     
                     alpha = np.exp(current_U-proposed_U+current_K-proposed_K)
+                    unif_samp = np.random.uniform()
                     print(f'alpha: {alpha}')
-                    print('------------------------------------')
-                    accepted = np.random.rand() < alpha
+                    print(f'unif_samp: {unif_samp}')
 
+                    accepted = unif_samp < alpha
+                    print(accepted)
+                    print('------------------------------------')
 
                 else:
                     raise ValueError(

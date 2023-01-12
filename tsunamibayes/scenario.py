@@ -127,15 +127,14 @@ class BaseScenario:
         if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
         self.model_params.loc[0] = model_params
-        if verbose: print('Returning dummy for forward model')
-        model_output = 60
-#         model_output = self.forward_model.run(model_params,verbose)
+#         if verbose: print('Returning dummy for forward model')
+        model_output = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
 
-#         if verbose: print("Evaluating log-likelihood:")
-        if verbose: print('Returning dummy for log-likelihood')
-        # llh = self.forward_model.llh(model_output,verbose)
-        llh = 43
+        if verbose: print("Evaluating log-likelihood:")
+#         if verbose: print('Returning dummy for log-likelihood')
+        llh = self.forward_model.llh(model_output,verbose)
+
         if verbose: print("Total llh = {:.3E}".format(llh))
 
         # save prior logpdf, log-likelihood, and posterior logpdf

@@ -89,7 +89,7 @@ class NeuralNetEmulator(BaseForwardModel):
         self,
         gauges,
         fault,
-        nn_weight_path='./data/vanilla_emulator_weights.pt',
+        nn_weight_path='./data/vanilla_emulator_weights_regularized.pt',
         input_size=8,
         hidden_size=[50] * 4,
         output_size=11,
@@ -177,6 +177,7 @@ class NeuralNetEmulator(BaseForwardModel):
         llh = 0
         if verbose:
             print("Gauge Log\n---------")
+        print(model_output)
 #         for gauge in self.gauges:
 #             print(gauge.name, gauge.obstypes)
             
@@ -184,24 +185,24 @@ class NeuralNetEmulator(BaseForwardModel):
             if verbose:
                 print(gauge.name)
                 print(gauge.obstypes)
-            if 'arrival' in gauge.obstypes:
-                arrival_time = model_output[gauge.name + ' arrival']
-                log_p = gauge.dists['arrival'].logpdf(arrival_time)
-                llh += log_p
-                if verbose:
-                    print("arrival:    {:.3f}\tllh: {:.3e}".format(
-                        arrival_time, log_p))
-
-#             if 'height' in gauge.obstypes:
-#                 wave_height = model_output[gauge.name + ' height']
-#                 if np.abs(wave_height) > 999999999:
-#                     log_p = np.NINF
-#                 else:
-#                     log_p = gauge.dists['height'].logpdf(wave_height)
+#             if 'arrival' in gauge.obstypes:
+#                 arrival_time = model_output[gauge.name + ' arrival']
+#                 log_p = gauge.dists['arrival'].logpdf(arrival_time)
 #                 llh += log_p
 #                 if verbose:
-#                     print("height:     {:.3f}\tllh: {:.3e}".format(
-#                         wave_height, log_p))
+#                     print("arrival:    {:.3f}\tllh: {:.3e}".format(
+#                         arrival_time, log_p))
+
+            if 'height' in gauge.obstypes:
+                wave_height = model_output[gauge.name + ' height']
+                if np.abs(wave_height) > 999999999:
+                    log_p = np.NINF
+                else:
+                    log_p = gauge.dists['height'].logpdf(wave_height)
+                llh += log_p
+                if verbose:
+                    print("height:     {:.3f}\tllh: {:.3e}".format(
+                        wave_height, log_p))
 
 #             if 'inundation' in gauge.obstypes:
 #                 inundation = model_output[gauge.name + ' inundation']
