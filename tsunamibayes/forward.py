@@ -199,13 +199,14 @@ class GeoClawForwardModel(BaseForwardModel):
 
         subfault_params = flores_subfault_params.append(walanae_subfault_params)
         ########################################################################
-
+        
         ########################################################################
         # I think every mention of fault will have to be replaced by fault[index]
 
         # create and write dtopo file
+        # NOTE THAT BOTH FAULTS HAVE THE SAME BOUNDS VALUES
         write_dtopo(
-            subfault_params, self.fault.bounds, self.dtopo_path, verbose
+            subfault_params, self.fault[0].bounds, self.dtopo_path, verbose
         )
         ########################################################################
 
@@ -233,9 +234,9 @@ class GeoClawForwardModel(BaseForwardModel):
         print("Done printing GeoClawForwardModel.run() data.")
         print("********")
 
-        # this is the arrival time of the first wave, not the maximum wave
+        # this is the arrival time of the maximum wave, not the first wave (which is at [:,-1])
         # converting from seconds to minutes
-        arrival_times = fgmax_data[:, -1] / 60
+        arrival_times = fgmax_data[:, -2] / 60
 
         max_heights = fgmax_data[:, 3]
         bath_depth = bath_data[:, -1]

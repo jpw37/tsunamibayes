@@ -134,7 +134,7 @@ class BaseScenario:
         if verbose:
             print("\n----------\nInitializing chain with initial sample:")
             print(self.samples.loc[0])
-
+        
         # evaluate prior logpdf
         prior_logpdf = self.prior.logpdf(u0)
         if verbose: print(f"Prior logpdf = {prior_logpdf}")

@@ -10,7 +10,7 @@ class MultiFaultScenario():
 
     def init_chain(self, u0=None, method=None, verbose=False, **kwargs):
         """Initializes a chain associated with scenarios[0]."""
-        self.scenarios[0].init_chain(
+        self.scenarios.init_chain(  # used to be scenarios[0]
             u0=u0,
             method=method,
             verbose=verbose,
@@ -19,11 +19,11 @@ class MultiFaultScenario():
 
     def resume_chain(self, output_dir):
         """Resumes a chain associated with scenarios[0]."""
-        self.scenarios[0].resume_chain(output_dir)
+        self.scenarios.resume_chain(output_dir)   # used to be scenarios[0]
 
     def sample(self, nsamples, output_dir=None, save_freq=1, verbose=False):
         """Samples from the chain."""
-        self.scenarios[0].sample(
+        self.scenarios.sample(   # used to be scenarios[0]
             nsamples,
             output_dir,
             save_freq,
@@ -47,14 +47,11 @@ class SulawesiScenario(BaseScenario):
         'walanae_longitude',
         'walanae_magnitude',
         'walanae_delta_logl',
-        'walanae_delta_logw'
-        ########################################################################
-        # 'walanae_depth_offset',
-        # 'walanae_dip_offset',
-        # 'walanae_strike_offset',
-        # 'walanae_rake_offset'
-        ########################################################################
-
+        'walanae_delta_logw',
+        'walanae_depth_offset',
+        'walanae_dip_offset',
+        'walanae_strike_offset',
+        'walanae_rake_offset'
     ]
     model_param_cols = [
         'flores_latitude',
@@ -78,18 +75,15 @@ class SulawesiScenario(BaseScenario):
         'walanae_strike',
         'walanae_dip',
         'walanae_depth',
-        'walanae_rake'
-        ########################################################################
-        # 'walanae_depth_offset',
-        # 'walanae_rake_offset',
-        # 'walanae_dip_offset',
-        # 'walanae_strike_offset'
-        ########################################################################
+        'walanae_rake',
+        'walanae_depth_offset',
+        'walanae_rake_offset',
+        'walanae_dip_offset',
+        'walanae_strike_offset'
     ]
 
 
-    def __init__(self, forward_model, flores_prior, flores_covariance,
-                        walanae_prior, walanae_covariance):
+    def __init__(self, forward_model, prior, covariance):
         """Initializes all the necessary variables for the BandaScenario
         subclass.
 
@@ -111,8 +105,8 @@ class SulawesiScenario(BaseScenario):
         # It looks like this class initializes using the parent directory
         # I'm not sure what this looks like, so I'm going to make the inputs
         # lists and see what happens
-        # super().__init__(prior, forward_model)
-        super().__init__([flores_prior, walanae_prior], forward_model)
+        # super().__init__(prior, forward_model))
+        super().__init__(prior, forward_model)
 
         # I'm assuming here that forward_model has two parts:
         # one one indexed at 0 is the flores forward model, and
@@ -122,7 +116,7 @@ class SulawesiScenario(BaseScenario):
         ########################################################################
 
         # construct a single covariance matrix using the covariance matrices for flores and walanae
-        self.cov = np.diag( np.hstack(( np.diag(flores_covariance), np.diag(walanae_covariance) )) )
+        self.cov = covariance
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.
@@ -142,9 +136,18 @@ class SulawesiScenario(BaseScenario):
             multivariate normal to produce proposal values for lat, lon,
             mag, etc.
         """
+        # print("len(self.sample_cols) = ", len(self.sample_cols))
+        # print("cov.shape = ", self.cov.shape)
+
         proposal = sample.copy()
-        proposal[:-1] += np.random.multivariate_normal(
-            np.zeros(len(self.sample_cols)-1),
+
+        # print("proposal =", proposal)
+        # print("proposal[:-1] =", proposal[:-1])
+        # print("multivariate_normal = ", np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov))
+
+        # this used to be proposal[:-1] because of the fault index at the end
+        proposal += np.random.multivariate_normal(
+            np.zeros(len(self.sample_cols)),
             cov=self.cov
         )
         return proposal
@@ -254,12 +257,12 @@ class SulawesiScenario(BaseScenario):
         model_params['walanae_width']           = walanae_width
         model_params['walanae_slip']            = walanae_slip
         model_params['walanae_strike']          = walanae_strike
-        # model_params['walanae_strike_offset']   = sample['walanae_strike_offset']
+        model_params['walanae_strike_offset']   = sample['walanae_strike_offset']
         model_params['walanae_dip']             = walanae_dip
-        # model_params['walanae_dip_offset']      = sample['walanae_dip_offset']
+        model_params['walanae_dip_offset']      = sample['walanae_dip_offset']
         model_params['walanae_depth']           = walanae_depth
-        # model_params['walanae_depth_offset']    = sample['walanae_depth_offset']
+        model_params['walanae_depth_offset']    = sample['walanae_depth_offset']
         model_params['walanae_rake']            = walanae_rake
-        # model_params['walanae_rake_offset']     = sample['walanae_rake_offset']
+        model_params['walanae_rake_offset']     = sample['walanae_rake_offset']
 
         return model_params
