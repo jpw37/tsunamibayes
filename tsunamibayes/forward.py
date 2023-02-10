@@ -170,43 +170,26 @@ class GeoClawForwardModel(BaseForwardModel):
         """
         ########################################################################
         # split fault into subfaults aligning to fault zone geometry
-
-        flores_subfault_params = self.fault[0].subfault_split_RefCurve(
-            lat=model_params['flores_latitude'],
-            lon=model_params['flores_longitude'],
-            length=model_params['flores_length'],
-            width=model_params['flores_width'],
-            slip=model_params['flores_slip'],
-            depth_offset=model_params['flores_depth_offset'],
-            dip_offset=model_params['flores_dip_offset'],
-            rake_offset=model_params['flores_rake_offset'],
-            strike_offset=model_params['flores_strike_offset'],
-            rake=model_params['flores_rake']
+        subfault_params = self.fault.subfault_split_RefCurve(
+            lat=model_params['latitude'],
+            lon=model_params['longitude'],
+            length=model_params['length'],
+            width=model_params['width'],
+            slip=model_params['slip'],
+            depth_offset=model_params['depth_offset'],
+            dip_offset=model_params['dip_offset'],
+            rake_offset=model_params['rake_offset'],
+            strike_offset=model_params['strike_offset'],
+            rake=model_params['rake']
         )
-
-        walanae_subfault_params = self.fault[1].subfault_split_RefCurve(
-            lat=model_params['walanae_latitude'],
-            lon=model_params['walanae_longitude'],
-            length=model_params['walanae_length'],
-            width=model_params['walanae_width'],
-            slip=model_params['walanae_slip'],
-            depth_offset=model_params['walanae_depth_offset'],
-            dip_offset=model_params['walanae_dip_offset'],
-            rake_offset=model_params['walanae_rake_offset'],
-            strike_offset=model_params['walanae_strike_offset'],
-            rake=model_params['walanae_rake']
-        )
-
-        subfault_params = flores_subfault_params.append(walanae_subfault_params)
         ########################################################################
-        
+
         ########################################################################
         # I think every mention of fault will have to be replaced by fault[index]
 
         # create and write dtopo file
-        # NOTE THAT BOTH FAULTS HAVE THE SAME BOUNDS VALUES
         write_dtopo(
-            subfault_params, self.fault[0].bounds, self.dtopo_path, verbose
+            subfault_params, self.fault.bounds, self.dtopo_path, verbose
         )
         ########################################################################
 
@@ -234,9 +217,9 @@ class GeoClawForwardModel(BaseForwardModel):
         print("Done printing GeoClawForwardModel.run() data.")
         print("********")
 
-        # this is the arrival time of the maximum wave, not the first wave (which is at [:,-1])
+        # this is the arrival time of the first wave, not the maximum wave
         # converting from seconds to minutes
-        arrival_times = fgmax_data[:, -2] / 60
+        arrival_times = fgmax_data[:, -1] / 60
 
         max_heights = fgmax_data[:, 3]
         bath_depth = bath_data[:, -1]
