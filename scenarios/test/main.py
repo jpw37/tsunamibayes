@@ -49,15 +49,16 @@ def setup(config):
         np.load(config.fault['flores_data_path']),
         walanae_initialization_data
     ]
+    
     geoclaw_bounds = config.geoclaw_bounds
-    bounds = [config.model_bounds_flo, config.model_bounds_wal]
+    bounds = geoclaw_bounds
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
     flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
     fault = [
         tb.fault.GaussianProcessFault( # Flores uses a GaussianProcessFault
             bounds=geoclaw_bounds,
-            model_bounds=bounds[FAULT.FLORES],
+            model_bounds=bounds,
             kers={
                 'depth': flores_kernel,
                 'dip': flores_kernel,
@@ -69,7 +70,7 @@ def setup(config):
         ),
         tb.fault.ReferenceCurveFault( # Walanae uses a ReferenceCurveFault
             bounds=geoclaw_bounds,
-            model_bounds=bounds[FAULT.WALANAE],
+            model_bounds=bounds,
             **fault_initialization_data[FAULT.WALANAE]
         )
     ]
@@ -97,8 +98,8 @@ def setup(config):
     ]
 
     latlon = [
-        LatLonPrior(fault[FAULT.FLORES], depth_dist[FAULT.FLORES]),
-        LatLonPrior(fault[FAULT.WALANAE], depth_dist[FAULT.WALANAE])
+        LatLonPrior(fault[FAULT.FLORES], depth_dist[FAULT.FLORES],FAULT.FLORES),
+        LatLonPrior(fault[FAULT.WALANAE], depth_dist[FAULT.WALANAE],FAULT.WALANAE)
     ]
 
     # magnitude
@@ -150,8 +151,7 @@ def setup(config):
         stats.norm(scale=config.prior['rake_offset_std_wal'])
     ]
 
-    prior = [
-        SulawesiPrior(
+    prior = SulawesiPrior(
             latlon[FAULT.FLORES],
             mag[FAULT.FLORES],
             delta_logl[FAULT.FLORES],
@@ -159,9 +159,7 @@ def setup(config):
             depth_offset[FAULT.FLORES],
             dip_offset[FAULT.FLORES],
             strike_offset[FAULT.FLORES],
-            rake_offset[FAULT.FLORES]
-        ),
-        SulawesiPrior(
+            rake_offset[FAULT.FLORES],
             latlon[FAULT.WALANAE],
             mag[FAULT.WALANAE],
             delta_logl[FAULT.WALANAE],
@@ -171,7 +169,6 @@ def setup(config):
             strike_offset[FAULT.WALANAE],
             rake_offset[FAULT.WALANAE]
         )
-    ]
 
     # load gauges
     gauges = build_gauges()
@@ -180,20 +177,12 @@ def setup(config):
     config.fgmax['min_level_check'] = (
         len(config.geoclaw['refinement_ratios']) + 1
     )
-    forward_model = [
-        tb.GeoClawForwardModel(
+    forward_model = tb.GeoClawForwardModel(
             gauges,
-            fault[FAULT.FLORES],
-            config.fgmax,
-            config.geoclaw['dtopo_path']
-        ),
-        tb.GeoClawForwardModel(
-            gauges,
-            fault[FAULT.WALANAE],
+            fault,  # notice that fault is now a MultiFault object
             config.fgmax,
             config.geoclaw['dtopo_path']
         )
-    ]
 
     # Proposal kernel
     lat_std = [
@@ -235,8 +224,8 @@ def setup(config):
     ]
 
     # square for std => cov
-    covariance = [
-        np.diag(np.square([
+    covariance = np.diag(np.hstack((
+        np.square([
             lat_std[FAULT.FLORES],
             lon_std[FAULT.FLORES],
             mag_std[FAULT.FLORES],
@@ -245,9 +234,8 @@ def setup(config):
             depth_offset_std[FAULT.FLORES],
             dip_offset_std[FAULT.FLORES],
             strike_offset_std[FAULT.FLORES],
-            rake_offset_std[FAULT.FLORES]
-        ])),
-        np.diag(np.square([
+            rake_offset_std[FAULT.FLORES]  ]),
+        np.square([
             lat_std[FAULT.WALANAE],
             lon_std[FAULT.WALANAE],
             mag_std[FAULT.WALANAE],
@@ -256,20 +244,14 @@ def setup(config):
             depth_offset_std[FAULT.WALANAE],
             dip_offset_std[FAULT.WALANAE],
             strike_offset_std[FAULT.WALANAE],
-            rake_offset_std[FAULT.WALANAE]
-        ]))
-    ]
+            rake_offset_std[FAULT.WALANAE]  ])
+        )) )
 
-    scenarios = [
-        SulawesiScenario(
-            prior[FAULT.FLORES],
-            forward_model[FAULT.FLORES],
-            covariance[FAULT.FLORES],
-            prior[FAULT.WALANAE],
-            forward_model[FAULT.WALANAE],
-            covariance[FAULT.WALANAE]
+    scenarios = SulawesiScenario(
+            forward_model,
+            prior,
+            covariance
         )
-    ]
     return MultiFaultScenario(scenarios)
 
 
@@ -300,7 +282,7 @@ if __name__ == "__main__":
 
     # build scenarios
     scenarios = setup(config)
-
+    
     # resume in-progress chain
     if args.resume:
         if args.verbose:
@@ -312,8 +294,9 @@ if __name__ == "__main__":
         if config.init['method'] == 'manual':
             u0 = {
                 key:val for key,val in config.init.items()
-                if key in scenarios.scenarios[0].sample_cols
+                if key in scenarios.scenarios.sample_cols   # used to be scenarios[0]
             }
+                        
             scenarios.init_chain(u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
