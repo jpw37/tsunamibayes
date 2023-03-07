@@ -109,7 +109,7 @@ def compute_nn_grads(grad, sample, strike_map, dip_map, depth_map, step):
     return {'dN_dmag': dm, 'dN_ddll': dll, 'dN_ddlw': dlw, 'dN_dlat': dlat, 'dN_dlon': dlon, 'dN_ddo': ddo}
 
 
-def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, step=0.01):
+def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, arrival_times, step=0.01):
     """Use the simplified tsunami formula to compute the gradient
 
     Parameters
@@ -152,7 +152,30 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, step
     nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
 #     print(model_params)
 #     print(type(model_params))
-    grads, outputs = nn_model.compute_gradient(model_params)
+    #grads, outputs = nn_model.compute_gradient(model_params)
+    # calculating the deriv of geoclaw w/ respect to okada params
+    grads = {}
+    outputs = {}
+
+    okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
+    for gauge in gauge_names:
+        temp_dict = {}
+        ### STILL NEED TO FIND WHERE WE DEFINED ARRIVAL TIMES ###
+        arrival = arrival_times[gauge]
+        adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(np.round(arrival))
+        ### CONSOLIDATE INTO ONE FILE ###
+        adjoint_files = get_adjoint_file(adjoint_file_name)
+        for param in okada_params:
+            ### CONSOLIDATE INTO ONE FILE ###
+            okada_deriv_param = okada.py
+            sum_ = 0
+            for i in range(12):
+                sum_ += adjoint_files[i]*okada_deriv_param
+            temp_dict[param] = sum_
+        grads[gauge] = temp_dict
+    
+        # find the actual heights from geoclaw output
+        outputs[gauge] = geoclaw_heights
 
     # Values dependent on gauge location
     for i, gauge in enumerate(gauges):
