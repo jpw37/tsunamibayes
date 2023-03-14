@@ -19,7 +19,7 @@ def get_grids(filename):
         grid_num_list.append(grid_num)
         if grid_num > max_grid:
             max_grid = grid_num
-        
+
         AMR_level = int(lines[2])
         mx = int(lines[4])
         my = int(lines[6])
@@ -42,9 +42,46 @@ def get_grids(filename):
         if lines[:3] == []:
             break
         grid_dict[grid_num] = grid
-    return grid_dict, info_dict  
+    return grid_dict, info_dict
 
-def write(grid, info_grid, outfile):
+def useful_grids(grid, info, lat_min, lat_max, long_min, long_max):
+    """with open(grid) as f:
+        dat = f.read()
+    data = json.loads(dat)
+    grid = {}
+    for key in list(data.keys()):
+        grid[key] = np.array(data[key])
+
+    with open(info) as f:
+        dat = f.read()
+    data = json.loads(dat)
+    info = {}
+    for key in list(data.keys()):
+        info[key] = np.array(data[key])"""
+
+    desired_grid = {}
+    desired_info = {}
+    for i in range(1, 129):
+        #i = str(i)
+        if info[i][2]>lat_min and info[i][2]<lat_max and info[i][3]>long_min and info[i][3]<long_max:
+            desired_grid[i] = grid[i]
+            desired_info[i] = info[i]
+    return desired_grid, desired_info
+
+def condensed_grids(desired_grid):
+    condensed_grid = {}
+    for i in desired_grid.keys():
+        grid = np.array(desired_grid[i])
+        x,y,z = grid.shape
+        temp_grid = np.zeros((y,x))
+        for j in range(x):
+            temp_grid[:,j] = grid[j][:,3]
+        condensed_grid[i] = temp_grid.tolist()
+    return condensed_grid
+    """with open(outfile, 'w') as f:
+        f.write(json.dumps(condensed_grid))"""
+
+"""def write(grid, info_grid, outfile):
     #file = open(outfile, 'w+')
     #content = str(grid)
     #file.write(content)
@@ -59,7 +96,7 @@ def write(grid, info_grid, outfile):
         #    f.write('%s:%s/n' % (key, value))
         f.write(json.dumps(grid))
     with open('info.txt', 'w') as f:
-        f.write(json.dumps(info_grid))
+        f.write(json.dumps(info_grid))"""
 
 def parse_args(argv: Optional[List[str]] = None) -> Namespace:
     """Parse and validate arguments.
@@ -72,11 +109,15 @@ def parse_args(argv: Optional[List[str]] = None) -> Namespace:
     """
 
     argp: ArgumentParser = ArgumentParser()
-    
+
     argp.add_argument("filename", help = "name of file", type=str)
     argp.add_argument("outfile", help = "name of output file", type=str)
+    argp.add_argument("lat_min", help = "estimate of lower bound of lattitude of subgrid", type=float)
+    argp.add_argument("lat_max", help = "estimate of upper bound of lattitude of subgrid", type=float)
+    argp.add_argument("long_min", help = "estimate of lower bound of longitude of subgrid", type=float)
+    argp.add_argument("long_max", help = "estimate of upper bound of longitude of subgrid", type=float)
     args: Namespace = argp.parse_args()
-    
+
     return args
 
 def main(args: Optional[Namespace] = None) -> None:
@@ -84,7 +125,7 @@ def main(args: Optional[Namespace] = None) -> None:
 
     Parameters
     __________
-    
+
     args : Optional[Namespace]
         Program arguments
     """
@@ -96,7 +137,9 @@ def main(args: Optional[Namespace] = None) -> None:
     #    args.output_dir.mkdir()
 
     grid_dict, info_dict = get_grids(args.filename)
-    write(grid_dict, info_dict, args.outfile)
+    desired_grid, desired_info = useful_grids(grid_dict, info_dict, args.lat_min, args.lat_max, args.long_min, args.long_max)
+    condensed_grid = condensed_grids(desired_grid)
+
 
 if __name__ == "__main__":
     _args: Namespace = parse_args()

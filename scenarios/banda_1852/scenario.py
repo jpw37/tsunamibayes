@@ -70,7 +70,8 @@ class BandaScenario(BaseScenario):
                                            self.fault.depth_map,
                                            self.config,
                                            self.fault,
-                                           self.model_params) + delta * v
+                                           self.model_params,
+                                           self.model_output) + delta * v
             
         elif mode == 'hmc':
             model_params = self.map_to_model_params(sample)
@@ -87,7 +88,8 @@ class BandaScenario(BaseScenario):
                          self.fault.depth_map,
                          self.config,
                          self.fault,
-                         self.model_params)
+                         self.model_params,
+                         self.model_output)
             
             p = p - epsilon *  curr_dU/ 2
             
@@ -104,7 +106,8 @@ class BandaScenario(BaseScenario):
                                          self.fault.depth_map,
                                          self.config,
                                          self.fault,
-                                         self.model_params)
+                                         self.model_params,
+                                         self.model_output)
                                               
             p = p - epsilon * dU(q, 
                                  self.fault.strike_map, 
@@ -112,7 +115,8 @@ class BandaScenario(BaseScenario):
                                  self.fault.depth_map,
                                  self.config,
                                  self.fault,
-                                 self.model_params)/2
+                                 self.model_params,
+                                 self.model_output)/2
             p = -p
             
             return q, current_p, p
