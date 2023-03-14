@@ -108,7 +108,9 @@ class CompositeForwardModel(BaseForwardModel):
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
-    def __init__(self,gauges,fault,fgmax_params,dtopo_path):
+    # def __init__(self,gauges,fault,fgmax_params,dtopo_path):
+    def __init__(self,gauges,fgmax_params,dtopo_path):
+
         """Initializes all the necessary variables for the GeoClawForwardModel
         subclass.
 
@@ -132,7 +134,7 @@ class GeoClawForwardModel(BaseForwardModel):
             file.
         """
         super().__init__(gauges)
-        self.fault = fault
+        # self.fault = fault
         self.dtopo_path = dtopo_path
         self.fgmax_params = fgmax_params
         self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
@@ -170,27 +172,28 @@ class GeoClawForwardModel(BaseForwardModel):
         """
         ########################################################################
         # split fault into subfaults aligning to fault zone geometry
-        subfault_params = self.fault.subfault_split_RefCurve(
-            lat=model_params['latitude'],
-            lon=model_params['longitude'],
-            length=model_params['length'],
-            width=model_params['width'],
-            slip=model_params['slip'],
-            depth_offset=model_params['depth_offset'],
-            dip_offset=model_params['dip_offset'],
-            rake_offset=model_params['rake_offset'],
-            strike_offset=model_params['strike_offset'],
-            rake=model_params['rake']
-        )
+        # subfault_params = self.fault.subfault_split_RefCurve(
+        #     lat=model_params['latitude'],
+        #     lon=model_params['longitude'],
+        #     length=model_params['length'],
+        #     width=model_params['width'],
+        #     slip=model_params['slip'],
+        #     depth_offset=model_params['depth_offset'],
+        #     # dip_offset=model_params['dip_offset'],
+        #     # rake_offset=model_params['rake_offset'],
+        #     # strike_offset=model_params['strike_offset'],
+        #     rake=model_params['rake']
+        # )
         ########################################################################
 
         ########################################################################
         # I think every mention of fault will have to be replaced by fault[index]
 
         # create and write dtopo file
-        write_dtopo(
-            subfault_params, self.fault.bounds, self.dtopo_path, verbose
-        )
+        # write_dtopo(
+        #     subfault_params, self.fault.bounds, self.dtopo_path, verbose
+        # )
+        write_dtopo(self.dtopo_path,model_params)
         ########################################################################
 
         # clear .output
@@ -198,7 +201,7 @@ class GeoClawForwardModel(BaseForwardModel):
 
         # run GeoClaw
         os.system('make .output')
-
+        print("GEOCLAW SHOULD HAVE OUTPUT NOW")
         # load fgmax and bathymetry data
         fgmax_data = np.loadtxt(self.valuemax_path)
         bath_data  = np.loadtxt(self.aux1_path)
@@ -332,9 +335,12 @@ class GeoClawForwardModel(BaseForwardModel):
             scenario's defaults.cfg file. Associated values are a variety of
             strings for file paths & floats.
         """
+        print("GAUGES", gauges[0].lat)
+
         npts = sum(len(gauge.lat) for gauge in gauges if
                    any(obstype in self.obstypes for obstype in gauge.obstypes))
-
+        # npts = sum(1 for gauge in gauges if
+        #            any(obstype in self.obstypes for obstype in gauge.obstypes))
         with open(fgmax_params['fgmax_grid_path'],'w') as f:
             f.write(str(fgmax_params['tstart_max'])+'\t# tstart_max\n')
             f.write(str(fgmax_params['tend_max'])+'\t# tend_max\n')

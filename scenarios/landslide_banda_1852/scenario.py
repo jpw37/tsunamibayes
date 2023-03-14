@@ -4,10 +4,8 @@ from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
 
 class BandaScenario(BaseScenario):
-    sample_cols = ['latitude','longitude','magnitude','delta_logl','delta_logw',
-                   'depth_offset']
-    model_param_cols = ['latitude','longitude','length','width','slip','strike',
-                        'dip','depth','rake','depth_offset']
+    sample_cols = ['latitude','longitude','initial_velocity', 'volume','thickness', 'aspect_ratio']
+    model_param_cols = ['latitude','longitude','initial_velocity', 'volume','thickness','aspect_ratio']
 
     def __init__(self,prior,forward_model,covariance):
         """Initializes all the necessary variables for the BandaScenario subclass.
@@ -23,9 +21,7 @@ class BandaScenario(BaseScenario):
             the scenario's latitude, longitude, magnitude, delta logl & logw, and depth offset.
         """
         super().__init__(prior,forward_model)
-        # self.grid_sample = np.load('data/grid_samples.npy')
-        # self.grid_idx = 0
-        self.fault = forward_model.fault
+        # self.fault = forward_model.fault
         self.cov = covariance
 
     def propose(self,sample):
@@ -44,8 +40,6 @@ class BandaScenario(BaseScenario):
             Essentailly the same format as 'sample', we have simply added a multivariate normal
             to produce proposal values for lat, long, mag, etc. 
         """
-        # proposal = self.grid_sample[self.grid_idx]
-        # self.grid_idx += 1
         proposal = sample.copy()
         proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)), cov = self.cov)
         return proposal
@@ -83,27 +77,4 @@ class BandaScenario(BaseScenario):
             'width','slip','depth','dip','rake', 
             and whose associated values are the newly calculated values from the sample. 
         """
-        #FAULT: Here, we're simply calling strike_map, dip_map, depth_map. A good place to test the multifault???
-        length = calc_length(sample['magnitude'],sample['delta_logl'])
-        width = calc_width(sample['magnitude'],sample['delta_logw'])
-        slip = calc_slip(sample['magnitude'],length,width)
-        strike = self.fault.strike_map(sample['latitude'],
-                                       sample['longitude'])
-        dip = self.fault.dip_map(sample['latitude'],
-                                 sample['longitude'])
-        depth = self.fault.depth_map(sample['latitude'],
-                                     sample['longitude'])
-        rake = 90
-
-        model_params = dict()
-        model_params['latitude'] = sample['latitude']
-        model_params['longitude'] = sample['longitude']
-        model_params['depth_offset'] = sample['depth_offset']
-        model_params['length'] = length
-        model_params['width'] = width
-        model_params['slip'] = slip
-        model_params['strike'] = strike
-        model_params['dip'] = dip
-        model_params['depth'] = depth
-        model_params['rake'] = rake
-        return model_params
+        return sample

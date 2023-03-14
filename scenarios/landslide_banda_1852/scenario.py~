@@ -23,8 +23,6 @@ class BandaScenario(BaseScenario):
             the scenario's latitude, longitude, magnitude, delta logl & logw, and depth offset.
         """
         super().__init__(prior,forward_model)
-        # self.grid_sample = np.load('data/grid_samples.npy')
-        # self.grid_idx = 0
         self.fault = forward_model.fault
         self.cov = covariance
 
@@ -44,10 +42,8 @@ class BandaScenario(BaseScenario):
             Essentailly the same format as 'sample', we have simply added a multivariate normal
             to produce proposal values for lat, long, mag, etc. 
         """
-        # proposal = self.grid_sample[self.grid_idx]
-        # self.grid_idx += 1
         proposal = sample.copy()
-        proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)), cov = self.cov)
+        proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
         return proposal
 
     def proposal_logpdf(self,u,v):
