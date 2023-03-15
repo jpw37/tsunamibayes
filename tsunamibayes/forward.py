@@ -187,18 +187,18 @@ class GeoClawForwardModel(BaseForwardModel):
         bath_depth[max_heights == 0] = 0
         wave_heights = max_heights + bath_depth
 
-        model_output = pd.Series(dtype='float64')
+        self.model_output = pd.Series(dtype='float64')
         for i,gauge in enumerate(self.gauges):
             if 'arrival' in gauge.obstypes:
-                model_output[gauge.name+' arrival'] = arrival_times[i]
+                self.model_output[gauge.name+' arrival'] = arrival_times[i]
             if 'height' in gauge.obstypes:
-                model_output[gauge.name+' height'] = wave_heights[i]
+                self.model_output[gauge.name+' height'] = wave_heights[i]
             if 'inundation' in gauge.obstypes:
-                model_output[gauge.name+' inundation'] = models.inundation(wave_heights[i],
+                self.model_output[gauge.name+' inundation'] = models.inundation(wave_heights[i],
                                                                            gauge.beta,
                                                                            gauge.n)
 
-        return model_output
+        return self.model_output
 
     def llh(self,model_output,verbose=False):
         """Comptues the loglikelihood of the forward model's ouput. 
