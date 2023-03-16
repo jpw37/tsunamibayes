@@ -126,6 +126,9 @@ class BaseScenario:
         # evaluate forward model and compute log-likelihood
         if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
+        print('Running geoclaw in init_chain')
+        print(model_params)
+        print('----------------------------')
         self.model_params.loc[0] = model_params
 #         if verbose: print('Returning dummy for forward model')
         model_output = self.forward_model.run(model_params,verbose)

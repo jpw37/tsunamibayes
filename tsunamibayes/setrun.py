@@ -1,6 +1,8 @@
 import os
 import glob
+from gauges import build_gauges
 from clawpack.clawutil import data
+from clawpack.geoclaw import fgmax_tools
 
 try:
     CLAW = os.environ['CLAW']
@@ -217,7 +219,7 @@ def make_setrun(config):
         amrdata = rundata.amrdata
 
         # max number of refinement levels:
-        amrdata.amr_levels_max = maxlevel  #JW: I'm not sure if this is going to work...check this :)
+        amrdata.amr_levels_max = maxlevel
 
         # List of refinement ratios at each level (length at least mxnest-1)
         amrdata.refinement_ratios_x = config.geoclaw['refinement_ratios']
@@ -275,11 +277,28 @@ def make_setrun(config):
         # ---------------
         # FGMax:
         # ---------------
-        # == fgmax.data values ==
-        fgmax_files = rundata.fgmax_data.fgmax_files
-        # for fixed grids append to this list names of any fgmax input files
-        fgmax_files.append(config.fgmax['fgmax_grid_path'])
-        rundata.fgmax_data.num_fgmax_val = 1
+        obstypes = ['arrival', 'height', 'inundation']
+        gauges = build_gauges()
+        fg = fgmax_tools.FGmaxGrid()
+        
+        fg.point_style = 0
+        fg.min_level_check = amrdata.amr_levels_max
+        fg.tstart_max = config.fgmax['tstart_max']
+        fg.tend_max = config.fgmax['tend_max']
+        fg.dt_check = config.fgmax['dt_check']
+        fg.interp_method = 0
+        xs, ys = [], []
+        for i, gauge in enumerate(gauges):
+            if any(obstype in obstypes for obstype in gauge.obstypes):
+                xs.append(gauge.lon[0])
+                ys.append(gauge.lat[0])
+        print(f'xs: {xs}')
+        print(f'ys: {ys}')
+        fg.X = xs
+        fg.Y = ys
+        fg.npts = len(xs)
+
+        rundata.fgmax_data.fgmax_grids.append(fg)
 
         #------------------------------------------------------------------
         # Adjoint specific data:

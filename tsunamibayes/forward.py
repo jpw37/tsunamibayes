@@ -120,10 +120,10 @@ class GeoClawForwardModel(BaseForwardModel):
         self.fault = fault
         self.dtopo_path = dtopo_path
         self.fgmax_params = fgmax_params
-        self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
+        # self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
         self.valuemax_path = fgmax_params['valuemax_path']
-        self.aux1_path = fgmax_params['aux1_path']
-        self.write_fgmax_grid(self.gauges,self.fgmax_params)
+        # self.aux1_path = fgmax_params['aux1_path']
+        # self.write_fgmax_grid(self.gauges,self.fgmax_params)
 
         # clean up directory
         os.system('make clean')
@@ -152,6 +152,9 @@ class GeoClawForwardModel(BaseForwardModel):
             names plus 'arrivals', 'height', or 'inundation'. The associated values are floats. 
         """
         # split fault into subfaults aligning to fault zone geometry
+        print('Entered geoclaw run, using model params')
+        print(model_params)
+        print(type(model_params))
         subfault_params = self.fault.subfault_split(model_params['latitude'],
                                                     model_params['longitude'],
                                                     model_params['length'],
@@ -159,26 +162,31 @@ class GeoClawForwardModel(BaseForwardModel):
                                                     model_params['slip'],
                                                     model_params['depth_offset'],
                                                     model_params['rake'])
-
+        print('Made subfault')
         # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
-
+        print('Made dtopo file')
         # clear .output
         os.system('rm .output')
+        print('cleared .output file')
 
         # run GeoClaw
         os.system('make .output')
-
+        import subprocess
+        subprocess.run('ls')
+        print('Ran os.system(make .output)')
+        print(self.valuemax_path)
         # load fgmax and bathymetry data
         fgmax_data = np.loadtxt(self.valuemax_path)
-        bath_data  = np.loadtxt(self.aux1_path)
+        # bath_data  = np.loadtxt(self.aux1_path)
+        print('loaded bath data and fgmax')
 
         # this is the arrival time of the first wave, not the maximum wave
         # converting from seconds to minutes
-        arrival_times = fgmax_data[:, -1] /60
+        arrival_times = fgmax_data[:, -2]/60
 
-        max_heights = fgmax_data[:, 3]
-        bath_depth = bath_data[:, -1]
+        max_heights = fgmax_data[:, 4]
+        bath_depth = fgmax_data[:, 3]
 
         # these are locations where the wave never reached the gauge...
         max_heights[max_heights < 1e-15] = -9999
@@ -246,7 +254,7 @@ class GeoClawForwardModel(BaseForwardModel):
                 llh += log_p
                 if verbose: print("inundation: {:.3f}\tllh: {:.3e}".format(inundation,log_p))
         return llh
-
+    # Can probably comment this all out except for writing the gauge locs
     def write_fgmax_grid(self,gauges,fgmax_params):
         """Writes a file to store a specific scenario's parameters for the 
         fixed grid maximum monitoring feature in GeoClaw.

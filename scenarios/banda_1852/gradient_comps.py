@@ -240,7 +240,6 @@ def centered_diff(config, step):
                   'Amahai height']
     
     scenario, forward_model, nn_model = setup(config)
-    forward_model = nn_model
     fault = forward_model.fault
     
     sample = {key:val for key,val in config.init.items() if key in scenario.sample_cols}

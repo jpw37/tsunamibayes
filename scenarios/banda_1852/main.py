@@ -54,9 +54,9 @@ def setup(config):
 
     # Forward model
     config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
-    #forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
-    #                                       config.geoclaw['dtopo_path'])
-    forward_model = NeuralNetEmulator(gauges, fault)
+    forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
+                                           config.geoclaw['dtopo_path'])
+    #forward_model = NeuralNetEmulator(gauges, fault)
 
     # Proposal kernel
     lat_std = config.proposal_kernel['lat_std']
