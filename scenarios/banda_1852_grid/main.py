@@ -106,8 +106,7 @@ if __name__ == "__main__":
 
     # resume in-progress chain
     if args.resume:
-        if args.verbose: 
-            print("Resuming chain from: {}".format(args.output_dir),flush=True)
+        if args.verbose: print("Resuming chain from: {}".format(args.output_dir))
         scenario.resume_chain(args.output_dir)
     
     # initialize new chain
