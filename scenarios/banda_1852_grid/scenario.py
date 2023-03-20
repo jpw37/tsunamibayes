@@ -5,6 +5,7 @@ from tsunamibayes.utils import calc_length, calc_width, calc_slip
 from gradient import dU # , gradient_setup
 import time
 from datetime import timedelta
+import os
 
 
 

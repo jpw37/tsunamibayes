@@ -122,3 +122,5 @@ if __name__ == "__main__":
     elif config.init['mcmc_mode'] == 'mala':
         scenario.sample(args.n_samples,mode='mala',delta=config.mala['delta'],output_dir=args.output_dir,
                     save_freq=args.save_freq,verbose=args.verbose)
+    elif config.init['mcmc_mode'] == 'hmc':
+        scenario.sample(args.n_samples, mode='hmc', output_dir=args.output_dir, save_freq=args.save_freq, verbose=args.verbose)

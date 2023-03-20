@@ -84,6 +84,12 @@ class NeuralNetEmulator(BaseForwardModel):
                       'Saparua arrival', 'Saparua height', 'Kulur height', 'Ameth height',
                       'Amahai height'
                       ]
+    #nn_output_cols = ['Pulu Ai height', 'Ambon height', 'Banda Neira arrival',
+    #                  'Banda Neira height', 'Buru height', 'Hulaliu height',
+    #                  'Saparua arrival', 'Saparua height', 'Kulur height', 'Ameth height',
+    #                  'Amahai height', 'Pulu Ai arrival', 'Ambon arrival', 'Buru arrival',
+    #                  'Hulaliu arrival', 'Kulur arrival', 'Ameth arrival', 'Amahai arrival'
+    #                  ]
 
     def __init__(
         self,
@@ -144,7 +150,7 @@ class NeuralNetEmulator(BaseForwardModel):
         X = torch.tensor([model_params[x] for x in self.nn_input_cols])
         X.requires_grad = False
         y = np.array(self.net.forward_unnormalized(X.float()))
-
+        #print('LENGTH OF Y', len(y))
         model_output = pd.Series(dtype='float64')
         for idx, output_col in enumerate(self.nn_output_cols):
             model_output[output_col] = y[idx]
@@ -185,13 +191,13 @@ class NeuralNetEmulator(BaseForwardModel):
             if verbose:
                 print(gauge.name)
                 print(gauge.obstypes)
-#             if 'arrival' in gauge.obstypes:
-#                 arrival_time = model_output[gauge.name + ' arrival']
-#                 log_p = gauge.dists['arrival'].logpdf(arrival_time)
-#                 llh += log_p
-#                 if verbose:
-#                     print("arrival:    {:.3f}\tllh: {:.3e}".format(
-#                         arrival_time, log_p))
+            if 'arrival' in gauge.obstypes:
+                arrival_time = model_output[gauge.name + ' arrival']
+                log_p = gauge.dists['arrival'].logpdf(arrival_time)
+                llh += log_p
+                if verbose:
+                    print("arrival:    {:.3f}\tllh: {:.3e}".format(
+                        arrival_time, log_p))
 
             if 'height' in gauge.obstypes:
                 wave_height = model_output[gauge.name + ' height']

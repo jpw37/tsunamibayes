@@ -4,6 +4,8 @@ from vanilla_net import VanillaNet as VN
 import torch
 import numpy as np
 from scipy import integrate
+from read_file import get_grids, useful_grids, condensed_grids
+from okada_jax import get_derivatives, get_okada_deriv
 
 global neg_llh_grad, neg_lprior_grad
 neg_llh_grad = None
@@ -149,7 +151,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
 
     # get gauge info, need lat and lon
     gauges=build_gauges()
-    print(model_params)
+    #print('MODEL PARAMETERS', model_params.keys())
     nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
 #     print(model_params)
 #     print(type(model_params))
@@ -161,25 +163,33 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
     okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
     for gauge in gauge_names:
         temp_dict = {}
-        arrival = model_output[gauge+' arrival']
-        adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(np.round(arrival))
-        grid_dict, info_dict = get_grids(args.filename)
+        #print(model_output.keys())
+        #arrival = model_output[gauge+' arrival']
+        arrival = model_output['Banda Neira arrival']
+        #print("ARRIVAL TIME", arrival)
+        adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(np.round(arrival)))
+        grid_dict, info_dict = get_grids(adjoint_file_name)
         desired_grid, desired_info = useful_grids(grid_dict, info_dict, 130, 132.7, -6.5, -3.5)
-        adjoint_grid = condensed_grids(desired_grid)
+        adjoint_grid, adjoint_keys = condensed_grids(desired_grid)
+        #print(adjoint_keys)
         derivatives = get_derivatives()
         for j, param in enumerate(okada_params):
             sum_ = 0
-            for i,grid in enumerate(info_dict.keys()):
-                mx, my, xlow, ylow, dx, dy = info_dict[grid].value()
+            #print("ADJOINT KEYS", adjoint_keys)
+            #print("INFO KEYS", info_dict.keys())
+            for i,grid in enumerate(adjoint_keys):
+                #print("GRID", adjoint_keys[i])
+                mx, my, xlow, ylow, dx, dy = info_dict[grid]
                 X = np.linspace(xlow, xlow+(dx*mx), mx)
                 Y = np.linspace(ylow, ylow+(dy*my), my)
-                okada_deriv_param = derivative(derivatives[j], 410489.82154734,81172.520770329,10035.247895443,-3.80457187273708,131.405862952901,121.106320856361,15.6458838693299,9.1367026992073,90.0, X, Y)
-                sum_ += integrate.dblquad(adjoint_grids[i]*okada_deriv_param, xlow, xlow+(dx*mx), ylow, ylow+(dy*my)) 
+                okada_deriv_param = get_okada_deriv(derivatives[j], 410489.82154734,81172.520770329,10035.247895443,-3.80457187273708,131.405862952901,121.106320856361,15.6458838693299,9.1367026992073,90.0, X, Y)
+                #sum_ += integrate.dblquad(np.array(adjoint_grid[adjoint_keys[i]]).T*okada_deriv_param, xlow, xlow+(dx*mx), ylow, ylow+(dy*my)) 
+                sum_ += np.mean(np.array(adjoint_grid[grid]).T*okada_deriv_param) #xlow, xlow+(dx*mx), ylow, ylow+(dy*my)
             temp_dict[param] = sum_
-        grads[gauge] = temp_dict
+        grads[gauge+' height'] = temp_dict
     
         # find the actual heights from geoclaw output
-        outputs[gauge] = model_output[gauge+' height']
+        outputs[gauge+' height'] = model_output[gauge+' height']
 
     # Values dependent on gauge location
     for i, gauge in enumerate(gauges):

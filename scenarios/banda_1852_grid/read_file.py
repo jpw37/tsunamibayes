@@ -77,7 +77,7 @@ def condensed_grids(desired_grid):
         for j in range(x):
             temp_grid[:,j] = grid[j][:,3]
         condensed_grid[i] = temp_grid.tolist()
-    return condensed_grid
+    return condensed_grid, list(desired_grid.keys())
     """with open(outfile, 'w') as f:
         f.write(json.dumps(condensed_grid))"""
 
