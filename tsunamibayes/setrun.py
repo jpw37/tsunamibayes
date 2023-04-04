@@ -290,8 +290,8 @@ def make_setrun(config):
         xs, ys = [], []
         for i, gauge in enumerate(gauges):
             if any(obstype in obstypes for obstype in gauge.obstypes):
-                xs.append(gauge.lon[0])
-                ys.append(gauge.lat[0])
+                xs.append(gauge.lon)
+                ys.append(gauge.lat)
         print(f'xs: {xs}')
         print(f'ys: {ys}')
         fg.X = xs

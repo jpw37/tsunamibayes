@@ -172,8 +172,8 @@ class GeoClawForwardModel(BaseForwardModel):
 
         # run GeoClaw
         os.system('make .output')
-        import subprocess
-        subprocess.run('ls')
+        #import subprocess
+        #subprocess.run('ls')
         print('Ran os.system(make .output)')
         print(self.valuemax_path)
         # load fgmax and bathymetry data
@@ -195,6 +195,7 @@ class GeoClawForwardModel(BaseForwardModel):
         bath_depth[max_heights == 0] = 0
         wave_heights = max_heights + bath_depth
 
+        #dict_arrival_times = {}
         self.model_output = pd.Series(dtype='float64')
         for i,gauge in enumerate(self.gauges):
             if 'arrival' in gauge.obstypes:
@@ -205,8 +206,9 @@ class GeoClawForwardModel(BaseForwardModel):
                 self.model_output[gauge.name+' inundation'] = models.inundation(wave_heights[i],
                                                                            gauge.beta,
                                                                            gauge.n)
+            #dict_arrival_times[gauge] = arrival_times[i]
 
-        return self.model_output
+        return self.model_output, arrival_times
 
     def llh(self,model_output,verbose=False):
         """Comptues the loglikelihood of the forward model's ouput. 
