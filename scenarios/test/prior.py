@@ -10,14 +10,22 @@ class SulawesiPrior(BasePrior):
     """
     def __init__(
         self,
-        latlon,
-        mag,
-        delta_logl,
-        delta_logw,
-        depth_offset,
-        dip_offset,
-        strike_offset,
-        rake_offset
+        f_latlon,
+        f_mag,
+        f_delta_logl,
+        f_delta_logw,
+        f_depth_offset,
+        f_dip_offset,
+        f_strike_offset,
+        f_rake_offset,
+        w_latlon,
+        w_mag,
+        w_delta_logl,
+        w_delta_logw,
+        w_depth_offset,
+        w_dip_offset,
+        w_strike_offset,
+        w_rake_offset
     ):
         """Initializes all the necessary variables for the subclass.
 
@@ -39,14 +47,24 @@ class SulawesiPrior(BasePrior):
             The continous random variable describing the sample's depth offset,
             also with fixed parameters.
         """
-        self.latlon = latlon
-        self.mag = mag
-        self.delta_logl = delta_logl
-        self.delta_logw = delta_logw
-        self.depth_offset = depth_offset
-        self.dip_offset = dip_offset
-        self.rake_offset = rake_offset
-        self.strike_offset = strike_offset
+        self.f_latlon = f_latlon
+        self.f_mag = f_mag
+        self.f_delta_logl = f_delta_logl
+        self.f_delta_logw = f_delta_logw
+        self.f_depth_offset = f_depth_offset
+        self.f_dip_offset = f_dip_offset
+        self.f_rake_offset = f_rake_offset
+        self.f_strike_offset = f_strike_offset
+
+        self.w_latlon = w_latlon
+        self.w_mag = w_mag
+        self.w_delta_logl = w_delta_logl
+        self.w_delta_logw = w_delta_logw
+        self.w_depth_offset = w_depth_offset
+        self.w_dip_offset = w_dip_offset
+        self.w_rake_offset = w_rake_offset
+        self.w_strike_offset = w_strike_offset
+
 
     def logpdf(self,sample):
         """Computes the log of the probability density function. Adds
@@ -66,33 +84,50 @@ class SulawesiPrior(BasePrior):
         lpdf : float
             The log of the probability density function for the sample.
         """
-        lat = sample["latitude"]
-        lon = sample["longitude"]
-        mag = sample["magnitude"]
-        delta_logl = sample["delta_logl"]
-        delta_logw = sample["delta_logw"]
-        depth_offset = sample["depth_offset"]
-        dip_offset = sample['dip_offset']
-        rake_offset = sample['rake_offset']
-        strike_offset = sample['strike_offset']
+        f_lat = sample["flores_latitude"]
+        w_lat = sample["walanae_latitude"]
+        f_lon = sample["flores_longitude"]
+        w_lon = sample["walanae_latitude"]
+        f_mag = sample["flores_magnitude"]
+        w_mag = sample["walanae_magnitude"]
+        f_delta_logl = sample["flores_delta_logl"]
+        w_delta_logl = sample["walanae_delta_logl"]
+        f_delta_logw = sample["flores_delta_logw"]
+        w_delta_logw = sample["walanae_delta_logw"]
+        f_depth_offset = sample["flores_depth_offset"]
+        w_depth_offset = sample["walanae_depth_offset"]
+        f_dip_offset = sample['flores_dip_offset']
+        w_dip_offset = sample["walanae_dip_offset"]
+        f_rake_offset = sample['flores_rake_offset']
+        w_rake_offset = sample['walanae_rake_offset']
+        f_strike_offset = sample['flores_strike_offset']
+        w_strike_offset = sample['walanae_strike_offset']
 
         print('\nCalculating the LOGPDF\n--------------\n')
         print('sample:',sample)
-        lpdf = self.latlon.logpdf(sample)
+        lpdf = self.f_latlon.logpdf(sample)
+        lpdf += self.w_latlon.logpdf(sample)
         print('lpdf latlon:', lpdf)
-        lpdf += self.mag.logpdf(mag)
+        lpdf += self.f_mag.logpdf(f_mag)
+        lpdf += self.w_mag.logpdf(w_mag)
         print('lpdf mag:', lpdf)
-        lpdf += self.delta_logl.logpdf(delta_logl)
+        lpdf += self.f_delta_logl.logpdf(f_delta_logl)
+        lpdf += self.w_delta_logl.logpdf(w_delta_logl)
         print('lpdf delta_logl:', lpdf)
-        lpdf += self.delta_logw.logpdf(delta_logw)
+        lpdf += self.f_delta_logw.logpdf(f_delta_logw)
+        lpdf += self.w_delta_logw.logpdf(w_delta_logw)
         print('lpdf delta_logw:', lpdf)
-        lpdf += self.depth_offset.logpdf(depth_offset)
+        lpdf += self.f_depth_offset.logpdf(f_depth_offset)
+        lpdf += self.w_depth_offset.logpdf(w_depth_offset)
         print('lpdf depth_offset:', lpdf)
-        lpdf += self.dip_offset.logpdf(dip_offset)
+        lpdf += self.f_dip_offset.logpdf(f_dip_offset)
+        lpdf += self.w_dip_offset.logpdf(w_dip_offset)
         print('lpdf dip_offset:', lpdf)
-        lpdf += self.rake_offset.logpdf(rake_offset)
+        lpdf += self.f_rake_offset.logpdf(f_rake_offset)
+        lpdf += self.w_rake_offset.logpdf(w_rake_offset)
         print('lpdf rake_offset:', lpdf)
-        lpdf += self.strike_offset.logpdf(strike_offset)
+        lpdf += self.f_strike_offset.logpdf(f_strike_offset)
+        lpdf += self.w_strike_offset.logpdf(w_strike_offset)
         print('lpdf strike_offset:', lpdf)
 
         return lpdf
@@ -128,7 +163,7 @@ class SulawesiPrior(BasePrior):
         return pd.Series(params, columns)
 
 class LatLonPrior(BasePrior):
-    def __init__(self,fault,depth_dist):
+    def __init__(self,fault,depth_dist,fault_id):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
@@ -141,6 +176,7 @@ class LatLonPrior(BasePrior):
         """
         self.fault = fault
         self.depth_dist = depth_dist
+        self.fault_id = fault_id
 
     def logpdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
@@ -162,30 +198,91 @@ class LatLonPrior(BasePrior):
             otherwise returns the log of the probability density function
             for the depth distribution evaluated at the sample's depth.
         """
-        # compute subfaults (for out-of-bounds calculation)
-        length = calc_length(sample['magnitude'],sample['delta_logl'])
-        width = calc_width(sample['magnitude'],sample['delta_logw'])
+        
+        # compute the logpdf for each fault seperately based on the fault id
+        if self.fault_id == 0:
+            length = calc_length(sample['flores_magnitude'],sample['flores_delta_logl'])
+            width = calc_width(sample['flores_magnitude'],sample['flores_delta_logw'])
+            
+            subfault_params = self.fault.subfault_split_RefCurve(
+                lat = sample['flores_latitude'],
+                lon = sample['flores_longitude'],
+                length = length,
+                width = width,
+                slip = 1,
+                depth_offset = sample['flores_depth_offset'],
+                dip_offset = sample['flores_dip_offset'],
+                rake_offset = sample['flores_rake_offset']
+            )
 
-        subfault_params = self.fault.subfault_split_RefCurve(
-            lat = sample['latitude'],
-            lon = sample['longitude'],
-            length = length,
-            width = width,
-            slip = 1,
-            depth_offset = sample['depth_offset'],
-            dip_offset = sample['dip_offset'],
-            rake_offset = sample['rake_offset']
-        )
+
+        if self.fault_id == 1:
+            length = calc_length(sample['walanae_magnitude'],sample['walanae_delta_logl'])
+            width = calc_width(sample['walanae_magnitude'],sample['walanae_delta_logw'])
+
+            subfault_params = self.fault.subfault_split_RefCurve(
+                lat = sample['walanae_latitude'],
+                lon = sample['walanae_longitude'],
+                length = length,
+                width = width,
+                slip = 1,
+                depth_offset = sample['walanae_depth_offset'],
+                dip_offset = sample['walanae_dip_offset'],
+                rake_offset = sample['walanae_rake_offset']
+            )
+            
+
+        # compute subfaults (for out-of-bounds calculation)
+        # flores_length = calc_length(sample['flores_magnitude'],sample['flores_delta_logl'])
+        # walanae_length = calc_length(sample['walanae_magnitude'],sample['walanae_delta_logl'])
+        # flores_width = calc_width(sample['flores_magnitude'],sample['flores_delta_logw'])
+        # walanae_width = calc_width(sample['walanae_magnitude'],sample['walanae_delta_logl'])
+        
+        # find subfault params for each seperate fault and then hstack them into a single thing
+        
+        #flores_subfault_params = self.fault.subfault_split_RefCurve(
+        #    lat = sample['flores_latitude'],
+        #    lon = sample['flores_longitude'],
+        #    length = flores_length,
+        #    width = flores_width,
+        #    slip = 1,
+        #    depth_offset = sample['flores_depth_offset'],
+        #    dip_offset = sample['flores_dip_offset'],
+        #    rake_offset = sample['flores_rake_offset']
+        #)
+        #walanae_subfault_params = self.fault.subfault_split_RefCurve(
+        #    lat = sample['walanae_latitude'],
+        #    lon = sample['walanae_longitude'],
+        #    length = walanae_length,
+        #    width = walanae_width,
+        #    slip = 1,
+        #    depth_offset = sample['walanae_depth_offset'],
+        #    dip_offset = sample['walanae_dip_offset'],
+        #    rake_offset = sample['walanae_dip_offset']
+        #)
+
+        # print("this is flores_subfault_params")
+        # print(flores_subfault_params)
+        
+        # print("this is walanae_subfault_params")
+        # print(walanae_subfault_params)
+
+        # Hstack Flores and Walanae subfault params
+        #subfault_params = pd.concat([flores_subfault_params, walanae_subfault_params], axis=1)
 
         if subfault_params.isnull().values.any():
             return np.NINF
+
         if out_of_bounds(subfault_params,self.fault.model_bounds):
             return np.NINF
         else:
-            depth = (
-                self.fault.depth_map(sample['latitude'],sample['longitude'])
-                + 1000*sample['depth_offset']
-            )
+            if self.fault_id == 0:
+                depth = (self.fault.depth_map(sample['flores_latitude'], sample['flores_longitude'])
+                         + 1000*sample['flores_depth_offset'])
+            if self.fault_id == 1:
+                depth = (self.fault.depth_map(sample['walanae_latitude'], sample['walanae_longitude'])
+                         + 1000*sample['walanae_depth_offset'])
+            
             return self.depth_dist.logpdf(depth)
 
     def pdf(self,sample):
