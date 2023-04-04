@@ -4,7 +4,7 @@ import jax.numpy as np
 from jax.config import config
 
 # tell jax to use float64 for increased accuracy
-config.update("jax_enable_x64", True)
+#config.update("jax_enable_x64", True)
 
 #TODO: clean up code, make it prettier and make more sense!
 def okada_derivative(length, width, depth, latitude, longitude, strike, slip, dip, rake, X, Y):
@@ -188,15 +188,15 @@ if __name__ == "__main__":
     d_okada_rake = jacobian(okada_derivative, 8)
 
     # plug in parameter values to evaluate the derivative, these values are arbitrary
-    print(d_okada_length(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_width(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_depth(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_latitude(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_longitude(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_strike(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_slip(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_dip(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
-    print(d_okada_rake(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_length(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_width(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_depth(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_latitude(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_longitude(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_strike(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_slip(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_dip(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
+    #print(d_okada_rake(450000., 100000., 35000., -35.826, -72.668, 16., 15., 14., 104., X, Y))
 
 
     # geoclaw sample values: strike 16, length 450*10^3, width 100*10^3, depth 35*10^3, slip 15, rake 104, dip 14,

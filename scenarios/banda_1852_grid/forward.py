@@ -191,13 +191,13 @@ class NeuralNetEmulator(BaseForwardModel):
             if verbose:
                 print(gauge.name)
                 print(gauge.obstypes)
-            if 'arrival' in gauge.obstypes:
-                arrival_time = model_output[gauge.name + ' arrival']
-                log_p = gauge.dists['arrival'].logpdf(arrival_time)
-                llh += log_p
-                if verbose:
-                    print("arrival:    {:.3f}\tllh: {:.3e}".format(
-                        arrival_time, log_p))
+            #if 'arrival' in gauge.obstypes:
+            #    arrival_time = model_output[gauge.name + ' arrival']
+            #    log_p = gauge.dists['arrival'].logpdf(arrival_time)
+            #    llh += log_p
+            #    if verbose:
+            #        print("arrival:    {:.3f}\tllh: {:.3e}".format(
+            #            arrival_time, log_p))
 
             if 'height' in gauge.obstypes:
                 wave_height = model_output[gauge.name + ' height']

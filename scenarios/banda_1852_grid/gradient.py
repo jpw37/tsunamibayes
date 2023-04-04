@@ -111,8 +111,80 @@ def compute_nn_grads(grad, sample, strike_map, dip_map, depth_map, step):
     
     return {'dN_dmag': dm, 'dN_ddll': dll, 'dN_ddlw': dlw, 'dN_dlat': dlat, 'dN_dlon': dlon, 'dN_ddo': ddo}
 
+def calc_adjoint(model_params, model_output, arrival_times):
+    # get gauge info, need lat and lon
+    gauge_names = ['Pulu Ai', 'Ambon', 'Banda Neira', 'Buru', 'Hulaliu',
+                   'Saparua', 'Kulur', 'Ameth', 'Amahai']
+    gauges=build_gauges()
+    #print('MODEL PARAMETERS', model_params)
+    #print('MODEL @ LENGTH', np.array(model_params['length'])[-1])
+        #print('H', H)
+        #print('H', H)
+        #print("NN_Grads Keys", NN_grads.keys())
+        #new = []
+        #print('NN_Grads Values', NN_grads.values())
+        #for i in range(len(NN_grads.values())):
+        #    print(NN_grads.values())
+        #    print(NN_grads.values()[-1])
+        #print('NN_Grads Values Floats', new)
+        # parameters from gauge likelihood (in gauge.py)
+        #print("NN_Grads Keys", NN_grads.keys())
+        #new = []
+        #print('NN_Grads Values', NN_grads.values())
+        #for i in range(len(NN_grads.values())):
+        #    print(NN_grads.values())
+        #    print(NN_grads.values()[-1])
+        #print('NN_Grads Values Floats', new)
+        # parameters from gauge likelihood (in gauge.py)
+    #print("MODEL PARAMETERS VALUES", model_params.values())
+    #nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
+#     print(model_params)
+#     print(type(model_params))
+    #grads, outputs = nn_model.compute_gradient(model_params)
+    # calculating the deriv of geoclaw w/ respect to okada params
+    grads = {}
+    outputs = {}
 
-def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, model_output, step=0.01):
+    okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
+    for i, gauge in enumerate(gauge_names):
+        temp_dict = {}
+        #print(gauge)
+        #arrival = model_output[gauge+' arrival']
+        arrival = arrival_times[i]
+        #print("ARRIVAL TIME", arrival)
+        if int(np.round(arrival)) <= 9:
+            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(np.round(arrival)))
+        else:
+            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(np.round(arrival)))
+        #print('getting grid')
+        grid_dict, info_dict = get_grids(adjoint_file_name)
+        desired_grid, desired_info = useful_grids(grid_dict, info_dict, 130, 132.7, -6.5, -3.5)
+        adjoint_grid, adjoint_keys = condensed_grids(desired_grid)
+        #print(adjoint_keys)
+        derivatives = get_derivatives()
+        for j, param in enumerate(okada_params):
+            #print(param)
+            sum_ = 0
+            #print("ADJOINT KEYS", adjoint_keys)
+            #print("INFO KEYS", info_dict.keys())
+            for k,grid in enumerate(adjoint_keys):
+                #print("k", k)
+                mx, my, xlow, ylow, dx, dy = info_dict[grid]
+                X = np.linspace(xlow, xlow+(dx*mx), mx)
+                Y = np.linspace(ylow, ylow+(dy*my), my)
+                #okada_deriv_param = get_okada_deriv(derivatives[j], float(model_params['length'][-1]), float(model_params['width'][-1]), float(model_params['depth'][-1]), float(model_params['latitude'][-1]), float(model_params['longitude'][-1]), float(model_params['strike'][-1]), float(model_params['slip'][-1]), float(model_params['dip'][-1]), float(model_params['rake'][-1]), X, Y)
+                okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
+                #okada_deriv_param = np.ones((my, mx))
+                x_deriv = np.trapz(np.array(adjoint_grid[adjoint_keys[k]]).T*okada_deriv_param, dx=dx, axis=0)
+                sum_ += np.trapz(x_deriv, dx=dy, axis=-1) #xlow, xlow+(dx*mx), ylow, ylow+(dy*my)
+            temp_dict[param] = sum_
+        grads[gauge+' height'] = temp_dict
+
+        # find the actual heights from geoclaw output
+        outputs[gauge+' height'] = model_output[gauge+' height']
+    return grads, outputs
+
+def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, model_output, arrival_times, grads, outputs, step=0.01):
     """Use the simplified tsunami formula to compute the gradient
 
     Parameters
@@ -157,43 +229,49 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
 #     print(type(model_params))
     #grads, outputs = nn_model.compute_gradient(model_params)
     # calculating the deriv of geoclaw w/ respect to okada params
-    grads = {}
+    '''grads = {}
     outputs = {}
 
     okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
-    for gauge in gauge_names:
+    for i, gauge in enumerate(gauge_names):
         temp_dict = {}
-        #print(model_output.keys())
+        print(gauge)
         #arrival = model_output[gauge+' arrival']
-        arrival = model_output['Banda Neira arrival']
+        arrival = arrival_times[i]
         #print("ARRIVAL TIME", arrival)
-        adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(np.round(arrival)))
+        if int(np.round(arrival)) <= 9:
+            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(np.round(arrival)))
+        else:
+            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(np.round(arrival)))
+        #print('getting grid')
         grid_dict, info_dict = get_grids(adjoint_file_name)
         desired_grid, desired_info = useful_grids(grid_dict, info_dict, 130, 132.7, -6.5, -3.5)
         adjoint_grid, adjoint_keys = condensed_grids(desired_grid)
         #print(adjoint_keys)
         derivatives = get_derivatives()
         for j, param in enumerate(okada_params):
+            print(param)
             sum_ = 0
             #print("ADJOINT KEYS", adjoint_keys)
             #print("INFO KEYS", info_dict.keys())
-            for i,grid in enumerate(adjoint_keys):
-                #print("GRID", adjoint_keys[i])
+            for k,grid in enumerate(adjoint_keys):
+                print("k", k)
                 mx, my, xlow, ylow, dx, dy = info_dict[grid]
                 X = np.linspace(xlow, xlow+(dx*mx), mx)
                 Y = np.linspace(ylow, ylow+(dy*my), my)
-                okada_deriv_param = get_okada_deriv(derivatives[j], 410489.82154734,81172.520770329,10035.247895443,-3.80457187273708,131.405862952901,121.106320856361,15.6458838693299,9.1367026992073,90.0, X, Y)
-                #sum_ += integrate.dblquad(np.array(adjoint_grid[adjoint_keys[i]]).T*okada_deriv_param, xlow, xlow+(dx*mx), ylow, ylow+(dy*my)) 
-                sum_ += np.mean(np.array(adjoint_grid[grid]).T*okada_deriv_param) #xlow, xlow+(dx*mx), ylow, ylow+(dy*my)
+                okada_deriv_param = get_okada_deriv(derivatives[j], float(model_params['length']), float(model_params['width']), float(model_params['depth']), float(model_params['latitude']), float(model_params['longitude']), float(model_params['strike']), float(model_params['slip']), float(model_params['dip']), float(model_params['rake']), X, Y)
+                #okada_deriv_param = np.ones((my, mx))
+                x_deriv = np.trapz(np.array(adjoint_grid[adjoint_keys[k]]).T*okada_deriv_param, dx=dx, axis=0) 
+                sum_ += np.trapz(x_deriv, dx=dy, axis=-1) #xlow, xlow+(dx*mx), ylow, ylow+(dy*my)
             temp_dict[param] = sum_
         grads[gauge+' height'] = temp_dict
     
         # find the actual heights from geoclaw output
-        outputs[gauge+' height'] = model_output[gauge+' height']
-
+        outputs[gauge+' height'] = model_output[gauge+' height']'''
+    #print('Values dependent on gauge location')
     # Values dependent on gauge location
     for i, gauge in enumerate(gauges):
-        grad, H = grads[f'{gauge.name} height'], outputs[f'{gauge.name} height']
+        grad, H = grads[f'{gauge.name} height'], model_output[f'{gauge.name} height'].values
         NN_grads = compute_nn_grads(grad, sample.values, strike_map, dip_map, depth_map, step)
 
         # parameters from gauge likelihood (in gauge.py)
@@ -231,11 +309,20 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
     for i in range(len(neg_llh_grad)):
         neg_llh_grad[i]=sy.Lambda(
             (lat, lon, mag, delta_logl, delta_logw), neg_llh_grad[i])
-#     print('llhgrad', neg_llh_grad)
 
-    def neg_llh_grad_fun(sample): return [float(grad(
-        *sample[:-1])) for grad in neg_llh_grad]
+    def neg_llh_grad_fun(sample):
+        grads = []
+        for grad in neg_llh_grad:
+            grad_val = grad(*sample[:-1])
+            try:
+                grad_val = grad_val[0]
+            except:
+                pass
 
+            grads.append(float(grad_val))
+
+        return grads
+    
     # Build the gradient of the negative log prior
     # Prior parameters for depth, delta_log_length/width (dll/dlw) and depth_offset (do)
     depth_mu=config.prior['depth_mu']
@@ -247,13 +334,9 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
     d_depth_dlatlon=centered_difference(depth_map, sample[0], sample[1], step)
 
     # Precomputed derivative values based on prior distributions in main.py, and prior.py
-    def d_lat_prior(lat, lon, do): 
-#         print('lat',lat)
-#         print('long',lon)
-#         print('step',step)
-#         print('depth_map',depth_map(lat, lon))
-
+    def d_lat_prior(lat, lon, do):
         return float((depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std * d_depth_dlatlon[0])
+
     def d_lon_prior(lat, lon, do): return float((
         depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std * d_depth_dlatlon[1])
     d_mag_prior=1
@@ -268,7 +351,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
 #         # This if statement is for debugging only, can be deleted
 #         if neg_llh_grad is None or len(neg_llh_grad) == 0:
 #             raise ValueError('neg_llh_grad is empty list')
-#     print(f'SAMPLE VALS: {sample.values}')
+
     return neg_lprior_grad_fun(sample.values) + neg_llh_grad_fun(sample.values)
 
 #     elif mode == 'both':

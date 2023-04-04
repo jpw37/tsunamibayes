@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
-from gradient import dU # , gradient_setup
+from gradient import dU, calc_adjoint # , gradient_setup
 import time
 from datetime import timedelta
 import os
@@ -37,7 +37,7 @@ class BandaScenario(BaseScenario):
 #                            self.fault.depth_map, config, forward_model)
 
 
-    def propose(self, sample, mode='random_walk', time_steps=200, epsilon=.01, delta=0.01):
+    def propose(self, sample, mode='random_walk', time_steps=4, epsilon=.00001, delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.
 
         Parameters
@@ -72,17 +72,19 @@ class BandaScenario(BaseScenario):
                                            self.config,
                                            self.fault,
                                            self.model_params,
-                                           self.model_output) + delta * v
+                                           self.model_output,
+                                           self.arrival_times) + delta * v
             
         elif mode == 'hmc':
             model_params = self.map_to_model_params(sample)
             q = sample.copy()
             p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
-                                         
+            grads, outputs = calc_adjoint(self.model_params, self.model_output, self.arrival_times)
+                             
             current_p = p.copy()
 #             print('-----------------------------------------------')   
 #             print('COMPUTING dU ONCE')
-            print()
+            print(q)
             curr_dU = dU(q, 
                          self.fault.strike_map, 
                          self.fault.dip_map, 
@@ -90,7 +92,9 @@ class BandaScenario(BaseScenario):
                          self.config,
                          self.fault,
                          self.model_params,
-                         self.model_output)
+                         self.model_output,
+                         self.arrival_times,
+                         grads, outputs)
             
             p = p - epsilon *  curr_dU/ 2
             
@@ -108,7 +112,9 @@ class BandaScenario(BaseScenario):
                                          self.config,
                                          self.fault,
                                          self.model_params,
-                                         self.model_output)
+                                         self.model_output,
+                                         self.arrival_times,
+                                         grads, outputs)
                                               
             p = p - epsilon * dU(q, 
                                  self.fault.strike_map, 
@@ -117,7 +123,9 @@ class BandaScenario(BaseScenario):
                                  self.config,
                                  self.fault,
                                  self.model_params,
-                                 self.model_output)/2
+                                 self.model_output,
+                                 self.arrival_times,
+                                 grads, outputs)/2
             p = -p
             
             return q, current_p, p
@@ -185,7 +193,7 @@ class BandaScenario(BaseScenario):
         model_params['rake'] = rake
         return model_params
 
-    def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=200, epsilon=.01, output_dir=None, save_freq=1, verbose=False):
+    def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=3, epsilon=.00001, output_dir=None, save_freq=1, verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -222,9 +230,10 @@ class BandaScenario(BaseScenario):
 
         chain_start = time.time()
         j = 0
+        prop_accept = 0
         for i in range(len(self.samples), len(self.samples) + nsamples):
             if verbose:
-                print("\n----------\nIteration {}".format(i))
+                print(f"\n----------\nSAMPLING ITERATION {i}")
                 start = time.time()
 
             # propose new sample from previous
@@ -265,7 +274,8 @@ class BandaScenario(BaseScenario):
                 if verbose:
 #                     print('returning dummy for forward model')
                     print("Running forward model...", flush=True)
-                model_output = self.forward_model.run(model_params)
+                model_output, arrival_times = self.forward_model.run(model_params)
+                self.arrival_times = arrival_times
                 if verbose:
 #                       print('returning dummy for llh')
                     print("Evaluating log-likelihood:")
@@ -343,6 +353,7 @@ class BandaScenario(BaseScenario):
                 self.model_params.loc[i] = model_params
                 self.model_output.loc[i] = model_output
                 self.bayes_data.loc[i] = bayes_data
+                prop_accept += 1
             else:
                 if verbose:
                     print("Proposal rejected", flush=True)
@@ -384,5 +395,5 @@ class BandaScenario(BaseScenario):
             print("Chain complete. total time: {}, time per sample: {}\
                               ".format(timedelta(seconds=total_time),
                                        timedelta(seconds=total_time / nsamples)))
-          
+        print("Acceptance Proposal", prop_accept / nsamples)  
         return self.samples
