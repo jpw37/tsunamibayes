@@ -62,6 +62,20 @@ def haversine(lat1, lon1, lat2, lon2):
     term = np.sin(.5*(phi2-phi1))**2+np.cos(phi1)*np.cos(phi2)*np.sin(.5*(lam2-lam1))**2
     return 2*R*np.arcsin(np.sqrt(term))
 
+def haversine_deriv_lat(lat1, lon1, lat2, lon2):
+    phi1,phi2,lam1,lam2 = np.deg2rad(lat1),np.deg2rad(lat2),np.deg2rad(lon1),np.deg2rad(lon2)
+    numerator = R*(np.cos(0.5*(phi2-phi1))*np.sin(0.5*(phi2-phi1))-(np.sin(0.5*(lam2-lam1))**2*np.cos(phi1)*np.sin(phi2)))
+    denom1 = np.sqrt(1-np.sin(0.5*(phi2-phi1))**2-(np.sin(0.5*(lam2-lam1))**2*np.cos(phi2)*np.cos(phi1)))
+    denom2 = np.sqrt(np.sin(0.5*(phi2-phi1))**2+(np.sin(0.5*(lam2-lam1))**2*np.cos(phi2)*np.cos(phi1)))
+    return numerator / (denom1 * denom2)
+
+def haversine_deriv_lon(lat1, lon1, lat2, lon2):
+    phi1,phi2,lam1,lam2 = np.deg2rad(lat1),np.deg2rad(lat2),np.deg2rad(lon1),np.deg2rad(lon2)
+    numerator = R*np.cos(phi2)*np.cos(phi1)*np.cos(0.5*(lam2-lam1))*np.sin(0.5*(lam2-lam1))
+    denom1 = np.sqrt(1-np.sin(0.5*(phi2-phi1))**2-(np.sin(0.5*(lam2-lam1))**2*np.cos(phi2)*np.cos(phi1)))
+    denom2 = np.sqrt(np.sin(0.5*(phi2-phi1))**2+(np.sin(0.5*(lam2-lam1))**2*np.cos(phi2)*np.cos(phi1)))
+    return numerator / (denom1 * denom2)
+
 def bearing(lat1, lon1, lat2, lon2):
     """Compute the bearing between two points.
     All of the following parameters must have the same dimension.

@@ -37,7 +37,7 @@ class BandaScenario(BaseScenario):
 #                            self.fault.depth_map, config, forward_model)
 
 
-    def propose(self, sample, mode='random_walk', time_steps=4, epsilon=.00001, delta=0.01):
+    def propose(self, sample, mode='random_walk', time_steps=25, epsilon=.00001, delta=0.01):
         """Random walk proposal of a new sample using a multivariate normal.
 
         Parameters
@@ -78,9 +78,12 @@ class BandaScenario(BaseScenario):
         elif mode == 'hmc':
             model_params = self.map_to_model_params(sample)
             q = sample.copy()
-            p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
+            #p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
+            p = np.random.multivariate_normal(np.zeros(len(q)), cov=self.cov)
             grads, outputs = calc_adjoint(self.model_params, self.model_output, self.arrival_times)
-                             
+            
+            print('Initial p', p)
+            print('Initial q', q)                 
             current_p = p.copy()
 #             print('-----------------------------------------------')   
 #             print('COMPUTING dU ONCE')
@@ -95,27 +98,41 @@ class BandaScenario(BaseScenario):
                          self.model_output,
                          self.arrival_times,
                          grads, outputs)
-            
+            print('dU')
+            print(curr_dU)
             p = p - epsilon *  curr_dU/ 2
-            
+            print('updated p', p)
             for i in range(time_steps):
 #                 print('-----------------------------------------------') 
 # #                 print('COMPUTING dU IN LOOP')
               
                 q = q + epsilon * p
-#                 print(q)
+                print('Updated p', p)
+                print('Updated q', q)
                 if i != time_steps - 1:
-                    p = p - epsilon * dU(q, 
-                                         self.fault.strike_map, 
-                                         self.fault.dip_map, 
-                                         self.fault.depth_map,
-                                         self.config,
-                                         self.fault,
-                                         self.model_params,
-                                         self.model_output,
-                                         self.arrival_times,
-                                         grads, outputs)
-                                              
+                    gradient = dU(q, 
+                                  self.fault.strike_map, 
+                                  self.fault.dip_map, 
+                                  self.fault.depth_map,
+                                  self.config,
+                                  self.fault,
+                                  self.model_params,
+                                  self.model_output,
+                                  self.arrival_times,
+                                  grads, outputs)
+                    print('Gradient', gradient)	
+                    #p = p - epsilon * dU(q, 
+                    #                     self.fault.strike_map, 
+                    #                     self.fault.dip_map, 
+                    #                     self.fault.depth_map,
+                    #                     self.config,
+                    #                     self.fault,
+                    #                     self.model_params,
+                    #                     self.model_output,
+                    #                     self.arrival_times,
+                    #                     grads, outputs)
+                    p = p - epsilon * gradient 
+                         
             p = p - epsilon * dU(q, 
                                  self.fault.strike_map, 
                                  self.fault.dip_map, 
@@ -193,7 +210,7 @@ class BandaScenario(BaseScenario):
         model_params['rake'] = rake
         return model_params
 
-    def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=3, epsilon=.00001, output_dir=None, save_freq=1, verbose=False):
+    def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=25, epsilon=.00001, output_dir=None, save_freq=1, verbose=False):
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
@@ -267,6 +284,7 @@ class BandaScenario(BaseScenario):
                 model_output = self.model_output.iloc[0].copy()
                 model_output[...] = np.nan
                 llh = np.nan
+                accepted=False
 
             # otherwise run the forward model, calculate the log-likelihood, and calculate
             # the Metropolis-Hastings acceptance probability
@@ -315,7 +333,7 @@ class BandaScenario(BaseScenario):
 
                 elif mode == 'hmc':
                     current_U = - \
-                        self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
+                        self.bayes_data.loc[i - 1]['prior_logpdf'] - \
                         self.bayes_data.loc[i - 1]['llh']
                     proposed_U = -prior_logpdf - llh
                     current_K = np.sum(current_p**2) / 2

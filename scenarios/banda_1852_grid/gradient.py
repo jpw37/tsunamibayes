@@ -1,11 +1,13 @@
 from gauges import build_gauges
 import sympy as sy
+import scipy.stats as stats
 from vanilla_net import VanillaNet as VN
 import torch
 import numpy as np
 from scipy import integrate
 from read_file import get_grids, useful_grids, condensed_grids
 from okada_jax import get_derivatives, get_okada_deriv
+from tsunamibayes.utils import haversine, haversine_deriv_lat, haversine_deriv_lon
 
 global neg_llh_grad, neg_lprior_grad
 neg_llh_grad = None
@@ -225,54 +227,31 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
     gauges=build_gauges()
     #print('MODEL PARAMETERS', model_params.keys())
     nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
-#     print(model_params)
-#     print(type(model_params))
-    #grads, outputs = nn_model.compute_gradient(model_params)
-    # calculating the deriv of geoclaw w/ respect to okada params
-    '''grads = {}
-    outputs = {}
-
-    okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
-    for i, gauge in enumerate(gauge_names):
-        temp_dict = {}
-        print(gauge)
-        #arrival = model_output[gauge+' arrival']
-        arrival = arrival_times[i]
-        #print("ARRIVAL TIME", arrival)
-        if int(np.round(arrival)) <= 9:
-            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(np.round(arrival)))
-        else:
-            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(np.round(arrival)))
-        #print('getting grid')
-        grid_dict, info_dict = get_grids(adjoint_file_name)
-        desired_grid, desired_info = useful_grids(grid_dict, info_dict, 130, 132.7, -6.5, -3.5)
-        adjoint_grid, adjoint_keys = condensed_grids(desired_grid)
-        #print(adjoint_keys)
-        derivatives = get_derivatives()
-        for j, param in enumerate(okada_params):
-            print(param)
-            sum_ = 0
-            #print("ADJOINT KEYS", adjoint_keys)
-            #print("INFO KEYS", info_dict.keys())
-            for k,grid in enumerate(adjoint_keys):
-                print("k", k)
-                mx, my, xlow, ylow, dx, dy = info_dict[grid]
-                X = np.linspace(xlow, xlow+(dx*mx), mx)
-                Y = np.linspace(ylow, ylow+(dy*my), my)
-                okada_deriv_param = get_okada_deriv(derivatives[j], float(model_params['length']), float(model_params['width']), float(model_params['depth']), float(model_params['latitude']), float(model_params['longitude']), float(model_params['strike']), float(model_params['slip']), float(model_params['dip']), float(model_params['rake']), X, Y)
-                #okada_deriv_param = np.ones((my, mx))
-                x_deriv = np.trapz(np.array(adjoint_grid[adjoint_keys[k]]).T*okada_deriv_param, dx=dx, axis=0) 
-                sum_ += np.trapz(x_deriv, dx=dy, axis=-1) #xlow, xlow+(dx*mx), ylow, ylow+(dy*my)
-            temp_dict[param] = sum_
-        grads[gauge+' height'] = temp_dict
     
-        # find the actual heights from geoclaw output
-        outputs[gauge+' height'] = model_output[gauge+' height']'''
+    def obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale):
+        first = np.exp(-(haversine(lat1, lon1, lat2, lon2)-loc)**2/scale**2)
+        second = 2/scale**2*(haversine(lat1,lon1,lat2,lon2)-loc)*haversine_deriv_lat(lat1,lon1,lat2,lon2)
+        return first * second 
+
+    def obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale):
+        first = np.exp(-(haversine(lat1, lon1, lat2, lon2)-loc)**2/scale**2)
+        second = 2/scale**2*(haversine(lat1,lon1,lat2,lon2)-loc)*haversine_deriv_lon(lat1,lon1,lat2,lon2)
+        return first * second
+    
+    def obs_deriv_lat_banda():
+        x = sy.symbols('x')
+        f = stats.skewnorm(a=2*x,loc=15,scale=5)
+        deriv = sy.Derivative(f, x)
+        return deriv
+
     #print('Values dependent on gauge location')
     # Values dependent on gauge location
+    g = 9.8
     for i, gauge in enumerate(gauges):
         grad, H = grads[f'{gauge.name} height'], model_output[f'{gauge.name} height'].values
         NN_grads = compute_nn_grads(grad, sample.values, strike_map, dip_map, depth_map, step)
+        # Set sample parameters
+        sample_lat, sample_lon, sample_m, sample_dll, sample_dlw, sample_do = sample.values
 
         # parameters from gauge likelihood (in gauge.py)
         loc=gauge.loc
@@ -292,6 +271,25 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
             dh_dmag=(H - loc) / scale**2 * NN_grads['dN_dmag']
             dh_ddll=(H - loc) / scale**2 * NN_grads['dN_ddll']
             dh_ddlw=(H - loc) / scale**2 * NN_grads['dN_ddlw']
+        #JPW:
+        if gauge.name == 'Banda Neira':
+            #print('H', H)
+            H=7.0
+            lat1, lon1, lat2, lon2 = gauge.lat, gauge.lon, sample_lat, sample_lon
+            dh_dlat += haversine_deriv_lat(lat1, lon1, lat2, lon2)/(np.sqrt(g*H))*obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
+            dh_dlon += haversine_deriv_lon(lat1, lon1, lat2, lon2)/np.sqrt(g*H)*obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
+            #dh_dlat += obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
+            #dh_dlon += obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
+
+        if gauge.name == 'Saparua':
+            H=7.0
+            lat1, lon1, lat2, lon2 = gauge.lat, gauge.lon, sample_lat, sample_lon
+            dh_dlat += haversine_deriv_lat(lat1, lon1, lat2, lon2)/(np.sqrt(g*H))*obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
+            dh_dlon += haversine_deriv_lon(lat1, lon1, lat2, lon2)/np.sqrt(g*H)*obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
+            #dh_dlat += obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
+            #dh_dlon += obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
+        #    calculate derivative of arrival time w.r.t. lat and lon
+        #    calculate deriviative of observational distributions w.r.t. arrival time
 
         if i == 0:
             # set derivative of depth offset to 0
@@ -335,15 +333,15 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
 
     # Precomputed derivative values based on prior distributions in main.py, and prior.py
     def d_lat_prior(lat, lon, do):
-        return float((depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std * d_depth_dlatlon[0])
+        return float((depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std**2 * d_depth_dlatlon[0])
 
     def d_lon_prior(lat, lon, do): return float((
-        depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std * d_depth_dlatlon[1])
+        depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std**2 * d_depth_dlatlon[1])
     d_mag_prior=1
     def d_dll_prior(dll): return float(dll / dll_std**2)
     def d_dlw_prior(dlw): return float(dlw / dlw_std**2)
     def d_do_prior(lat, lon, do): return float((
-        depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std * 1000 + do / do_std**2)
+        depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std**2 * 1000 + do / do_std**2)
 
     def neg_lprior_grad_fun(sample): return np.array([d_lat_prior(sample[0], sample[1], sample[5]), d_lon_prior(sample[0], sample[1], sample[5]), d_mag_prior, d_dll_prior(sample[3]), d_dlw_prior(sample[4]), d_do_prior(sample[0], sample[1], sample[5])])
 
