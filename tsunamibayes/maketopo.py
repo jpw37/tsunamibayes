@@ -88,9 +88,9 @@ def write_dtopo(dtopo_path,model_params):
     d = model_params['thickness'] # m
     V = model_params['volume']#w*l*d #(m^3)
     slide_params = [p_w,p_s,g,w,l,d,f,C_F]
-    start_coordinates = np.array([model_params['latitude'],model_params['longitude']])
+    start_coordinates = np.array([model_params['longitude'],model_params['latitude']])
     initial_vel = model_params['initial_velocity']
-
+    #write file in this function
     make_dtopo(slide_params, start_coordinates, step_seconds, initial_vel, simpsons_n, max_iter, dtopo_path, num_files)
 
     # fault = make_fault_dtopo(subfault_params,bounds,verbose=False)

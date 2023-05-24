@@ -18,25 +18,25 @@ class BandaPrior(BasePrior):
         ----------
         latlon : LatLonPrior Object
             Contains attirbutes fault and depth_dist, with methods logpdf, pdf, and rvs.
-        mag : scipy.stats rv_frozen object
-            A truncated continous random variable describing the sample's 
-            magnitude with fixed parameters shape, location and scale.
-        delta_logl : scipy.stats rv_frozen object
-            The continous random variable describing the sample's standard deviation for
-            the log of the length, also with fixed parameters. 
-        delta_logw : scipy.stats rv_frozen object
-            The continous random variable describing the sample's standard deviation for
-            the log of the width, also with fixed parameters. 
-        depth_offset : scipy.stats rv_frozen object
-            The continous random variable describing the sample's depth offset, 
-            also with fixed parameters. 
+        vel : scipy.stats rv_frozen object
+            A continous uniform random variable describing the sample's 
+            initial velocity with fixed parameters.
+        volume : VolumePrior Object
+            The continous random variable describing the sample's volume, also with fixed parameters. 
+        thickness : ThicknessPrior Object
+            The continous random variable describing the sample's thickness, also with fixed parameters. 
+        depth : DepthPrior Object
+            The continous random variable describing the sample's depth, 
+            also with fixed parameters (used in LatLonPrior). 
+        aspect ratio : scipy.stats rv_frozen object
+            A continuous uniform random variable describing the sample's aspect ratio with fixed parameters.
         """
         self.latlon = latlon
         self.initial_velocity = vel
         self.volume = volume
         self.thickness = thickness
         self.aspect_ratio = aspect_ratio
-
+        
     def logpdf(self,sample):
         """Computes the log of the probability density function. Adds
         together the logs of all the probability denisty functions for each
@@ -46,8 +46,8 @@ class BandaPrior(BasePrior):
         ----------
         sample : pandas Series of floats
             The series containing the arrays of information for a sample.
-            Contains keys 'latitude', 'longitude', 'magnitude', 'delta_logl',
-            'delta_logw', and 'depth_offset' with their associated float values. 
+            Contains keys 'latitude', 'longitude', 'initial_velocity', 'volume',
+            'thickness', and 'aspect_ratio' with their associated float values. 
         
         Returns
         -------
@@ -60,19 +60,24 @@ class BandaPrior(BasePrior):
         volume = sample["volume"]
         thickness = sample["thickness"]
         aspect_ratio = sample['aspect_ratio']
-        print("PRIOR VALUES")
+
+        print("PRIOR VALUES", flush = True)
+
         lpdf = self.latlon.logpdf(sample)
-        print('longitude/latitude val')
-        print(self.latlon.logpdf(sample))
+        print('longitude/latitude val', self.latlon.logpdf(sample), flush = True)
+
         lpdf += self.initial_velocity.logpdf(initial_velocity)
-        print('velocity val')
-        print(self.initial_velocity.logpdf(initial_velocity))
+        print('velocity val',self.initial_velocity.logpdf(initial_velocity), flush = True)
+
         lpdf += self.volume.logpdf(sample)
-        print('volume val')
-        print(self.volume.logpdf(sample))
+        print('volume val',self.volume.logpdf(sample), flush = True)
+
         lpdf += self.thickness.logpdf(thickness)
-        print('thickness val')
+        print('thickness val',self.thickness.logpdf(thickness), flush = True)
+
         lpdf += self.aspect_ratio.logpdf(aspect_ratio)
+        print('aspect_ratio val',self.aspect_ratio.logpdf(aspect_ratio), flush = True)
+
         return lpdf
 
     def rvs(self):
@@ -89,12 +94,14 @@ class BandaPrior(BasePrior):
         initial_velocity = self.initial_velocity.rvs()
         volume = self.volume.rvs()
         thickness = self.thickness.rvs()
-        params = np.array(latlon+[initial_velocity,volume,thickness])
+        aspect_ratio = self.aspect_ratio.rvs()
+        params = np.array(latlon+[initial_velocity,volume,thickness,aspect_ratio])
         return pd.Series(params,["latitude",
                                  "longitude",
                                  "initial_velocity",
                                  "volume",
-                                 "thickness"])
+                                 "thickness",
+                                 "aspect_ratio"])
 
 class LatLonPrior(BasePrior):
     def __init__(self,topo,depth_dist):
@@ -102,9 +109,7 @@ class LatLonPrior(BasePrior):
 
         Parameters
         ----------
-        fault :  GridFault Object
-            From the tsunamibayes module in fault.py 
-        depth_dist : scipy.stats rv_frozen object
+        depth_dist : DepthPrior Object
             The truncated continous random variable describing the depth 
             with fixed shape, location and scale parameters.
         """
@@ -112,7 +117,7 @@ class LatLonPrior(BasePrior):
         self.depth_dist = depth_dist
 
     def logpdf(self,sample):
-        """Checks to insure that the sample's subfaults are not out of bounds,
+        """Checks to insure that the sample is not out of bounds,
         then computes the log of the depth distribution's probability density function 
         evaluated at the sample's depth. 
         
@@ -126,28 +131,55 @@ class LatLonPrior(BasePrior):
         Returns
         -------
         NINF -or- logpdf : float
-            Returns negative inifity if out-of-bounds,
+            Returns negative inifity if out-of-bounds/landslide starts too close to land,
             otherwise returns the log of the probability density function 
             for the depth distribution evaluated at the sample's depth. 
         """
-        #check if coordinates are out of bounds
-        if sample['latitude'] < np.min(self.topo.x) or sample['latitude'] > np.max(self.topo.x):
+        def deg_to_km(deg):
+            return deg / .008
+
+        def km_to_deg(km):
+            return km * .008
+
+        def m_to_deg(meters):
+            return meters / 111000
+
+        def deg_to_m(deg):
+            return deg * 111000
+
+        # get length and width of landslide box
+        A = sample['volume']/sample['thickness']
+        w = np.sqrt(A * sample['aspect_ratio'])
+        l = np.sqrt(A / sample['aspect_ratio'])
+        # get index of starting coordinates
+        x_index = np.argmin(np.abs(self.topo.x - sample['longitude']))
+        y_index = np.argmin(np.abs(self.topo.y - sample['latitude']))
+        # get the number of grid points over the length of the box in x and y directions 
+        delta_x = self.topo.delta[0]
+        delta_y = self.topo.delta[1]
+        x_step = int(np.max(np.array([round((m_to_deg(w) / delta_x) / 2),1])))
+        y_step = int(np.max(np.array([round((m_to_deg(l) / delta_y) / 2),1])))
+        # check if coordinates are out of bounds (box of l x l) or above water (box of w x w)
+        # out of bounds
+        if sample['longitude'] < np.min(self.topo.x) or sample['longitude'] > np.max(self.topo.x):
             return np.NINF
-        if sample['longitude'] < np.min(self.topo.y) or sample['longitude'] > np.max(self.topo.y):
+        if sample['latitude'] < np.min(self.topo.y) or sample['latitude'] > np.max(self.topo.y):
             return np.NINF
-        in 
-        #get index of coordinates
-        y_index = np.argmin(np.abs(self.topo.y - sample['longitude']))
-        x_index = np.argmin(np.abs(self.topo.x - sample['latitude']))
-        #we check 4 corners of the box
-        delta_x = topo_file.delta[0]
-        delta_y = topo_file.delta[1]
-        x_step = np.max(np.array([round((m_to_deg(l) / delta_x) / 2),1]))
-        y_step = np.max(np.array([round((m_to_deg(l) / delta_y) / 2),1]))
-        #coordinates cannot start above water
-        if self.topo.Z[y_index,x_index] >=0 or self.topo.Z[y_index + x_step, x_index] >=0 or self.topo.Z[y_index - x_step,x_index] >=0 or self.topo.Z[y_index, x_index + y_step] >=0 or self.topo.Z[y_index - x_step, x_index - y_step] >=0:
+        if x_index + y_step >= len(self.topo.x) - 1 or x_index - y_step < 0:
             return np.NINF
-        #find depth at coordinates and return logpdf
+        if y_index + y_step >= len(self.topo.y) - 1 or y_index - y_step < 0:
+            return np.NINF
+        # above water (box of w x w around starting coordinate)
+        box_coordinates_x =  np.arange(x_index - x_step,x_index + x_step + 1,1) 
+        box_coordinates_y = np.arange(y_index - x_step, y_index + x_step + 1, 1) 
+        box_grid = np.meshgrid(box_coordinates_x,box_coordinates_y)
+        box_cord_list = np.append(box_grid[0].reshape(-1,1),box_grid[1].reshape(-1,1),axis=1).T
+        box_depth = np.array([self.topo.Z[pt[1],pt[0]] for pt in box_cord_list.T])
+        if np.any(box_depth > 10):
+            return np.NINF
+        if self.topo.Z[y_index,x_index] >=0: 
+            return np.NINF
+        # find depth at coordinates and return logpdf
         depth = -self.topo.Z[y_index,x_index]
         return self.depth_dist.logpdf(depth)
 
@@ -169,34 +201,62 @@ class LatLonPrior(BasePrior):
             The value of the probability density function for the depth distribution
             evaluated at the depth of the sample. 
         """
-        #check if coordinates are out of bounds
-        if sample['latitude'] < np.min(self.topo.x) or sample['latitude'] > np.max(self.topo.x):
+        def deg_to_km(deg):
+            return deg / .008
+
+        def km_to_deg(km):
+            return km * .008
+
+        def m_to_deg(meters):
+            return meters / 111000
+
+        def deg_to_m(deg):
+            return deg * 111000
+
+        # get length and width of landslide box
+        A = sample['volume']/sample['thickness']
+        w = np.sqrt(A * sample['aspect_ratio'])
+        l = np.sqrt(A / sample['aspect_ratio'])
+        # get index of starting coordinates
+        x_index = np.argmin(np.abs(self.topo.x - sample['longitude']))
+        y_index = np.argmin(np.abs(self.topo.y - sample['latitude']))
+        # get the number of grid points over the length of the box in x and y directions 
+        delta_x = self.topo.delta[0]
+        delta_y = self.topo.delta[1]
+        x_step = int(np.max(np.array([round((m_to_deg(l) / delta_x) / 2),1])))
+        y_step = int(np.max(np.array([round((m_to_deg(l) / delta_y) / 2),1])))
+        # check if coordinates are out of bounds or above water (including some points l away from our starting point)
+        # out of bounds
+        if sample['longitude'] < np.min(self.topo.x) or sample['longitude'] > np.max(self.topo.x):
             return np.NINF
-        if sample['longitude'] < np.min(self.topo.y) or sample['longitude'] > np.max(self.topo.y):
+        if sample['latitude'] < np.min(self.topo.y) or sample['latitude'] > np.max(self.topo.y):
             return np.NINF
-        #get index of coordinates
-        y_index = np.argmin(np.abs(self.topo.y - sample['longitude']))
-        x_index = np.argmin(np.abs(self.topo.x - sample['latitude']))
-        #coordinates cannot start above water
-        if self.topo.Z[y_index,x_index] >=0
+        if x_index + x_step >= len(self.topo.x) - 1 or x_index - x_step < 0:
             return np.NINF
-        #find depth at coordinates and return pdf
+        if y_index + y_step >= len(self.topo.y) - 1 or y_index - y_step < 0:
+            return np.NINF
+        # above water
+        if self.topo.Z[y_index,x_index] >=0 or self.topo.Z[y_index + y_step, x_index] >=0 or self.topo.Z[y_index - y_step,x_index] >=0 or self.topo.Z[y_index, x_index + x_step] >=0 or self.topo.Z[y_index, x_index - x_step] >=0:
+            return np.NINF
+        if self.topo.Z[y_index + y_step, x_index + x_step] >=0 or self.topo.Z[y_index - y_step,x_index + x_step] >=0 or self.topo.Z[y_index - y_step, x_index - x_step] >=0 or self.topo.Z[y_index + y_step, x_index - x_step] >=0:
+            return np.NINF
+        # find depth at coordinates and return pdf
         depth = -self.topo.Z[y_index,x_index]
         return self.depth_dist.pdf(depth)
 
-    # def rvs(self):
-    #     """Produces two random variate values for latitude and longitude
-    #     based on a random variate of the depth distribution.
+    def rvs(self):
+        """Produces two random variate values for latitude and longitude
+        based on a random variate of the depth distribution.
         
-    #     Returns
-    #     -------
-    #     lat, lon : (list) of floats
-    #         The random variates for latitude and longitude within the fault's bounds.
-    #     """
-    #     d = self.depth_dist.rvs()
-    #     I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
-    #     idx = np.random.randint(len(I))
-    #     return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
+        Returns
+        -------
+        lat, lon : (list) of floats
+            The random variates for latitude and longitude within the fault's bounds.
+        """
+        d = self.depth_dist.rvs()
+        I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
+        idx = np.random.randint(len(I))
+        return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
 
 
 class DepthPrior(BasePrior):
@@ -264,7 +324,6 @@ class DepthPrior(BasePrior):
         self.chi = chi
         self.distribution = self.gausser()
         
-        
     def gausser(self):
         """
         DEPTH
@@ -285,7 +344,6 @@ class DepthPrior(BasePrior):
         # return the sum of all the gaussian distributions
         return y
 
-    
     def logpdf(self, sample):
         """
         DEPTH
@@ -300,12 +358,10 @@ class DepthPrior(BasePrior):
         ------
         TypeError
             If the sample is not a float.
-        ValueError
-            If the sample is greater than the maximum limit.
         Returns
         -------
         NINF -or- logpdf : float
-            Returns negative infinity if negative,
+            Returns negative infinity if negative or greater than the maximum limit,
             otherwise returns the log of the probability density function
             for the depth distribution evaluated at the sample.
         """
@@ -314,15 +370,47 @@ class DepthPrior(BasePrior):
             raise TypeError(f"Sample must be a float or an int. Instead received {type(sample)} ({sample}).")
         if sample < 0: 
             return np.NINF
-        elif sample > self.max:
+        elif sample >= self.max:
             return np.NINF
-        elif sample < self.min:
+        elif sample <= self.min:
             return np.NINF
-
-        
+        print('DEPTH SAMPLE', sample)
         # return an array of the log probabilities  of volume at the given slope
         return np.log(self.distribution[int(sample * self.density / self.max)])
+  
+    def pdf(self, sample):
+        """
+        DEPTH
+        Checks to ensure that the sample is greater than zero,
+        then computes the depth distribution's probability density
+        function evaluated at the sample.
+        Parameters
+        ----------
+        sample : float
+            A float representating a sample between zero and self.max.
+        Raises
+        ------
+        TypeError
+            If the sample is not a float.
+        Returns
+        -------
+        NINF -or- logpdf : float
+            Returns negative infinity if negative or greater than the maximum limit,
+            otherwise returns the probability density function
+            for the depth distribution evaluated at the sample.
+        """
+        # check input and bounds on depth sample
+        if not isinstance(sample, (int, float, np.integer, np.float)):
+            raise TypeError(f"Sample must be a float or an int. Instead received {type(sample)} ({sample}).")
+        if sample < 0: 
+            return np.NINF
+        elif sample >= self.max:
+            return np.NINF
+        elif sample <= self.min:
+            return np.NINF
 
+        # return an array of the log probabilities  of volume at the given slope
+        return self.distribution[int(sample * self.density / self.max)]
     
     def rvs(self, n=1):
         """
@@ -377,6 +465,7 @@ class DepthPrior(BasePrior):
         plt.xlabel("Depth $(m)$")
         plt.ylabel("Confidence")
         plt.show()
+
 
 class VolumePrior(BasePrior):
     """
@@ -485,7 +574,6 @@ class VolumePrior(BasePrior):
         # return the sum of all the gaussian distributions
         return total
 
-    
     def logpdf(self,sample):
         """
         VOLUME
@@ -502,12 +590,10 @@ class VolumePrior(BasePrior):
         ------
         TypeError
             If sample is not a float.
-        ValueError
-            If sample is greater than the maximum limit.
         Returns
         -------
         NINF -or- logpdf : float
-            Returns negative infinity if negative,
+            Returns negative infinity if negative or above the max volume/slope,
             otherwise returns the log of the probability density function
             for the volume distribution evaluated at the sample's slope.
         """
@@ -522,19 +608,20 @@ class VolumePrior(BasePrior):
 
         def deg_to_m(deg):
             return deg * 111000
-        print(sample)
+
         # convert to km^3 instead of m^3
         sample_volume = sample['volume'] / (1000**3)
-        latitude = sample['latitude']
-        longitude = sample['longitude']
+        # get slope at lat/lon coordinates
         bathy = scipy.interpolate.RectBivariateSpline(self.topo.x, self.topo.y, self.topo.Z.transpose())
-        elev1 = bathy(latitude + self.topo.delta[0], longitude)
-        elev2 = bathy(latitude - self.topo.delta[0], longitude) 
-        elev3 = bathy(latitude, longitude - self.topo.delta[0]) 
-        elev4 = bathy(latitude, longitude + self.topo.delta[0])
+        elev1 = bathy(sample['longitude'] + self.topo.delta[0], sample['latitude'])
+        elev2 = bathy(sample['longitude'] - self.topo.delta[0], sample['latitude']) 
+        elev3 = bathy(sample['longitude'], sample['latitude'] - self.topo.delta[1]) 
+        elev4 = bathy(sample['longitude'], sample['latitude'] + self.topo.delta[1])
         theta_lon = np.arctan(np.abs((elev1 - elev2)) / deg_to_m(2*self.topo.delta[0]))[0][0]
-        theta_lat = np.arctan(np.abs((elev3 - elev4)) / deg_to_m(2*self.topo.delta[0]))[0][0]
+        theta_lat = np.arctan(np.abs((elev3 - elev4)) / deg_to_m(2*self.topo.delta[1]))[0][0]
+        # average lat/lon slope
         sample_slope = ((theta_lat + theta_lon) / 2)
+
         # check input and bounds on depth sample
         if not isinstance(sample_slope, (int, float, np.integer, np.float)):
             raise TypeError(f"Sample_slope must be a float or an int. Instead received {type(sample_slope)} ({sample_slope}).")
@@ -552,8 +639,72 @@ class VolumePrior(BasePrior):
         volume_index = int(sample_volume * self.density_volume / self.max_volume)
         return np.log(self.distribution[volume_index][slope_index])
 
-    
-    
+    def pdf(self,sample):
+        """
+        VOLUME
+        Checks to ensure that the sample's slope and volume are greater than zero,
+        then computes the log of the volume distribution's probability density
+        function evaluated at the sample's slope and volume.
+        Parameters
+        ----------
+        sample_slope : float
+            A float representating a sample slope between zero and max_slope.
+        sample_volume : float
+            A float representating a sample volume between zero and max_volume.
+        Raises
+        ------
+        TypeError
+            If sample is not a float.
+        Returns
+        -------
+        NINF -or- pdf : float
+            Returns negative infinity if negative or above the max volume/slope,
+            otherwise returns the probability density function
+            for the volume distribution evaluated at the sample's slope.
+        """
+
+        def deg_to_km(deg):
+            return deg / .008
+
+        def km_to_deg(km):
+            return km * .008
+
+        def m_to_deg(meters):
+            return meters / 111000
+
+        def deg_to_m(deg):
+            return deg * 111000
+
+        # convert to km^3 instead of m^3
+        sample_volume = sample['volume'] / (1000**3)
+        # get slope at lat/lon coordinates
+        bathy = scipy.interpolate.RectBivariateSpline(self.topo.x, self.topo.y, self.topo.Z.transpose())
+        elev1 = bathy(sample['longitude'] + self.topo.delta[0], sample['latitude'])
+        elev2 = bathy(sample['longitude'] - self.topo.delta[0], sample['latitude']) 
+        elev3 = bathy(sample['longitude'], sample['latitude'] - self.topo.delta[1]) 
+        elev4 = bathy(sample['longitude'], sample['latitude'] + self.topo.delta[1])
+        theta_lon = np.arctan(np.abs((elev1 - elev2)) / deg_to_m(2*self.topo.delta[0]))[0][0]
+        theta_lat = np.arctan(np.abs((elev3 - elev4)) / deg_to_m(2*self.topo.delta[1]))[0][0]
+        # average lat/lon slope
+        sample_slope = ((theta_lat + theta_lon) / 2)
+
+        # check input and bounds on depth sample
+        if not isinstance(sample_slope, (int, float, np.integer, np.float)):
+            raise TypeError(f"Sample_slope must be a float or an int. Instead received {type(sample_slope)} ({sample_slope}).")
+        if not isinstance(sample_volume, (int, float, np.integer, np.float)):
+            raise TypeError(f"Sample_volume must be a float or an int. Instead received {type(sample_volume)} ({sample_volume}).")
+        if sample_slope < 0 or sample_volume < 0:
+            return np.NINF
+        if sample_slope > self.max_slope:
+            return np.NINF
+        if sample_volume > self.max_volume:
+            return np.NINF
+            
+        # return the log probabilities at the given slope and volume
+        slope_index = int(sample_slope * self.density_slope / self.max_slope)
+        volume_index = int(sample_volume * self.density_volume / self.max_volume)
+        return self.distribution[volume_index][slope_index]
+
     def rvs(self, n=1):
         """
         VOLUME
@@ -666,7 +817,6 @@ class ThicknessPrior(BasePrior):
         if sigma < 0 or max_t < 0 or density < 0:
             raise ValueError(f"Input out of bounds. Expected all positive parameters but received:\n\tSigma:\t\t{sigma}\n\tMax Thickness:  {max_t}\n\tDensity:\t{density}")
         
-        
         # import data
         df_array = np.asarray(pd.read_csv("./data/Landslide_Gauss_Parameters_Thickness.csv"))
             
@@ -676,7 +826,6 @@ class ThicknessPrior(BasePrior):
         self.thickness = np.array([[x for x in df_array[0:20, 2] if not math.isnan(float(x))]])
         self.sigma = sigma
         self.distribution = self.gausser()
-        
         
     def gausser(self):
         """
@@ -697,7 +846,6 @@ class ThicknessPrior(BasePrior):
 
         # return the sum of all the gaussian distributions
         return y
-
     
     def logpdf(self, sample):
         """
@@ -713,12 +861,10 @@ class ThicknessPrior(BasePrior):
         ------
         TypeError
             If sample is not a float.
-        ValueError
-            If sample is greater than the maximum limit.
         Returns
         -------
         NINF -or- logpdf : float
-            Returns negative infinity if negative,
+            Returns negative infinity if negative or greater than the maximum limit,
             otherwise returns the log of the probability density function
             for the thickness distribution evaluated at the sample.
         """
@@ -733,7 +879,38 @@ class ThicknessPrior(BasePrior):
         # return an array of the log probabilities  of volume at the given slope
         return np.log(self.distribution[int(sample * self.density / self.max)])
 
-    
+    def pdf(self, sample):
+        """
+        THICKNESS
+        Checks to ensure that the sample is greater than zero,
+        then computes the thickness distribution's probability density
+        function evaluated at the sample.
+        Parameters
+        ----------
+        sample : float
+            A float representating a sample between zero and self.max.
+        Raises
+        ------
+        TypeError
+            If sample is not a float.
+        Returns
+        -------
+        NINF -or- pdf : float
+            Returns negative infinity if negative or greater than the maximum limit,
+            otherwise returns the probability density function
+            for the thickness distribution evaluated at the sample.
+        """
+        # check input and bounds on thickness sample
+        if not isinstance(sample, (int, float, np.integer, np.float)):
+            raise TypeError(f"Sample must be a float or an int. Instead received {type(sample)} ({sample}).")
+        elif sample < 0:
+            return np.NINF
+        elif sample > self.max:
+            return np.NINF
+        
+        # return an array of the log probabilities  of volume at the given slope
+        return self.distribution[int(sample * self.density / self.max)]
+
     def rvs(self, n=1):
         """
         THICKNESS
@@ -763,7 +940,6 @@ class ThicknessPrior(BasePrior):
         # get the thickness indices
         prob = np.array([i for i, val in enumerate(self.distribution) for freq in range(int(1000*val))])
         thickness = np.random.choice(prob, n)
-#         thickness = np.random.randint(0, self.density, n)
 
         # find their probabilities and return as a float or array
         sample = [self.distribution[t] for t in thickness]

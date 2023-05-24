@@ -153,7 +153,7 @@ def make_setrun(config):
 
         # Desired Courant number if variable dt used, and max to allow without
         # retaking step with a smaller dt:
-        clawdata.cfl_desired = 0.5
+        clawdata.cfl_desired = 0.75
         clawdata.cfl_max = 1.0
 
         # Maximum number of time steps to allow between output times:

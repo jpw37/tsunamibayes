@@ -29,22 +29,25 @@ def setup(config):
     # Banda Arc fault object
     # arrays = np.load(config.fault['grid_data_path'])
     # fault = tb.GridFault(bounds=config.model_bounds,**arrays)
+
+    # load topography file
     topo_file = topo.Topography()
     topo_file.read('./data/topo/base.tt3', topo_type=3)
     # Priors
-    depth_mu = config.prior['depth_mu']
-    depth_std = config.prior['depth_std']
-    mindepth = config.prior['mindepth']
-    maxdepth = config.prior['maxdepth']
-    a,b = (mindepth - depth_mu) / depth_std, (maxdepth - depth_mu) / depth_std
+    # depth_mu = config.prior['depth_mu']
+    # depth_std = config.prior['depth_std']
+    # mindepth = config.prior['mindepth']
+    # maxdepth = config.prior['maxdepth']
+
     # depth prior (to be used in lat/lon prior)
     depth_dist = DepthPrior()
     # lat/lon prior
     latlon = LatLonPrior(topo_file,depth_dist)
     # initial velocity prior
-    vel = stats.uniform(10,100)
+    vel = stats.uniform(10,100 - 10)
     # aspect ratio prior
-    aspect_ratio = stats.uniform(.3,1)
+    aspect_ratio = stats.uniform(.3,1 - .3)
+    # volume prior
     volume = VolumePrior(topo_file)
     # thickness prior
     thickness = ThicknessPrior()
