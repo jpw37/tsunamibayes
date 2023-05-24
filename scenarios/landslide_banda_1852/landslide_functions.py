@@ -62,7 +62,7 @@ def u(t,theta,v_0,down,slide_params):
         if v_0 > np.sqrt(b) / np.sqrt(c):
             vel = np.sqrt(b)*(1/np.tanh(((np.sqrt(b)*np.sqrt(c)*t)/a) 
                                      + np.arctanh(np.sqrt(b) / (np.sqrt(c)*v_0)))) / np.sqrt(c)
-
+    #we do not allow changing the direction of movement
     if isinstance(vel, float):
         if vel >=0:    
             return vel
@@ -111,36 +111,25 @@ def center_mass_path(coordinates, topo_file, seconds, max_iters, initial_vel, si
     grid_vel = []
     # find delta from original grid (less likely results will come from the interpolation)
     delta = np.max([topo_file.delta[0],topo_file.delta[0]])
-    print('Delta', delta)
     long_min, long_max, lat_min, lat_max = topo_file.extent
-#     v_lon_s, v_lat_s = [initial_vel[0],initial_vel[1]]
     thetas = []
     slope_vel = []
-    # note we will change signs[0] to be in the downslope direction, this may not be [1,1]
     signs_slope = []
-    
+    # get elevation offsets
     elev1 = bathy(coordinates[0] + delta, coordinates[1])[0][0]
     elev2 = bathy(coordinates[0] - delta, coordinates[1])[0][0]
     elev3 = bathy(coordinates[0], coordinates[1] + delta)[0][0]
     elev4 = bathy(coordinates[0], coordinates[1] - delta)[0][0]
-    print('Coordinates')
-    print(coordinates[0] + delta, coordinates[1])
-    print(coordinates[0] - delta, coordinates[1])
-    print(coordinates[0], coordinates[1] + delta)
-    print(coordinates[0], coordinates[1] - delta)
-    print('Elevation',elev1,elev2,elev3,elev4)
     # determine the direction of the slope (positive is up and right respectively)
     sign_lon = (elev2 - elev1) / np.abs(elev2 - elev1)
     sign_lat = (elev4 - elev3) / np.abs(elev4 - elev3)
-        
+    
     # find the angle of the slope determined by elevation offsets
     theta_lon = np.arctan(np.abs((elev1 - elev2)) / deg_to_m(2*delta))
     theta_lat = np.arctan(np.abs((elev3 - elev4)) / deg_to_m(2*delta))
     ratio = theta_lon / theta_lat
     v_lat_s = initial_vel / (ratio + 1) 
     v_lon_s = ratio * v_lat_s
-    print(v_lat_s)
-    print(v_lon_s)
     signs_vel = [sign_lon,sign_lat]
 
     for i in range(max_iters):
@@ -166,7 +155,6 @@ def center_mass_path(coordinates, topo_file, seconds, max_iters, initial_vel, si
         theta_lat = np.arctan(np.abs((elev3 - elev4)) / deg_to_m(2*delta))
         thetas.append(np.array([theta_lon,theta_lat]))
 
-    
         # if we are changing the direction we are moving in longitude
         if signs_slope[-1][0] != signs_vel[0]:
             v_lon_s = u(seconds,theta_lon,np.abs(v_lon_s), False,slide_params)
@@ -185,13 +173,12 @@ def center_mass_path(coordinates, topo_file, seconds, max_iters, initial_vel, si
             v_lat_s = u(seconds,theta_lat, np.abs(v_lat_s), True,slide_params)
             meters_lat_s = simpsons(0,seconds,simpsons_n,u,theta_lat,np.abs(v_lat_s), True,slide_params)
        
-        # store our velocity on the slope
+        # store velocity on the slope
         v_lon_s = np.abs(v_lon_s) * signs_vel[0]
         v_lat_s = np.abs(v_lat_s) * signs_vel[1]
-        
+        # store meters on the slope
         meters_lon_s = np.abs(meters_lon_s) * signs_vel[0]
         meters_lat_s = np.abs(meters_lat_s) * signs_vel[1]
-        
         slope_vel.append([v_lon_s,v_lat_s])
         
         # find the velocity on the grid
@@ -210,7 +197,7 @@ def center_mass_path(coordinates, topo_file, seconds, max_iters, initial_vel, si
         
         # break statement using velocity
         if i >=30:
-            if np.linalg.norm(slope_vel[-1]) < 1:
+            if np.linalg.norm(slope_vel[-1]) < 5:
                 break
         # out of bounds
         if coordinates[0] - delta < long_min or coordinates[0] + delta > long_max:
@@ -226,8 +213,6 @@ def center_mass_path(coordinates, topo_file, seconds, max_iters, initial_vel, si
     return points, grid_vel, slope_vel, thetas
 
 
-
-
 def F(A, theta):
     """Rotate the points in A about the origin by theta radians.
     Parameters:
@@ -237,6 +222,7 @@ def F(A, theta):
     B = np.array([[-np.cos(theta), np.sin(theta)], [np.sin(theta), np.cos(theta)]])
     C = B @ A
     return C
+
 
 def getfillPoints(corners, X):
     """
@@ -320,7 +306,6 @@ def landslide_boxes(points,thickness,width,length,intermediate_steps,topo_file):
             else:
                 angle = sign*np.arccos(point2[0]/np.sqrt(point2[0]**2 + point2[1]**2))
                 angles.append(angle)
-                
                 
         # read in topography file and set elevation to 0
         topo_file_next = topo.Topography()
