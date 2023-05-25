@@ -274,7 +274,11 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
         #JPW:
         if gauge.name == 'Banda Neira':
             #print('H', H)
+<<<<<<< HEAD
             #H=5.0
+=======
+            H=7.0
+>>>>>>> f28bfa6ff0e205f45b73281da4135755ae1b84be
             lat1, lon1, lat2, lon2 = gauge.lat, gauge.lon, sample_lat, sample_lon
             dh_dlat += haversine_deriv_lat(lat1, lon1, lat2, lon2)/(np.sqrt(g*H))*obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
             dh_dlon += haversine_deriv_lon(lat1, lon1, lat2, lon2)/np.sqrt(g*H)*obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
@@ -282,7 +286,11 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
             #dh_dlon += obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
 
         if gauge.name == 'Saparua':
+<<<<<<< HEAD
             #H=5.0
+=======
+            H=7.0
+>>>>>>> f28bfa6ff0e205f45b73281da4135755ae1b84be
             lat1, lon1, lat2, lon2 = gauge.lat, gauge.lon, sample_lat, sample_lon
             dh_dlat += haversine_deriv_lat(lat1, lon1, lat2, lon2)/(np.sqrt(g*H))*obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
             dh_dlon += haversine_deriv_lon(lat1, lon1, lat2, lon2)/np.sqrt(g*H)*obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)

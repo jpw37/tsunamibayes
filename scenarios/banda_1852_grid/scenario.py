@@ -37,7 +37,11 @@ class BandaScenario(BaseScenario):
 #                            self.fault.depth_map, config, forward_model)
 
 
+<<<<<<< HEAD
     def propose(self, sample, mode='random_walk', time_steps=10, epsilon=.00001, delta=0.01):
+=======
+    def propose(self, sample, mode='random_walk', time_steps=25, epsilon=.00001, delta=0.01):
+>>>>>>> f28bfa6ff0e205f45b73281da4135755ae1b84be
         """Random walk proposal of a new sample using a multivariate normal.
 
         Parameters
@@ -210,7 +214,11 @@ class BandaScenario(BaseScenario):
         model_params['rake'] = rake
         return model_params
 
+<<<<<<< HEAD
     def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=10, epsilon=.00001, output_dir=None, save_freq=1, verbose=False):
+=======
+    def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=25, epsilon=.00001, output_dir=None, save_freq=1, verbose=False):
+>>>>>>> f28bfa6ff0e205f45b73281da4135755ae1b84be
         """Draw samples from the posterior distribution using the Metropolis-Hastings
         algorithm.
 
