@@ -197,7 +197,21 @@ class GeoClawForwardModel(BaseForwardModel):
             rake=model_params['walanae_rake']
         )
 
+        mystery_subfault_params = self.fault[2].subfault_split_RefCurve(
+            lat=model_params['mystery_latitude'],
+            lon=model_params['mystery_longitude'],
+            length=model_params['mystery_length'],
+            width=model_params['mystery_width'],
+            slip=model_params['mystery_slip'],
+            depth_offset=model_params['mystery_depth_offset'],
+            dip_offset=model_params['mystery_dip_offset'],
+            rake_offset=model_params['mystery_rake_offset'],
+            strike_offset=model_params['mystery_strike_offset'],
+            rake=model_params['mystery_rake']
+        )
+
         subfault_params = flores_subfault_params.append(walanae_subfault_params)
+        subfault_params = flores_subfault_params.append(mystery_subfault_params)
         ########################################################################
         
         ########################################################################
