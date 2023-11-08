@@ -104,6 +104,148 @@ class CompositeForwardModel(BaseForwardModel):
         for submodel in submodels:
             llh += submodel.llh(model_output,verbose)
         return llh
+class ToyForwardModel(BaseForwardModel):
+    obstypes = ['arrival', 'height', 'inundation']
+    def __init__(self, gauges, fault, dtopo_path):
+        """Initializes all the necessary variables for the GeoClawForwardModel
+                subclass.
+
+                Parameters
+                ----------
+                gauges : (list) of Gauge objects
+                    The list of gauge objects containing location data and distribution
+                    functions for the arrival, height, and inundation parameters for
+                    each gauge location.
+                fault : Fault object
+                    Ususally a previously constructed GridFault object.
+                dtopo_path : string
+                    The name of the .tt3 file location containing the GeoClaw
+                    information of dtopo. Used later on to create and write the dtopo
+                    file.
+                """
+        super().__init__(gauges)
+        self.fault = fault
+        self.dtopo_path = dtopo_path
+
+    def run(self, model_params, verbose=False):
+        """Runs the forward model for a specified sample's model parameters,
+        then returns the computed arrival times, wave heights, and inundation
+        distances for each gauge location, as appropriate.
+        Essentially, this function works 'backwards' from a sample model of the
+        fault rupture's parameters to compute what the gauge's observations
+        would have been like for that given earthquake event sample.
+
+        Parameters
+        ----------
+        model_params : dict
+            The sample's model parameters. The dictionary whose keys are the
+            okada parameters: 'latitude', 'longitude', 'depth_offset',
+            'strike', 'length', 'width', 'slip', 'depth', 'dip', 'rake', and
+            whose associated values are floats.
+        verbose : bool
+            Flag for verbose output, optional. Default is False.
+
+        Returns
+        -------
+        model_output : pandas Series
+            A pandas series whose axes labels are the cominations of the
+            scenario's gauges names plus 'arrivals', 'height', or 'inundation'.
+            The associated values are floats.
+        """
+        ########################################################################
+        # # split fault into subfaults aligning to fault zone geometry
+        # subfault_params = self.fault.subfault_split_RefCurve(
+        #     lat=model_params['latitude'],
+        #     lon=model_params['longitude'],
+        #     length=model_params['length'],
+        #     width=model_params['width'],
+        #     slip=model_params['slip'],
+        #     depth_offset=model_params['depth_offset'],
+        #     dip_offset=model_params['dip_offset'],
+        #     rake_offset=model_params['rake_offset'],
+        #     strike_offset=model_params['strike_offset'],
+        #     rake=model_params['rake']
+        # )
+        ########################################################################
+
+        ########################################################################
+        # # I think every mention of fault will have to be replaced by fault[index]
+        #
+        # # create and write dtopo file
+        # write_dtopo(
+        #     subfault_params, self.fault.bounds, self.dtopo_path, verbose
+        # )
+        ########################################################################
+
+        # # clear .output
+        # os.system('rm .output')
+        #
+        # # run GeoClaw
+        # os.system('make .output')
+
+        # # load fgmax and bathymetry data
+        # fgmax_data = np.loadtxt(self.valuemax_path)
+        # bath_data = np.loadtxt(self.aux1_path)
+        # print('********')
+        # print('GeoClawForwardModel.run() data:')
+        # with open(self.valuemax_path, 'r') as vm_file:
+        #     print(self.valuemax_path, ':')
+        #     print(vm_file.read())
+        # with open(self.aux1_path, 'r') as aux1_file:
+        #     print(self.aux1_path, ':')
+        #     print(aux1_file.read())
+        # print('PRINTING fgmax_data')
+        # print(fgmax_data)
+        # print("PRINTING bath_data")
+        # print(bath_data)
+        # print("Done printing GeoClawForwardModel.run() data.")
+        # print("********")
+
+        # this is the arrival time of the first wave, not the maximum wave
+        # converting from seconds to minutes
+        # arrival_times = fgmax_data[:, -1] / 60
+        #
+        # max_heights = fgmax_data[:, 3]
+        # bath_depth = bath_data[:, -1]
+        from Simplified Formula 2.0 import WaveHeight
+        wave_height = WaveHeight(dictionary_of_parameters)
+
+        #Need to call the toy model
+        arrival_times = None
+        max_heights = None
+        bath_depth = None
+
+
+        # these are locations where the wave never reached the gauge.
+        max_heights[max_heights < 1e-15] = -9999
+        max_heights[np.abs(max_heights) > 1e15] = -9999
+
+        bath_depth[max_heights == 0] = 0
+        wave_heights = max_heights + bath_depth
+
+        model_output = pd.Series(dtype='float64')
+        idx_gauge_start = 0
+        idx_gauge_end = 0
+        for i, gauge in enumerate(self.gauges):
+            num_pts_in_this_gauge = len(gauge.lat)
+            idx_gauge_end += num_pts_in_this_gauge
+            if 'arrival' in gauge.obstypes:
+                model_output[gauge.name + ' arrival'] = np.mean(
+                    arrival_times[idx_gauge_start:idx_gauge_end]
+                )
+            if 'height' in gauge.obstypes:
+                model_output[gauge.name + ' height'] = np.mean(
+                    wave_heights[idx_gauge_start:idx_gauge_end]
+                )
+            if 'inundation' in gauge.obstypes:
+                model_output[gauge.name + ' inundation'] = models.inundation(
+                    np.mean(wave_heights[idx_gauge_start:idx_gauge_end]),
+                    gauge.beta,
+                    gauge.n
+                )
+            idx_gauge_start += num_pts_in_this_gauge
+
+        return model_output
 
 
 class GeoClawForwardModel(BaseForwardModel):
