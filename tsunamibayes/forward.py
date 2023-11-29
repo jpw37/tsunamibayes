@@ -104,28 +104,31 @@ class CompositeForwardModel(BaseForwardModel):
         for submodel in submodels:
             llh += submodel.llh(model_output,verbose)
         return llh
+
+
 class ToyForwardModel(BaseForwardModel):
     obstypes = ['arrival', 'height', 'inundation']
     def __init__(self, gauges, fault, dtopo_path):
         """Initializes all the necessary variables for the GeoClawForwardModel
-                subclass.
+        subclass.
 
-                Parameters
-                ----------
-                gauges : (list) of Gauge objects
-                    The list of gauge objects containing location data and distribution
-                    functions for the arrival, height, and inundation parameters for
-                    each gauge location.
-                fault : Fault object
-                    Ususally a previously constructed GridFault object.
-                dtopo_path : string
-                    The name of the .tt3 file location containing the GeoClaw
-                    information of dtopo. Used later on to create and write the dtopo
-                    file.
-                """
+        Parameters
+        ----------
+        gauges : (list) of Gauge objects
+            The list of gauge objects containing location data and distribution
+            functions for the arrival, height, and inundation parameters for
+            each gauge location.
+        fault : Fault object
+            Ususally a previously constructed GridFault object.
+        dtopo_path : string
+            The name of the .tt3 file location containing the GeoClaw
+            information of dtopo. Used later on to create and write the dtopo
+            file.
+        """
         super().__init__(gauges)
         self.fault = fault
         self.dtopo_path = dtopo_path
+        self.gauges = gauges
 
     def run(self, model_params, verbose=False):
         """Runs the forward model for a specified sample's model parameters,
@@ -207,14 +210,35 @@ class ToyForwardModel(BaseForwardModel):
         #
         # max_heights = fgmax_data[:, 3]
         # bath_depth = bath_data[:, -1]
-        from Simplified Formula 2.0 import WaveHeight
-        wave_height = WaveHeight(dictionary_of_parameters)
+        # from Simplified Formula 2.0 import WaveHeight
+        # wave_height = WaveHeight(dictionary_of_parameters)
 
         #Need to call the toy model
         arrival_times = None
         max_heights = None
         bath_depth = None
 
+        # write this code the right way lol
+        # move magic numbers into attributes or parameters to be passed in
+        # write the grid reading so that it reads magic numbers as necessary
+        # write docstrings for the rest of the functions
+        # anything else to make the models bathymetry data agnostic
+        # talk to prof whitehead about data
+
+        # import HeightModel
+        # import TimeModel
+        # model_output = pd.Series(dtype='float64')
+
+        # for gauge in self.gauges:
+        #     time_ = time_model(guage info)
+        #     time, path = time_.dijkstras_algorithm()
+        #     height = height_model(guage info, path)
+        #     if 'arrival' in gauge.obstypes:
+        #         model_output[gauge.name + ' arrival'] = time
+        #     if 'height' in gauge.obstypes:
+        #         model_output[gauge.name + ' height'] = height
+
+        # return model_output
 
         # these are locations where the wave never reached the gauge.
         max_heights[max_heights < 1e-15] = -9999
