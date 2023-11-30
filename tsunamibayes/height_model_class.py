@@ -30,7 +30,7 @@ class HeightModel:
         return my_array
 
     def create_y(self):
-        # Generate an array representing longitude coordinates in order to interpolate the depth at a specific latlon coordinate
+        # Generate an array representing latitude coordinates in order to interpolate the depth at a specific latlon coordinate
         start_value = -9.508333333333
         step = 0.016666666667
         array_length = 421
@@ -45,27 +45,36 @@ class HeightModel:
             new_line = [int(num) for num in line]
             matrix.append(new_line)
         return matrix[::-1]
+        # Reversing the bathymetry data is necessary because the get_depth
+        # function requires that the x and y arrays be strictly increasing
 
     def readlines(self, filename):
         with open(filename) as file:
             return file.readlines()
 
-    def writelines(self, filename, content):
-        with open(filename, "w") as file:
-            file.writelines(content)
 
     def read_file_into_matrix(self, infile):
         lines = self.readlines(infile)
         matrix = self.make_matrix(lines)
         return np.array(matrix).T
+        # Transposing the bathymetry data is necessary because the get_depth
+        # function requires that the x and y arrays be strictly increasing
 
     def get_depth(self, lon, lat):
         # Interpolate depth at a given longitude and latitude using the bathymetry matrix
-        x = self.create_x()
-        y = self.create_y()
-        z = np.array(self.matrix)
+
+        # Create arrays representing longitude and latitude coordinates for interpolation
+        x = self.create_x()  # Longitude coordinates array
+        y = self.create_y()  # Latitude coordinates array
+
+        z = np.array(self.matrix)  # Bathymetry matrix
+
+        # Create a bivariate spline interpolation function using the given coordinates and matrix
         interp_function = RectBivariateSpline(x, y, z)
+
+        # Interpolate depth at the provided longitude and latitude
         interp_value = interp_function(lon, lat)
+
         return interp_value[0][0]
 
     def depth_at_source(self):
@@ -74,12 +83,14 @@ class HeightModel:
         return abs(depth)
 
     def alpha(self):
-        a = (1 - (dip/180)) * math.sin(np.deg2rad(dip)) * abs(math.sin(np.deg2rad(rake)))
-        return a
+        # Alpha is the fraction of earthquake slip that transforms into tsunami-making uplift
+        # Used to calculated initial tsunami height
+        return (1 - (dip/180)) * math.sin(np.deg2rad(dip)) * abs(math.sin(np.deg2rad(rake)))
 
     def initial_tsunami_amplitude(self):
-        a_naught = (self.alpha() * self.slip) / (math.cosh(np.deg2rad((4 * math.pi * self.depth_at_source())/(self.width + self.length))))
-        return a_naught
+        # Calculate the initial amplitude of the tsunami wave using the given parameters.
+        # Alpha is the fraction of earthquake slip that transforms into tsunami-making uplift
+        return (self.alpha() * self.slip) / (math.cosh(np.deg2rad((4 * math.pi * self.depth_at_source())/(self.width + self.length))))
 
     def mean_depth(self):
         # Compute the mean depth along the shortest time path
@@ -87,8 +98,9 @@ class HeightModel:
         return abs(sum(depth_lst) / len(depth_lst))
 
     def psi(self):
-        p = .5 + (0.575 * math.exp(-.0175 * (self.length / self.mean_depth())))
-        return p
+        # Used to calculate propagation loss
+        # Function of fault length and mean depth
+        return .5 + (0.575 * math.exp(-.0175 * (self.length / self.mean_depth())))
 
     def haversine(self):
         """Computes great-circle distance between sets of lat-lon coordinates on a
@@ -124,16 +136,17 @@ class HeightModel:
         return 2*R*np.arcsin(np.sqrt(term))
 
     def propagation_loss(self):
-        p = (1 + ((2 * self.haversine()) / self.length)) ** self.psi()
-        return p
+        # Propagation loss is the wave decay that tsunamis face as they travel due to geometrical spreading and frequency dispersion.
+        # Function of distance from epicenter(haversine), fault length, and psi
+        return (1 + ((2 * self.haversine()) / self.length)) ** self.psi()
 
     def shoaling_correction(self):
-        s_l = (self.depth_at_source()/self.mean_depth()) ** .25
-        return s_l
+        # Function of the depth at the source and mean depth of the tsunami path
+        return (self.depth_at_source()/self.mean_depth()) ** .25
 
     def wave_height(self):
-        a_s_r = self.initial_tsunami_amplitude() * self.propagation_loss() * self.shoaling_correction()
-        return a_s_r
+        # Calculates shoaled tsunami amplitude(essentially wave height) at the point lat2, lon2
+        return self.initial_tsunami_amplitude() * self.propagation_loss() * self.shoaling_correction()
 
 
 if __name__ == '__main__':
