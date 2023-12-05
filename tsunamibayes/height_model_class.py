@@ -17,23 +17,31 @@ class HeightModel:
         self.lon2 = lon2
         self.shortest_time_path = shortest_time_path
 
-        # Call the method to read the matrix once during initialization
-        # How are we going to read in the bathymetry data?? I don't know how to format this lol
-        self.matrix = self.read_file_into_matrix(sys.argv[1])
+        # Read the bathymetry data from a file (specified by sys.argv[1])
+        self.lines = self.readlines(sys.argv[1])
+
+        # Extract grid properties (ncols, nrows, etc.) from the read lines
+        self.ncols = int(self.lines[0].split()[0])  # Extract the number of columns
+        self.nrows = int(self.lines[1].split()[0])  # Extract the number of rows
+        self.xllcorner = float(self.lines[2].split()[0])  # Extract x-coordinate of lower left corner
+        self.yllcorner = float(self.lines[3].split()[0])  # Extract y-coordinate of lower left corner
+        self.cellsize = float(self.lines[4].split()[0])  # Extract cell size
+        # Create a matrix/grid using data starting from line 7
+        self.matrix = self.make_matrix(self.lines[6:])
 
     def create_x(self):
         # Generate an array representing longitude coordinates in order to interpolate the depth at a specific latlon coordinate
-        start_value = 124.991666666667
-        step = 0.016666666667
-        array_length = 571
+        start_value = self.xllcorner
+        step = self.cellsize
+        array_length = self.ncols
         my_array = np.linspace(start_value, start_value + step * (array_length - 1), array_length)
         return my_array
 
     def create_y(self):
         # Generate an array representing latitude coordinates in order to interpolate the depth at a specific latlon coordinate
-        start_value = -9.508333333333
-        step = 0.016666666667
-        array_length = 421
+        start_value = self.yllcorner
+        step = self.cellsize
+        array_length = self.nrows
         my_array = np.linspace(start_value, start_value + step * (array_length - 1), array_length)
         return my_array
 
@@ -44,21 +52,13 @@ class HeightModel:
             line = line.split()
             new_line = [int(num) for num in line]
             matrix.append(new_line)
-        return matrix[::-1]
+        return np.array(matrix[::-1]).T
         # Reversing the bathymetry data is necessary because the get_depth
         # function requires that the x and y arrays be strictly increasing
 
     def readlines(self, filename):
         with open(filename) as file:
             return file.readlines()
-
-
-    def read_file_into_matrix(self, infile):
-        lines = self.readlines(infile)
-        matrix = self.make_matrix(lines)
-        return np.array(matrix).T
-        # Transposing the bathymetry data is necessary because the get_depth
-        # function requires that the x and y arrays be strictly increasing
 
     def get_depth(self, lon, lat):
         # Interpolate depth at a given longitude and latitude using the bathymetry matrix
