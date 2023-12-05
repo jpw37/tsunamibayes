@@ -14,12 +14,24 @@ class TimeModel:
         - start_lat_long (tuple): Tuple containing start latitude and longitude.
         - end_lat_long (tuple): Tuple containing end latitude and longitude.
         """
+        # Read the bathymetry data from a file (specified by sys.argv[1])
+        self.lines = self.readlines(sys.argv[1])
+
+        # Extract grid properties (ncols, nrows, etc.) from the read lines
+        self.ncols = int(self.lines[0].split()[0])  # Extract the number of columns
+        self.nrows = int(self.lines[1].split()[0])  # Extract the number of rows
+        self.xllcorner = float(self.lines[2].split()[0])  # Extract x-coordinate of lower left corner
+        self.yllcorner = float(self.lines[3].split()[0])  # Extract y-coordinate of lower left corner
+        self.cellsize = float(self.lines[4].split()[0])  # Extract cell size
+        # Create a matrix/grid using data starting from line 7
+        self.grid = self.make_matrix(self.lines[6:])
+
         # Generate latitude and longitude grid used to pinpoint specific depths
         self.lat_long_grid = self.generate_lat_long_grid()
+
+        # Find the start and end points based on given latitude and longitude
         self.start_point = self.find_start_point(start_lat_long)
         self.end_point = self.find_start_point(end_lat_long)
-        # Read the bathymetry data from a file (specified by sys.argv[1])
-        self.grid = self.read_file_into_matrix(sys.argv[1])
 
     def make_matrix(self, lines):
         # Converts the bathymetry data into a grid
@@ -35,21 +47,6 @@ class TimeModel:
         with open(filename) as file:
             return file.readlines()
 
-    def read_file_into_matrix(self, infile):
-        """
-        Reads in bathymetry data and converts it into a matrix.
-
-        Parameters:
-        - infile (str): Name of the input file.
-
-        Returns:
-        - matrix (list): Matrix created from the file contents.
-        """
-
-        lines = self.readlines(infile)
-        matrix = self.make_matrix(lines)
-        return matrix
-
     def dijkstras_algorithm(self):
         """
         Implementation of Dijkstra's algorithm to find the shortest path.
@@ -59,8 +56,8 @@ class TimeModel:
         - total_time (float): Total time taken for the shortest path.
         """
         # Calculate the dimensions of the bathymetry grid
-        rows = len(self.grid)
-        cols = len(self.grid[0])
+        rows = self.nrows
+        cols = self.ncols
 
         # Initialize distance and visited dictionaries
         # distance: Keeps track of the minimum distance to each node
@@ -151,10 +148,10 @@ class TimeModel:
         Returns:
         - grid (list): Grid of latitude and longitude coordinates.
         """
-        start_value = (124.991666666667, -9.508333333333)  # Starting latitude and longitude to line up with the bathymetry data
-        increment = 0.016666666667
-        rows = 420
-        columns = 571
+        start_value = (self.xllcorner, self.yllcorner)  # Starting latitude and longitude to line up with the bathymetry data
+        increment = self.cellsize
+        rows = self.nrows
+        columns = self.ncols
 
         grid = []
         for row in range(rows):
