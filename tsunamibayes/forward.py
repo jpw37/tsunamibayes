@@ -225,9 +225,9 @@ class ToyForwardModel(BaseForwardModel):
         # anything else to make the models bathymetry data agnostic
         # talk to prof whitehead about data
 
-        # import HeightModel
-        # import TimeModel
-        # model_output = pd.Series(dtype='float64')
+        from height_model_class import HeightModel
+        from time_model_class import TimeModel
+        model_output = pd.Series(dtype='float64')
 
         # for gauge in self.gauges:
         #     time_ = time_model(guage info)
@@ -240,6 +240,7 @@ class ToyForwardModel(BaseForwardModel):
 
         # return model_output
 
+
         # these are locations where the wave never reached the gauge.
         max_heights[max_heights < 1e-15] = -9999
         max_heights[np.abs(max_heights) > 1e15] = -9999
@@ -250,26 +251,48 @@ class ToyForwardModel(BaseForwardModel):
         model_output = pd.Series(dtype='float64')
         idx_gauge_start = 0
         idx_gauge_end = 0
-        for i, gauge in enumerate(self.gauges):
-            num_pts_in_this_gauge = len(gauge.lat)
-            idx_gauge_end += num_pts_in_this_gauge
+        for gauge in self.gauges:
+            time_ = TimeModel((model_params['latitude'], model_params['longitude']), (gauge.lat, gauge.lon))
+            time, path = time_.dijkstras_algorithm()
+            height_ = HeightModel(
+                model_params['slip'],
+                model_params['length'],
+                model_params['width'],
+                model_params['rake'],
+                model_params['dip_offset'],
+                model_params['latitude'],
+                model_params['longitude'],
+                gauge.lat,
+                gauge.lon,
+                path
+            )
+            height = height_.wave_height()
             if 'arrival' in gauge.obstypes:
-                model_output[gauge.name + ' arrival'] = np.mean(
-                    arrival_times[idx_gauge_start:idx_gauge_end]
-                )
+                model_output[gauge.name + ' arrival'] = time
             if 'height' in gauge.obstypes:
-                model_output[gauge.name + ' height'] = np.mean(
-                    wave_heights[idx_gauge_start:idx_gauge_end]
-                )
-            if 'inundation' in gauge.obstypes:
-                model_output[gauge.name + ' inundation'] = models.inundation(
-                    np.mean(wave_heights[idx_gauge_start:idx_gauge_end]),
-                    gauge.beta,
-                    gauge.n
-                )
-            idx_gauge_start += num_pts_in_this_gauge
+                model_output[gauge.name + ' height'] = height
 
         return model_output
+        # for i, gauge in enumerate(self.gauges):
+        #     num_pts_in_this_gauge = len(gauge.lat)
+        #     idx_gauge_end += num_pts_in_this_gauge
+        #     if 'arrival' in gauge.obstypes:
+        #         model_output[gauge.name + ' arrival'] = np.mean(
+        #             arrival_times[idx_gauge_start:idx_gauge_end]
+        #         )
+        #     if 'height' in gauge.obstypes:
+        #         model_output[gauge.name + ' height'] = np.mean(
+        #             wave_heights[idx_gauge_start:idx_gauge_end]
+        #         )
+        #     if 'inundation' in gauge.obstypes:
+        #         model_output[gauge.name + ' inundation'] = models.inundation(
+        #             np.mean(wave_heights[idx_gauge_start:idx_gauge_end]),
+        #             gauge.beta,
+        #             gauge.n
+        #         )
+        #     idx_gauge_start += num_pts_in_this_gauge
+        #
+        # return model_output
 
 
 class GeoClawForwardModel(BaseForwardModel):
