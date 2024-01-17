@@ -2,9 +2,9 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from .fault import BaseFault
-from .maketopo import write_dtopo
-from . import models
+# from .fault import BaseFault
+# from .maketopo import write_dtopo
+# from . import models
 
 
 class BaseForwardModel:
@@ -151,7 +151,7 @@ class ToyForwardModel(BaseForwardModel):
         Returns
         -------
         model_output : pandas Series
-            A pandas series whose axes labels are the cominations of the
+            A pandas series whose axes labels are the combinations of the
             scenario's gauges names plus 'arrivals', 'height', or 'inundation'.
             The associated values are floats.
         """
@@ -242,18 +242,18 @@ class ToyForwardModel(BaseForwardModel):
 
 
         # these are locations where the wave never reached the gauge.
-        max_heights[max_heights < 1e-15] = -9999
-        max_heights[np.abs(max_heights) > 1e15] = -9999
-
-        bath_depth[max_heights == 0] = 0
-        wave_heights = max_heights + bath_depth
-
-        model_output = pd.Series(dtype='float64')
-        idx_gauge_start = 0
-        idx_gauge_end = 0
+        # max_heights[max_heights < 1e-15] = -9999
+        # max_heights[np.abs(max_heights) > 1e15] = -9999
+        #
+        # bath_depth[max_heights == 0] = 0
+        # wave_heights = max_heights + bath_depth
+        #
+        # model_output = pd.Series(dtype='float64')
+        # idx_gauge_start = 0
+        # idx_gauge_end = 0
         for gauge in self.gauges:
-            time_ = TimeModel((model_params['latitude'], model_params['longitude']), (gauge.lat, gauge.lon))
-            time, path = time_.dijkstras_algorithm()
+            time_ = TimeModel((model_params['longitude'], model_params['latitude']), (gauge.lon, gauge.lat), self.dtopo_path)
+            path, time = time_.dijkstras_algorithm()
             height_ = HeightModel(
                 model_params['slip'],
                 model_params['length'],
@@ -264,13 +264,17 @@ class ToyForwardModel(BaseForwardModel):
                 model_params['longitude'],
                 gauge.lat,
                 gauge.lon,
-                path
+                path,
+                self.dtopo_path
             )
             height = height_.wave_height()
             if 'arrival' in gauge.obstypes:
                 model_output[gauge.name + ' arrival'] = time
             if 'height' in gauge.obstypes:
                 model_output[gauge.name + ' height'] = height
+            # print(gauge.name)
+            # print(model_output)
+            # print()
 
         return model_output
         # for i, gauge in enumerate(self.gauges):
@@ -602,3 +606,4 @@ class TestForwardModel(BaseForwardModel):
                     model_output[gauge.name+' power']
                 )
         return llh
+

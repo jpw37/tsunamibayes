@@ -105,7 +105,7 @@ class BaseScenario:
         else:
             if not all(key in self.sample_cols for key in kwargs.keys()):
                 raise ValueError(
-                    "Valid keyword argments are: {}".format(self.sample_cols)
+                    "Valid keyword arguments are: {}".format(self.sample_cols)
                 )
 
             missing_kwargs = list(set(self.sample_cols)-set(kwargs.keys()))

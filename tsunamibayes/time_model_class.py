@@ -6,7 +6,7 @@ import sys
 class TimeModel:
     """A class representing a model for calculating time-based paths."""
 
-    def __init__(self, start_lat_long, end_lat_long):
+    def __init__(self, start_lat_long, end_lat_long, filename):
         """
         Initializes the TimeModel.
 
@@ -15,7 +15,7 @@ class TimeModel:
         - end_lat_long (tuple): Tuple containing end latitude and longitude.
         """
         # Read the bathymetry data from a file (specified by sys.argv[1])
-        self.lines = self.readlines(sys.argv[1])
+        self.lines = self.readlines(filename)
 
         # Extract grid properties (ncols, nrows, etc.) from the read lines
         self.ncols = int(self.lines[0].split()[0])  # Extract the number of columns
@@ -32,6 +32,14 @@ class TimeModel:
         # Find the start and end points based on given latitude and longitude
         self.start_point = self.find_start_point(start_lat_long)
         self.end_point = self.find_start_point(end_lat_long)
+        depth = self.grid[71][190]
+        # print(depth)
+        start = self.grid[self.start_point[0]][self.start_point[1]]
+        # print(start)
+        end = self.grid[self.end_point[0]][self.end_point[1]]
+        # print(end)
+        # print(self.start_point)
+        # print(self.end_point)
 
     def make_matrix(self, lines):
         # Converts the bathymetry data into a grid
@@ -111,7 +119,7 @@ class TimeModel:
         path.reverse()  # Reverse to get the path from start to end
         lat_long_path = self.convert_path_to_lat_long(path)
         total_time = distance[self.end_point]  # Total time taken for the shortest path
-        return lat_long_path, total_time
+        return lat_long_path, total_time/60
 
     def get_neighbors(self, node, rows, cols):
         """
@@ -174,7 +182,7 @@ class TimeModel:
         - closest_position (tuple): Closest grid point coordinates.
         """
         closest_value_diff = float('inf')  # Initialize a variable to track the closest value difference
-        closest_position = None  # Initialize a variable to store the closest position
+        closest_position = (0,0) # Initialize a variable to store the closest position
 
         # Iterate through the grid to find the closest grid point
         for i in range(len(self.lat_long_grid)):
@@ -185,10 +193,13 @@ class TimeModel:
                 value_diff = sum(abs(x - y) for x, y in zip(lat_long_point, current_tuple))
 
                 # Check if the current grid point is closer than the previously closest one
-                if value_diff < closest_value_diff:
+                # and self.grid[closest_position[0]][closest_position[1]] < 0
+                thing = self.grid[i][j]
+                if value_diff < closest_value_diff and thing < 0:
+                    #print("Close", thing)
                     closest_value_diff = value_diff  # Update the closest value difference
                     closest_position = (i, j)  # Update the closest position
-
+        #thing = self.grid[closest_position[0]][closest_position[1]]
         return closest_position   # Return the coordinates of the closest grid point
 
     def convert_path_to_lat_long(self, path):

@@ -4,7 +4,7 @@ import sys
 from scipy.interpolate import RectBivariateSpline
 
 class HeightModel:
-    def __init__(self, slip, length, width, rake, dip, lat1, lon1, lat2, lon2, shortest_time_path):
+    def __init__(self, slip, length, width, rake, dip, lat1, lon1, lat2, lon2, shortest_time_path, filename):
         # Initialize parameters as attributes
         self.slip = slip
         self.length = length
@@ -18,7 +18,7 @@ class HeightModel:
         self.shortest_time_path = shortest_time_path
 
         # Read the bathymetry data from a file (specified by sys.argv[1])
-        self.lines = self.readlines(sys.argv[1])
+        self.lines = self.readlines(filename)
 
         # Extract grid properties (ncols, nrows, etc.) from the read lines
         self.ncols = int(self.lines[0].split()[0])  # Extract the number of columns
@@ -79,13 +79,13 @@ class HeightModel:
 
     def depth_at_source(self):
         # Calculate the depth at the source coordinates(lat1, lon1)
-        depth = self.get_depth(lon1, lat1)
+        depth = self.get_depth(self.lon1, self.lat1)
         return abs(depth)
 
     def alpha(self):
         # Alpha is the fraction of earthquake slip that transforms into tsunami-making uplift
         # Used to calculated initial tsunami height
-        return (1 - (dip/180)) * math.sin(np.deg2rad(dip)) * abs(math.sin(np.deg2rad(rake)))
+        return (1 - (self.dip/180)) * math.sin(np.deg2rad(self.dip)) * abs(math.sin(np.deg2rad(self.rake)))
 
     def initial_tsunami_amplitude(self):
         # Calculate the initial amplitude of the tsunami wave using the given parameters.
@@ -138,7 +138,7 @@ class HeightModel:
     def propagation_loss(self):
         # Propagation loss is the wave decay that tsunamis face as they travel due to geometrical spreading and frequency dispersion.
         # Function of distance from epicenter(haversine), fault length, and psi
-        return (1 + ((2 * self.haversine()) / self.length)) ** self.psi()
+        return (1 + ((2 * self.haversine()) / self.length)) ** -self.psi()
 
     def shoaling_correction(self):
         # Function of the depth at the source and mean depth of the tsunami path
