@@ -46,6 +46,16 @@ earthquake_params = {
     'longitude': 132.1308854,
 }
 
+landslide_params = {'center_mass_depth': 2800,  # meters
+    'thickness': 50,  # meters
+    'width': 8,  # kilometers
+    'length': 1,  # meters
+    'landslide_speed': 20,  # meters per second
+    'volume': 30000000000,
+    'aspect_ratio': .375,
+    'lat1': -6.2,
+    'lon1': 130}
+
 
 def build_gauges():
     """Creates gauge object for each observation point's data and appends each to a list.
