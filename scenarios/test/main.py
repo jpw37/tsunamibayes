@@ -25,7 +25,7 @@ def walanae_depth(dist):
     return depth
 
 
-def setup(config):
+def setup(config, save_all_data):
     """Extracts the data from the config object to create the SulawesiFault
     object, and then declares the scenario's initial prior, forward model, and
     covariance in order to create the SulawesiScenario.
@@ -307,7 +307,8 @@ def setup(config):
     scenarios = SulawesiScenario(
             forward_model,
             prior,
-            covariance
+            covariance,
+            save_all_data=save_all_data
         )
     return MultiFaultScenario(scenarios)
 
@@ -317,7 +318,8 @@ if __name__ == "__main__":
     from tsunamibayes.utils import parser, Config
     from tsunamibayes.setrun import write_setrun
 
-    MULTI_FIDELITY = False
+    MULTI_FIDELITY = True
+    SAVE_ALL_DATA = True
 
     # parse command line arguments
     args = parser.parse_args()
@@ -330,10 +332,10 @@ if __name__ == "__main__":
         if args.verbose: print("Reading {}".format(args.config_path))
         config.read(args.config_path)
 
-    if not MULTI_FIDELITY:
-        # write setrun.py file
-        if args.verbose: print("Writing setrun.py")
-        write_setrun(args.config_path)
+    #if not MULTI_FIDELITY:
+    # write setrun.py file
+    if args.verbose: print("Writing setrun.py")
+    write_setrun(args.config_path)
 
     # copy Makefile
     if args.verbose: print("Copying Makefile")
@@ -341,7 +343,7 @@ if __name__ == "__main__":
     os.system("cp {} Makefile".format(makefile_path))
 
     # build scenarios
-    scenarios = setup(config)
+    scenarios = setup(config, save_all_data=SAVE_ALL_DATA)
     
     # resume in-progress chain
     if args.resume:
@@ -369,9 +371,8 @@ if __name__ == "__main__":
         output_dir=args.output_dir,
         save_freq=args.save_freq,
         verbose=args.verbose,
-        save_all_data=True,
         refinement_ratios=list( config.geoclaw["refinement_ratios"] ),
         multi_fidelity=MULTI_FIDELITY,
-        ref_rat_max_values=[3,4,5],   # This should be an array of ints (number of refinements)
+        ref_rat_max_values=[4,5],   # This should be an array of ints (number of refinements)
         config_path=args.config_path
     )

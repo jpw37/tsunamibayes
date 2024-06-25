@@ -233,20 +233,20 @@ class GeoClawForwardModel(BaseForwardModel):
         # load fgmax and bathymetry data
         fgmax_data = np.loadtxt(self.valuemax_path)
         bath_data  = np.loadtxt(self.aux1_path)
-        print('********')
-        print('GeoClawForwardModel.run() data:')
-        with open(self.valuemax_path, 'r') as vm_file:
-            print(self.valuemax_path,':')
-            print(vm_file.read())
-        with open(self.aux1_path, 'r') as aux1_file:
-            print(self.aux1_path,':')
-            print(aux1_file.read())
-        print('PRINTING fgmax_data')
-        print(fgmax_data)
-        print("PRINTING bath_data")
-        print(bath_data)
-        print("Done printing GeoClawForwardModel.run() data.")
-        print("********")
+        #print('********')
+        #print('GeoClawForwardModel.run() data:')
+        #with open(self.valuemax_path, 'r') as vm_file:
+        #    print(self.valuemax_path,':')
+        #    print(vm_file.read())
+        #with open(self.aux1_path, 'r') as aux1_file:
+        #    print(self.aux1_path,':')
+        #    print(aux1_file.read())
+        #print('PRINTING fgmax_data')
+        #print(fgmax_data)
+        #print("PRINTING bath_data")
+        #print(bath_data)
+        #print("Done printing GeoClawForwardModel.run() data.")
+        #print("********")
 
         # this is the arrival time of the maximum wave, not the first wave (which is at [:,-1])
         # converting from seconds to minutes

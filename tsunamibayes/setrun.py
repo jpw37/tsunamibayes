@@ -74,7 +74,10 @@ def make_setrun(config, ref_rat_max=None):
         refinement_data.max_level_deep = 3
 
         # index of max AMR level
-        maxlevel = len(config.geoclaw["refinement_ratios"])+1
+        if ref_rat_max == None:
+            maxlevel = len(config.geoclaw["refinement_ratios"])+1
+        else:
+            maxlevel = len(config.geoclaw["refinement_ratios"][0:ref_rat_max])+1
 
         # load all topo files from topo_dir
         topo_data = rundata.topo_data
@@ -231,7 +234,9 @@ def make_setrun(config, ref_rat_max=None):
         if ref_rat_max is None:
             ref_ratios = config.geoclaw['refinement_ratios']
         else:
-            ref_ratios = config.geoclaw['refinement_ratios'][0:rat_ref_max]
+            ref_ratios = config.geoclaw['refinement_ratios'][0:ref_rat_max] # used to be 0:ref_rat_max
+        
+        print("\n\n\n Printing ref_ratios", ref_ratios, "\n\n\n")
 
         amrdata.refinement_ratios_x = ref_ratios
         amrdata.refinement_ratios_y = ref_ratios
@@ -342,3 +347,4 @@ def write_setrun(config_path=None,ref_rat_max=None):
         f.write("if __name__ == '__main__':\n")
         f.write("   rundata = setrun()\n")
         f.write("   rundata.write()")
+

@@ -26,7 +26,7 @@ class BaseScenario:
     sample_cols = None
     model_param_cols = None
 
-    def __init__(self,prior,forward_model):
+    def __init__(self,prior,forward_model,save_all_data=False):
         """Initializes variables for the base class.
 
         Parameters
@@ -63,6 +63,16 @@ class BaseScenario:
             + proposal_bayes_cols
             + ["alpha","accepted","acceptance_rate"]
         )
+
+        # construct all_data columns
+        self.all_data_cols = (
+            self.model_param_cols
+            + self.model_output_cols
+            + self.bayes_data_cols   # this contains prior_logpdf, llh, posterior_logpdf
+            + ["alpha", "refinement_ratios"]
+        )
+        
+        self.save_all_data = save_all_data
         
 
     def init_chain(self,u0=None,method=None,verbose=False,**kwargs):
@@ -137,6 +147,9 @@ class BaseScenario:
         self.bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
         self.debug = pd.DataFrame(columns=self.debug_cols)
 
+        if self.save_all_data:
+            self.all_data = pd.DataFrame(columns=self.all_data_cols)
+
         # save first sample
         self.samples.loc[0] = u0
 
@@ -151,7 +164,7 @@ class BaseScenario:
         # raise error if prior density is zero (-infinty logpdf)
         if prior_logpdf == np.NINF:
             raise ValueError(
-                "Initial sample must result in a nonzero prior probabiity "
+                "Initial sample must result in a nonzero prior probability "
                 "density"
             )
 
@@ -173,6 +186,28 @@ class BaseScenario:
             index=self.bayes_data_cols
         )
         self.bayes_data.loc[0] = bayes_data
+
+        if self.save_all_data:
+            temp_model_params = pd.DataFrame(columns=self.model_param_cols)
+            temp_model_params.loc[0] = model_params.copy()
+            temp_model_output = pd.DataFrame(columns=self.model_output_cols)
+            temp_model_output.loc[0] = model_output
+            temp_bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
+            temp_bayes_data.loc[0] = bayes_data
+            temp_alpha_ref = pd.DataFrame(columns=["alpha","refinement_ratios"])
+            temp_alpha_ref.loc[0] = [None, None]
+            temp_model_params['tmp'] = 1
+            temp_model_output['tmp'] = 1
+            temp_bayes_data['tmp'] = 1
+            temp_alpha_ref['tmp'] = 1
+            temp_all_df = temp_model_params.merge(temp_model_output, on=['tmp'])\
+                          .merge(temp_bayes_data, on=['tmp'])\
+                          .merge(temp_alpha_ref, on=['tmp'])
+            temp_all_df = temp_all_df.drop('tmp', axis=1)
+
+            self.all_data.loc[0] = temp_all_df.loc[0]
+
+        
 
     def resume_chain(self,output_dir):
         """Reads DataFrames from the .csv files housing the samples, model
@@ -206,6 +241,13 @@ class BaseScenario:
             index_col=0
         ).reset_index(drop=True)
 
+        if self.save_all_data:
+            self.all_data = pd.read_csv(
+                output_dir+"/all_data.csv",
+                index_col=0
+            ).reset_index(drop=True)
+
+
     def save_data(self,output_dir,append_rows=None):
         """Writes the DataFrames for the samples, model parameters & ouput,
         bayes data, and debugging info into .csv files and stores them in the
@@ -226,6 +268,8 @@ class BaseScenario:
             self.model_output.to_csv(output_dir+"/model_output.csv")
             self.bayes_data.to_csv(output_dir+"/bayes_data.csv")
             self.debug.to_csv(output_dir+"/debug.csv")
+            if self.save_all_data:
+                self.all_data.to_csv(output_dir+"/all_data.csv")
         else:
             n = -append_rows
             self.samples.iloc[n:].to_csv(
@@ -253,10 +297,17 @@ class BaseScenario:
                 mode='a+',
                 header=False
             )
+            
+            if self.save_all_data:
+                self.all_data.iloc[n:].to_csv(
+                    output_dir+"/all_data.csv",
+                    mode='a+',
+                    header=False
+                )
 
 
-    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False,save_all_data=False,
-               refinement_ratios=None,multi_fidelity=False,ref_rat_max_values=None,config_path=None):
+    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False,refinement_ratios=None,
+               multi_fidelity=False,ref_rat_max_values=None,config_path=None):
         """Draw samples from the posterior distribution using the
         Metropolis-Hastings algorithm.
 
@@ -275,8 +326,6 @@ class BaseScenario:
             If true, prints gague data for the loglikelihood of the forward
             model. Default is false.
 
-        save_all_data : bool
-            If true, save all data into all_data.csv
         refinement_ratios : list
             The Geoclaw refinement ratios, used to run Multi-fidelity sampler
             and to construct all_data.csv
@@ -306,9 +355,6 @@ class BaseScenario:
             if not os.path.exists(output_dir): os.mkdir(output_dir)
             self.save_data(output_dir)
 
-
-        # this will be a list of pandas Series / dataframe objects
-        self.all_samples = []
 
         chain_start = time.time()
         j = 0
@@ -386,7 +432,7 @@ class BaseScenario:
 
                         alpha = np.exp(alpha)
 
-                        if verbose: print(f"alpha = alpha_1 / alpha_0 = {alpha} / {alpha_0} = {alpha/alpha_0}")
+                        if verbose: print(f"alpha = alpha_new / alpha_old = {alpha} / {alpha_0} = {alpha/alpha_0}")
                         alpha = alpha / alpha_0
 
                         # prior, likelihood, and posterior logpdf values
@@ -398,16 +444,17 @@ class BaseScenario:
                         # accept/reject
                         accepted = (np.random.rand() < alpha)
 
-                        if save_all_data:   # save all proposals
-                            # convert copy of model_params to dataframe
+                        if self.save_all_data:   # save all proposals
+                            # convert copy of model_params to dataframe (currently a dictionary)
                             temp_model_params = pd.DataFrame(columns=self.model_param_cols)
-                            temp_model_params.loc[0] = model_params.copy() # model_params is a dictionary
-                            # convert copy of model_output to dataframe
-                            temp_model_output = model_output.copy().to_frame().T # model_output is a Series
-                            temp_bayes_data = bayes_data.copy().to_frame().T # bayes_data is a Series
+                            temp_model_params.loc[0] = model_params.copy()
+                            temp_model_output = pd.DataFrame(columns=self.model_output_cols)
+                            temp_model_output.loc[0] = model_output
+                            temp_bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
+                            temp_bayes_data.loc[0] = bayes_data
                             # convert alpha and refinement_ratios data to dataframe
                             temp_alpha_ref = pd.DataFrame(columns=["alpha","refinement_ratios"])
-                            temp_alpha_ref.loc[0] = [alpha,refinement_ratios]
+                            temp_alpha_ref.loc[0] = [alpha,refinement_ratios[0:ref_rat_max]]
 
                             # add temporary column to dataframe to merge on
                             temp_model_params['tmp'] = 1
@@ -424,7 +471,7 @@ class BaseScenario:
                             temp_all_df = temp_all_df.drop('tmp', axis=1)
 
                             # append dataframe to all_samples
-                            self.all_samples.append( temp_all_df )
+                            self.all_data = self.all_data.append(temp_all_df, ignore_index=True)
 
                         alpha_0 = alpha
 
@@ -476,14 +523,16 @@ class BaseScenario:
                     # accept/reject
                     accepted = (np.random.rand() < alpha)
 
-                    if save_all_data: # save all proposals
+                    if self.save_all_data: # save all proposals
                         # convert copy of model_params to dataframe
                         temp_model_params = pd.DataFrame(columns=self.model_param_cols)
                         temp_model_params.loc[0] = model_params.copy() # model_params is a dictionary
                         # convert copy of model_output to dataframe
-                        temp_model_output = model_output.copy().to_frame().T # model_output is a Series
+                        temp_model_output = pd.DataFrame(columns=self.model_output_cols)
+                        temp_model_output.loc[0] = model_output
                         # convert copy of bayes_data to dataframe
-                        temp_bayes_data = bayes_data.copy().to_frame().T # bayes_data is a Series
+                        temp_bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
+                        temp_bayes_data.loc[0] = bayes_data
                         # convert alpha and refinement_ratios data to dataframe
                         temp_alpha_ref = pd.DataFrame(columns=["alpha","refinement_ratios"])
                         temp_alpha_ref.loc[0] = [alpha,refinement_ratios]
@@ -501,8 +550,8 @@ class BaseScenario:
                         # remove temporary dataframe
                         temp_all_df = temp_all_df.drop('tmp', axis=1)
 
-                        # append dataframe to all_samples
-                        self.all_samples.append( temp_all_df )
+                        # append data to all_data
+                        self.all_data = self.all_data.append(temp_all_df, ignore_index=True)
                         
 
             if accepted:
@@ -518,10 +567,6 @@ class BaseScenario:
                 self.model_output.loc[i] = self.model_output.loc[i-1]
                 self.bayes_data.loc[i] = self.bayes_data.loc[i-1]
 
-            if save_all_data:
-                for k in range(len(self.all_samples)):
-                    # append each sample in all_samples to the end of the all_data Pandas dataframe
-                    self.all_data = pd.concat([self.all_data, self.all_samples[k]], ignore_index=True)
 
             # generate data for debug dataframe
             metro_hastings_data = pd.Series({

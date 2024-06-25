@@ -21,16 +21,14 @@ class MultiFaultScenario():
         """Resumes a chain associated with scenarios[0]."""
         self.scenarios.resume_chain(output_dir)   # used to be scenarios[0]
 
-    def sample(self, nsamples, output_dir=None, save_freq=1, verbose=False, save_all_data=False,
-               refinement_ratios=None, multi_fidelity=False, ref_rat_max_values=None, 
-               config_path=None):
+    def sample(self, nsamples, output_dir=None, save_freq=1, verbose=False, refinement_ratios=None,
+               multi_fidelity=False, ref_rat_max_values=None, config_path=None):
         """Samples from the chain."""
         self.scenarios.sample(   # used to be scenarios[0]
             nsamples,
             output_dir,
             save_freq,
             verbose,
-            save_all_data,
             refinement_ratios,
             multi_fidelity,
             ref_rat_max_values,
@@ -111,7 +109,7 @@ class SulawesiScenario(BaseScenario):
         'mystery_strike_offset'
     ]
 
-    def __init__(self, forward_model, prior, covariance):
+    def __init__(self, forward_model, prior, covariance, save_all_data=False):
         """Initializes all the necessary variables for the BandaScenario
         subclass.
 
@@ -129,7 +127,7 @@ class SulawesiScenario(BaseScenario):
             magnitude, delta logl & logw, and depth offset.
         """
 
-        super().__init__(prior, forward_model)
+        super().__init__(prior, forward_model, save_all_data)
 
         self.flores_fault = forward_model.fault[0]
         self.walanae_fault = forward_model.fault[1]
@@ -138,42 +136,6 @@ class SulawesiScenario(BaseScenario):
         # construct a single covariance matrix using the covariance matrices for flores and walanae
         self.cov = covariance
 
-        # construct all_data columns
-        self.all_data_cols = (
-            self.model_param_cols
-            + self.model_output_cols 
-            + self.bayes_data_cols  # this contains prior_logpdf, llh, and posterior_logpdf
-            + ["alpha", "fidelity"]
-        )
-
-
-    def init_chain(self, u0=None, method=None, verbose=False, **kwargs):
-        super().init_chain(u0,method,verbose,**kwargs)
-        
-        self.all_data = pd.DataFrame(columns=self.all_data_cols)
-        # we want the sample data, model parameters, model_outputs, posterior logpdf, 
-        # posterior likelihood, prior logpdf, alpha?, and fidelity
-
-
-    def resume_chain(self, output_dir):
-        super().resume_chain(output_dir)
-        self.all_data = pd.read_csv(
-            output_dir+"/all_data.csv",
-            index_col=0
-        ).reset_index(drop=True)
-
-    def save_data(self, output_dir, append_rows=None):
-        super().save_data(output_dir, append_rows)
-        
-        if not append_rows:
-            self.all_data.to_csv(output_dir+"/all_data.csv")
-        else:
-            n = -append_rows
-            self.all_data.iloc[n:].to_csv(
-                output_dir+"/all_data.csv",
-                mode='a+',
-                header=False
-            )
 
 
     def propose(self,sample):
