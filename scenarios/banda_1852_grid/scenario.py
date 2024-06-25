@@ -10,7 +10,6 @@ import os
 
 
 class BandaScenario(BaseScenario):
-    # Class variables with names of sampling chain columns and model (okada) parameter columns
     sample_cols = ['latitude', 'longitude', 'magnitude', 'delta_logl', 'delta_logw',
                    'depth_offset']
     model_param_cols = ['latitude', 'longitude', 'length', 'width', 'slip', 'strike',
@@ -58,17 +57,12 @@ class BandaScenario(BaseScenario):
             Essentailly the same format as 'sample', we have simply added a multivariate normal
             to produce proposal values for lat, long, mag, etc.
         """
-        # Propose a new sample based on current sample
         proposal = sample.copy()
-
-        # For random walk method, adds Gaussian noise to current sample
         if mode == 'random_walk':
             proposal += np.random.multivariate_normal(
                 np.zeros(len(self.sample_cols)), cov=self.cov)
-
-        # Uses MALA algorithm
+            
         elif mode == 'mala':
-            # Takes a step towards negative gradient of log pdf, then adds Gaussian noise
             v = np.random.multivariate_normal(
                 np.zeros(len(self.sample_cols)), cov=self.cov)
             proposal += -delta**2 / 2 * dU(q, 
@@ -80,31 +74,23 @@ class BandaScenario(BaseScenario):
                                            self.model_params,
                                            self.model_output,
                                            self.arrival_times) + delta * v
-
-        # Uses HMC algorithm
+            
         elif mode == 'hmc':
-            # Gets forward model parameters from sample
             model_params = self.map_to_model_params(sample)
-
-            #Copy current sample and initialize momentum vector p for HMC
             q = sample.copy()
             #p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
             p = np.random.multivariate_normal(np.zeros(len(q)), cov=self.cov)
-
-            # Calculate adjoint values needed for gradient computation
             grads, outputs = calc_adjoint(self.model_params, self.model_output, self.arrival_times)
-
-            # Test initial momentum/sample
-            # print('Initial p', p)
-            # print('Initial q', q)
+            
+            print('Initial p', p)
+            print('Initial q', q)                 
             current_p = p.copy()
-#             print('-----------------------------------------------')
+#             print('-----------------------------------------------')   
 #             print('COMPUTING dU ONCE')
-#             print(q)
-            # Compute gradient of potential energy at current sample
-            curr_dU = dU(q,
-                         self.fault.strike_map,
-                         self.fault.dip_map,
+            print(q)
+            curr_dU = dU(q, 
+                         self.fault.strike_map, 
+                         self.fault.dip_map, 
                          self.fault.depth_map,
                          self.config,
                          self.fault,
@@ -112,26 +98,21 @@ class BandaScenario(BaseScenario):
                          self.model_output,
                          self.arrival_times,
                          grads, outputs)
-            # print('dU')
-            # print(curr_dU)
-            # Adjust momentum with half step of gradient
+            print('dU')
+            print(curr_dU)
             p = p - epsilon *  curr_dU/ 2
-            # print('updated p', p)
-
-            # Leapfrog method (integration) to update sample q
+            print('updated p', p)
             for i in range(time_steps):
-#                 print('-----------------------------------------------')
+#                 print('-----------------------------------------------') 
 # #                 print('COMPUTING dU IN LOOP')
-
+              
                 q = q + epsilon * p
-                # print('Updated p', p)
-                # print('Updated q', q)
-
-                # If not last step, compute gradient at new sample
+                print('Updated p', p)
+                print('Updated q', q)
                 if i != time_steps - 1:
-                    gradient = dU(q,
-                                  self.fault.strike_map,
-                                  self.fault.dip_map,
+                    gradient = dU(q, 
+                                  self.fault.strike_map, 
+                                  self.fault.dip_map, 
                                   self.fault.depth_map,
                                   self.config,
                                   self.fault,
@@ -139,14 +120,22 @@ class BandaScenario(BaseScenario):
                                   self.model_output,
                                   self.arrival_times,
                                   grads, outputs)
-                    # print('Gradient', gradient)
-
-                    # Update momentum using gradient
-                    p = p - epsilon * gradient
-            # Calculates final half step for momentum after leapfrog method
-            p = p - epsilon * dU(q,
-                                 self.fault.strike_map,
-                                 self.fault.dip_map,
+                    print('Gradient', gradient)	
+                    #p = p - epsilon * dU(q, 
+                    #                     self.fault.strike_map, 
+                    #                     self.fault.dip_map, 
+                    #                     self.fault.depth_map,
+                    #                     self.config,
+                    #                     self.fault,
+                    #                     self.model_params,
+                    #                     self.model_output,
+                    #                     self.arrival_times,
+                    #                     grads, outputs)
+                    p = p - epsilon * gradient 
+                         
+            p = p - epsilon * dU(q, 
+                                 self.fault.strike_map, 
+                                 self.fault.dip_map, 
                                  self.fault.depth_map,
                                  self.config,
                                  self.fault,
@@ -154,21 +143,16 @@ class BandaScenario(BaseScenario):
                                  self.model_output,
                                  self.arrival_times,
                                  grads, outputs)/2
-            # Reverse momentum direction for detailed balance
             p = -p
-
-            # Return updated sample, and initial and final momentums
+            
             return q, current_p, p
-
-        # Raise error if not one of the three methods used
+                         
         else:
             raise ValueError(
                 'Invalid Parameter, use \'random_walk\', \'mala\', or \'hmc\'')
 
-        # Returns proposal sample
         return proposal
 
-# Random-walk only method, for which the log pdf difference is 0
     def proposal_logpdf(self, u, v):
         """Evaluate the logpdf of the proposal kernel, expressed as the
         log-probability-density of proposing 'u' given current sample 'v'.
@@ -202,7 +186,6 @@ class BandaScenario(BaseScenario):
             'width','slip','depth','dip','rake',
             and whose associated values are the newly calculated values from the sample.
         """
-        # Calculate forward model parameters from sample parameters
         length = calc_length(sample['magnitude'], sample['delta_logl'])
         width = calc_width(sample['magnitude'], sample['delta_logw'])
         slip = calc_slip(sample['magnitude'], length, width)
@@ -212,10 +195,8 @@ class BandaScenario(BaseScenario):
                                  sample['longitude'])
         depth = self.fault.depth_map(sample['latitude'],
                                      sample['longitude'])
-        # Set rake angle to 90
         rake = 90
 
-        # Store model parameters in dictionary and return
         model_params = dict()
         model_params['latitude'] = sample['latitude']
         model_params['longitude'] = sample['longitude']
@@ -256,29 +237,23 @@ class BandaScenario(BaseScenario):
             Pandas dataframe containing the set of samples from all of the accepted proposal generated,
             including any from prior runs (such as when using Scenario.restart()).
         """
-        # Make sure chain has been initialized
         if not hasattr(self, 'samples'):
             raise AttributeError("Chain must first be initialized with "
                                  "{}.init_chain() or {}.resume_chain()".format(type(self).__name__, type(self).__name__))
-
-        # Create output directory if needed
         if output_dir is not None:
             if not os.path.exists(output_dir):
                 os.mkdir(output_dir)
             self.save_data(output_dir)
 
-        # Save chain start time
         chain_start = time.time()
         j = 0
         prop_accept = 0
-
-        # Iterate over number of samples to be drawn
         for i in range(len(self.samples), len(self.samples) + nsamples):
             if verbose:
                 print(f"\n----------\nSAMPLING ITERATION {i}")
                 start = time.time()
 
-            # Propose new sample from previous and save in attribute
+            # propose new sample from previous
             if mode == 'hmc':
                 proposal, current_p, proposal_p = self.propose(
                     self.samples.loc[i - 1], mode=mode, time_steps=time_steps, epsilon=epsilon, delta=delta)
@@ -287,24 +262,23 @@ class BandaScenario(BaseScenario):
                 proposal = self.propose(
                     self.samples.loc[i - 1], mode=mode, delta=delta)
 
-            # Get forward model parameters from proposal sample
             model_params = self.map_to_model_params(proposal)
             if verbose:
                 print("Proposal:")
                 print(proposal)
 
-            # Evaluate prior logpdf
+            # evaluate prior logpdf
             prior_logpdf = self.prior.logpdf(proposal)
 
             if verbose:
                 print("Prior logpdf = {:.3E}".format(prior_logpdf))
 
-            # If prior logpdf is -infinity, reject proposal and bypass forward model
+            # if prior logpdf is -infinity, reject proposal and bypass forward model
             if prior_logpdf == np.NINF:
-                # Set acceptance probability to 0
+                # set acceptance probablity to 0
                 alpha = 0
 
-                # Model_params, model_output and log-likelihood are set to nan values
+                # model_params, model_output and log-likelihood are set to nan values
                 model_params = self.model_params.iloc[0].copy()
                 model_params[...] = np.nan
                 model_output = self.model_output.iloc[0].copy()
@@ -312,7 +286,7 @@ class BandaScenario(BaseScenario):
                 llh = np.nan
                 accepted=False
 
-            # Otherwise run the forward model, calculate the log-likelihood, and calculate
+            # otherwise run the forward model, calculate the log-likelihood, and calculate
             # the Metropolis-Hastings acceptance probability
             else:
                 if verbose:
@@ -328,16 +302,14 @@ class BandaScenario(BaseScenario):
                 if verbose:
                     print("Total llh = {:.3E}".format(llh))
 
-                # Acceptance probability calculation
+                # acceptance probability
                 if mode == 'random_walk':
-                    # Catch if both log-likelihoods are -inf
+                    # catch if both loglikelihoods are -inf
                     if self.bayes_data.loc[i - 1, 'llh'] == np.NINF and llh == np.NINF:
-                        # Calculates acceptance probability when both log-likelihoods are -inf
                         alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i - 1], proposal) - \
                             self.bayes_data.loc[i - 1, 'prior_logpdf'] - \
                             self.proposal_logpdf(proposal, self.samples.loc[i - 1])
                     else:
-                        # Calculates acceptance probability when not both log-likelihoods are -inf
                         alpha = prior_logpdf + llh + \
                             self.proposal_logpdf(self.samples.loc[i - 1], proposal) - \
                             self.bayes_data.loc[i - 1, 'prior_logpdf'] - \
@@ -387,11 +359,11 @@ class BandaScenario(BaseScenario):
             if verbose:
                 print("alpha = {:.3E}".format(alpha))
 
-            # Prior, likelihood, and posterior logpdf values
+            # prior, likelihood, and posterior logpdf values
             bayes_data = pd.Series(
                 [prior_logpdf, llh, prior_logpdf + llh], index=self.bayes_data_cols)
 
-            # Accept/reject
+            # accept/reject
             if accepted:
                 if verbose:
                     print("Proposal accepted", flush=True)
@@ -408,7 +380,7 @@ class BandaScenario(BaseScenario):
                 self.model_output.loc[i] = self.model_output.loc[i - 1]
                 self.bayes_data.loc[i] = self.bayes_data.loc[i - 1]
 
-            # Generate data for debug dataframe
+            # generate data for debug dataframe
             metro_hastings_data = pd.Series({'alpha': alpha, 'accepted': int(accepted),
                                              'acceptance_rate': np.nan})
             self.debug.loc[i - 1] = self.gen_debug_row(self.samples.loc[i - 1],

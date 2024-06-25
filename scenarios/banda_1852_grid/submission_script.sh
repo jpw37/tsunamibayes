@@ -83,7 +83,7 @@ pip install --no-dependencies -e .
 
 # Give python the path to the tsunamibayes python package
 #export PYTHONPATH="$PYTHONPATH:/fslgroup/fslg_tsunami/hmc/tsunamibayes"
-export PYTHONPATH="PYTHONPATH:/fslgroup/fslg_tsunami/tsunamibayes"
+export PYTHONPATH="$PYTHONPATH:/fslgroup/fslg_tsunami/hmc_adjoint/tsunamibayes"
 
 ### #RUN ####
 # set some environment variables for Geoclaw

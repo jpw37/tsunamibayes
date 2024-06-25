@@ -8,7 +8,7 @@ from scipy import integrate
 from read_file import get_grids, useful_grids, condensed_grids
 from okada_jax import get_derivatives, get_okada_deriv
 from tsunamibayes.utils import haversine, haversine_deriv_lat, haversine_deriv_lon
-
+from clawpack.pyclaw.gauges import GaugeSolution
 global neg_llh_grad, neg_lprior_grad
 neg_llh_grad = None
 neg_lprior_grad = None
@@ -22,34 +22,34 @@ def centered_difference(depth_map, lat, lon, step):
     Paramters
     ---------
     depth_map : map (lat,lon) -> depth
-    lat : float
-        Latitude coordinate where the gradient is being computed.
-    lon : float
-        Longitude coordinate where the gradient is being computed.
-    step : float
-        Step size for computing the centered difference.
+
     Returns
     -------
     gradient_approx : [d depth_map / d lat, d depth_map / d_lat]
     """
-    # Calculates centered difference approximation for gradient
-    lat_deriv = (depth_map(lat + step, lon) - depth_map(lat - step, lon)) / (2*step)
-    lon_deriv = (depth_map(lat, lon + step) - depth_map(lat, lon - step)) / (2*step)
+#     print(f'CD FUN: {step}({type(step)}), {lat}({type(lat)}), {lon}({type(lon)}, {depth_map(lat+step, lon)}')
+    lat_deriv = (0.5 * depth_map(lat + step, lon) -
+                 0.5 * depth_map(lat - step, lon)) / step
+    lon_deriv = (0.5 * depth_map(lat, lon + step) -
+                 0.5 * depth_map(lat, lon - step)) / step
 
     return [lat_deriv, lon_deriv]
 
 
 def compute_nn_grads(grad, sample, strike_map, dip_map, depth_map, step):
-    # Define symbolic variables for magnitude, length, width, slip
+    # Define functions for length, width, slip to use in differentiation
     mag, delta_logl, delta_logw, mu = sy.symbols('mag delta_logl delta_logw mu')
 
-    # Define symbolic functions for length, width, slip to use in differentiation
-    length = sy.Pow(10, 0.5233956445903871 * mag + 1.0974498706605313 + delta_logl)
-    width = sy.Pow(10, 0.29922483873212863 * mag + 2.608734705074858 + delta_logw)
-    slip = sy.Pow(10, 1.5 * mag + 9.05 - sy.log(mu * length * width, 10))
+    length=sy.Pow(10, 0.5233956445903871 * mag +
+                    1.0974498706605313 + delta_logl)
+    width=sy.Pow(10, 0.29922483873212863 * mag +
+                   2.608734705074858 + delta_logw)
+
+    slip=sy.Pow(10, 1.5 * mag + 9.05 - sy.log(mu * length * width, 10))
     
     # Set sample parameters
     sample_lat, sample_lon, sample_m, sample_dll, sample_dlw, sample_do = sample
+    
     sample_mu = 4e10
     
     # Tuples of inputs for cleaner code
@@ -59,156 +59,221 @@ def compute_nn_grads(grad, sample, strike_map, dip_map, depth_map, step):
     
     # Partial derivative functions lambdified to accept inputs
     
-    # Define partial derivative functions for width
+    # Partials of width function
     dwidth_dmag = sy.Lambda((mag,delta_logw, delta_logl), sy.diff(width, mag))
     dwidth_dlw = sy.Lambda((mag, delta_logw, delta_logl), sy.diff(width, delta_logw))
     dwidth_dll = sy.Lambda((mag, delta_logw, delta_logl), sy.diff(width, delta_logl))
     
-    # Define partial derivative functions for length
+    # Partials of length function
     dlength_dmag = sy.Lambda((mag,delta_logw, delta_logl), sy.diff(length, mag))
     dlength_dlw = sy.Lambda((mag,delta_logw, delta_logl), sy.diff(length, delta_logw))
     dlength_dll = sy.Lambda((mag,delta_logw, delta_logl), sy.diff(length, delta_logl))
     
-    # Define partial derivative functions for slip
+    # Partials of slip function
     dslip_dmag = sy.Lambda((mag, mu, delta_logw, delta_logl), sy.diff(slip, mag))
     dslip_dlw = sy.Lambda((mag, mu, delta_logw, delta_logl), sy.diff(slip, delta_logw))
     dslip_dll = sy.Lambda((mag, mu, delta_logw, delta_logl), sy.diff(slip, delta_logl))
-
-    # Calculate partial derivatives of depth using centered differences
+    
+    # Partials of depth function
+#     print(f'Centered diff output: {centered_difference(depth_map, sample_lat, sample_lon, step)}')
     ddepth_dlat, ddepth_dlon = centered_difference(depth_map, sample_lat, sample_lon, step)
     dstrike_dlat, dstrike_dlon = centered_difference(strike_map, sample_lat, sample_lon, step)
     ddip_dlat, ddip_dlon = centered_difference(dip_map, sample_lat, sample_lon, step)
-
-    # Calculate derivatives of NN wrt magnitude
+                                
+    
+    # derivative of NN wrt magnitude
     dm = grad['length'] * float(dlength_dmag(*length_inputs)) + \
          grad['width'] * float(dwidth_dmag(*width_inputs))+     \
          grad['slip'] * float(dslip_dmag(*slip_inputs))
     
-    # Calculate derivatives of NN wrt delta_logl
+    # derivative of NN wrt delta_logl
     dll = grad['length'] * float(dlength_dll(*length_inputs)) + \
           grad['width'] * float(dwidth_dll(*width_inputs)) +    \
           grad['slip'] * float(dslip_dll(*slip_inputs))
     
-    # Calculate derivatives of NN wrt delta_logw
+    # derivative of NN wrt delta_logw
     dlw = grad['length'] * float(dlength_dlw(*length_inputs)) + \
           grad['width'] * float(dwidth_dlw(*width_inputs)) +    \
           grad['slip'] * float(dslip_dlw(*slip_inputs))
 
-    # Calculate derivatives of NN wrt latitude
+    # derivative of NN wrt latitude
     dlat = grad['latitude'] +              \
            grad['dip'] * ddip_dlat +       \
            grad['strike'] * dstrike_dlat + \
            grad['depth'] * ddepth_dlat
     
-    # Calculate derivatives of NN wrt longitude
+    # derivative of NN wrt longitude
     dlon = grad['longitude'] +             \
            grad['dip'] * ddip_dlon +       \
            grad['strike'] * dstrike_dlon + \
            grad['depth'] * ddepth_dlon
     
-    # Calculate derivatives of NN wrt depth offset
+    # derivative of NN wrt depth offset
     ddo = grad['depth'] * 1
     
     return {'dN_dmag': dm, 'dN_ddll': dll, 'dN_ddlw': dlw, 'dN_dlat': dlat, 'dN_dlon': dlon, 'dN_ddo': ddo}
 
-def calc_adjoint(model_params, model_output, arrival_times, verbose = False):
-    """
-    Calculate adjoint.
-
-    Parameters:
-    model_params : dict
-        Dictionary containing model parameters.
-    model_output : dict
-        Dictionary containing model output.
-    arrival_times : list
-        List of arrival times.
-    verbose : bool, optional
-        Verbose mode.
-
-    Returns:
-    tuple
-        Tuple containing gradients and model outputs.
-    """
+def calc_adjoint(model_params, model_output, arrival_times):
     # get gauge info, need lat and lon
     gauge_names = ['Pulu Ai', 'Ambon', 'Banda Neira', 'Buru', 'Hulaliu',
                    'Saparua', 'Kulur', 'Ameth', 'Amahai']
     gauges=build_gauges()
-
-    if verbose:
-        # Print model parameters and gauge likelihood
-        print('MODEL PARAMETERS', model_params)
-        print('MODEL @ LENGTH', np.array(model_params['length'])[-1])
-        print('H', H)
-        print('H', H)
-        print("NN_Grads Keys", NN_grads.keys())
-        new = []
-        print('NN_Grads Values', NN_grads.values())
-        for i in range(len(NN_grads.values())):
-           print(NN_grads.values())
-           print(NN_grads.values()[-1])
-        print('NN_Grads Values Floats', new)
+    #print('MODEL PARAMETERS', model_params)
+    #print('MODEL @ LENGTH', np.array(model_params['length'])[-1])
+        #print('H', H)
+        #print('H', H)
+        #print("NN_Grads Keys", NN_grads.keys())
+        #new = []
+        #print('NN_Grads Values', NN_grads.values())
+        #for i in range(len(NN_grads.values())):
+        #    print(NN_grads.values())
+        #    print(NN_grads.values()[-1])
+        #print('NN_Grads Values Floats', new)
         # parameters from gauge likelihood (in gauge.py)
-        print("NN_Grads Keys", NN_grads.keys())
-        print('NN_Grads Values', NN_grads.values())
-        for i in range(len(NN_grads.values())):
-           print(NN_grads.values())
-           print(NN_grads.values()[-1])
-        print('NN_Grads Values Floats', new)
+        #print("NN_Grads Keys", NN_grads.keys())
+        #new = []
+        #print('NN_Grads Values', NN_grads.values())
+        #for i in range(len(NN_grads.values())):
+        #    print(NN_grads.values())
+        #    print(NN_grads.values()[-1])
+        #print('NN_Grads Values Floats', new)
         # parameters from gauge likelihood (in gauge.py)
-        print("MODEL PARAMETERS VALUES", model_params.values())
-        nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
-        print(model_params)
-        print(type(model_params))
-        grads, outputs = nn_model.compute_gradient(model_params)
-
+    #print("MODEL PARAMETERS VALUES", model_params.values())
+    #nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
+#     print(model_params)
+#     print(type(model_params))
+    #grads, outputs = nn_model.compute_gradient(model_params)
     # calculating the deriv of geoclaw w/ respect to okada params
     grads = {}
     outputs = {}
-
-    # Defines okada parameters
-    okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
-
-    # Loops through each gauge
+    okada_params = ['length', 'width', 'depth', 'latitude', 'longitude', 'strike', 'slip', 'dip']
+    
+    # okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
     for i, gauge in enumerate(gauge_names):
         temp_dict = {}
-        if verbose:
-            print(gauge)
-            arrival = model_output[gauge+' arrival']
-        # Gets arrival time for current gauge
+        
         arrival = arrival_times[i]
-        if verbose:
-            print("ARRIVAL TIME", arrival)
 
-        # Determines adjoint file name for gauge (14 total
-        if int(np.round(arrival)) <= 9:
-            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(np.round(arrival)))
+        down, up = np.floor(arrival),np.ceil(arrival)
+        if down <= 9:
+            lower_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(down))
         else:
-            adjoint_file_name = '/home/cnoorda2/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(np.round(arrival)))
+            lower_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(down))
+        if up <= 9:
+            upper_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(up))
+        else:
+            upper_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(up))
+        
 
-        if verbose:
-            print('getting grid')
-
-        # Gets grids from adjoint file
-        grid_dict, info_dict = get_grids(adjoint_file_name)
-        desired_grid, desired_info = useful_grids(grid_dict, info_dict, 130, 132.7, -6.5, -3.5)
-        adjoint_grid, adjoint_keys = condensed_grids(desired_grid)
-        #print(adjoint_keys)
+        lower_grid_dict, lower_info_dict = get_grids(lower_adjoint_file_name)
+        lower_desired_grid, lower_desired_info = useful_grids(lower_grid_dict, lower_info_dict, 130, 132.7, -6.5, -3.5)
+        lower_adjoint_grid, lower_adjoint_keys = condensed_grids(lower_desired_grid)
+        lower_temp_dict = {}
+         
+        
+        upper_grid_dict, upper_info_dict = get_grids(upper_adjoint_file_name)
+        upper_desired_grid, upper_desired_info = useful_grids(upper_grid_dict, upper_info_dict, 130, 132.7, -6.5, -3.5)
+        upper_adjoint_grid, upper_adjoint_keys = condensed_grids(upper_desired_grid)
+        upper_temp_dict = {}
+         
         derivatives = get_derivatives()
         for j, param in enumerate(okada_params):
-            #print(param)
-            sum_ = 0
-            #print("ADJOINT KEYS", adjoint_keys)
-            #print("INFO KEYS", info_dict.keys())
-            for k,grid in enumerate(adjoint_keys):
-                #print("k", k)
-                mx, my, xlow, ylow, dx, dy = info_dict[grid]
+            sum_lower = 0
+            for k,grid in enumerate(lower_adjoint_keys):
+                mx, my, xlow, ylow, dx, dy = lower_info_dict[grid]
                 X = np.linspace(xlow, xlow+(dx*mx), mx)
                 Y = np.linspace(ylow, ylow+(dy*my), my)
                 okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
-                x_deriv = np.trapz(np.array(adjoint_grid[adjoint_keys[k]]).T*okada_deriv_param, dx=dx, axis=0)
-                sum_ += np.trapz(x_deriv, dx=dy, axis=-1) #xlow, xlow+(dx*mx), ylow, ylow+(dy*my)
-            temp_dict[param] = sum_
+
+                x_deriv_lower = np.trapz(np.array(lower_adjoint_grid[grid]).T*okada_deriv_param, dx=dx, axis=0)
+                sum_lower += np.trapz(x_deriv_lower, dx=dy, axis=-1) 
+            lower_temp_dict[param] = sum_lower
+            
+            sum_upper = 0
+            for k,grid in enumerate(upper_adjoint_keys):
+                mx, my, xlow, ylow, dx, dy = upper_info_dict[grid]
+                X = np.linspace(xlow, xlow+(dx*mx), mx)
+                Y = np.linspace(ylow, ylow+(dy*my), my)
+                okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
+
+                x_deriv_upper = np.trapz(np.array(upper_adjoint_grid[grid]).T*okada_deriv_param, dx=dx, axis=0)
+                sum_upper += np.trapz(x_deriv_upper, dx=dy, axis=-1) 
+            upper_temp_dict[param] = sum_upper
+       
+        
+        if up - arrival < arrival - down:
+            temp_dict = upper_temp_dict
+        else:
+            temp_dict = lower_temp_dict
+            
+        dt = 60
+        # Finite difference between the dicts todo
+        # time_temp_dict = (upper_temp_dict- lower_temp_dict) / dt
+            
         grads[gauge+' height'] = temp_dict
+
+
+
+
+        # ARRIVAL TIMES GRADIENT APPROXIMATIONS
+        banda_gauge = GaugeSolution(gauge_id=2, path="")
+        times = banda_gauge.t
+        eta = banda_gauge.q[-1]
+        max_index = np.argmax(eta)
+        
+        # Find the time corresponding to the maximum height
+        max_height = eta[max_index]
+        max_time = times[max_index]
+        if max_index == 0:  # Endpoint at the beginning
+            h = times[1] - times[0]
+            first_derivative = (eta[1] - eta[0]) / h
+            second_derivative = (eta[2] - 2 * eta[1] + eta[0]) / h**2
+        elif max_index == len(times) - 1:  # Endpoint at the end
+            h = times[-1] - times[-2]
+            first_derivative = (eta[-1] - eta[-2]) / h
+            second_derivative = (eta[-1] - 2 * eta[-2] + eta[-3]) / h**2
+        else:  # Use central difference for non-endpoints
+            h = times[max_index + 1] - times[max_index]
+            first_derivative = (eta[max_index + 1] - eta[max_index - 1]) / (2 * h)
+            second_derivative = (eta[max_index + 1] - 2 * eta[max_index] + eta[max_index - 1]) / (h**2)
+
+        print()
+        print(f"Banda Max Height: {max_height}")
+        print(f"Banda Max Time: {max_time}")
+        print(f"Banda First Derivative: {first_derivative}")
+        print(f"Banda Second Derivative: {second_derivative}")
+        print()
+
+        saparua_gauge = GaugeSolution(gauge_id=5, path="")
+        times = saparua_gauge.t
+        eta = saparua_gauge.q[-1]
+        max_index = np.argmax(eta)
+        
+        # Find the time corresponding to the maximum height
+        max_height = eta[max_index]
+        max_time = times[max_index]
+        if max_index == 0:  # Endpoint at the beginning
+            h = times[1] - times[0]
+            first_derivative = (eta[1] - eta[0]) / h
+            second_derivative = (eta[2] - 2 * eta[1] + eta[0]) / h**2
+        elif max_index == len(times) - 1:  # Endpoint at the end
+            h = times[-1] - times[-2]
+            first_derivative = (eta[-1] - eta[-2]) / h
+            second_derivative = (eta[-1] - 2 * eta[-2] + eta[-3]) / h**2
+        else:  # Use central difference for non-endpoints
+            h = times[max_index + 1] - times[max_index]
+            first_derivative = (eta[max_index + 1] - eta[max_index - 1]) / (2 * h)
+            second_derivative = (eta[max_index + 1] - 2 * eta[max_index] + eta[max_index - 1]) / (h**2)
+
+        print()
+        print(f"Saparua Max Height: {max_height}")
+        print(f"Saparua Max Time: {max_time}")
+        print(f"Saparua First Derivative: {first_derivative}")
+        print(f"Saparua Second Derivative: {second_derivative}")
+        print()
+
+
+
 
         # find the actual heights from geoclaw output
         outputs[gauge+' height'] = model_output[gauge+' height']
@@ -301,6 +366,8 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
             dh_ddlw=(H - loc) / scale**2 * NN_grads['dN_ddlw']
         #JPW:
         if gauge.name == 'Banda Neira':
+            #print('H', H)
+            H=7.0
             lat1, lon1, lat2, lon2 = gauge.lat, gauge.lon, sample_lat, sample_lon
             dh_dlat += haversine_deriv_lat(lat1, lon1, lat2, lon2)/(np.sqrt(g*H))*obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
             dh_dlon += haversine_deriv_lon(lat1, lon1, lat2, lon2)/np.sqrt(g*H)*obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
@@ -308,6 +375,7 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
             #dh_dlon += obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
 
         if gauge.name == 'Saparua':
+            H=7.0
             lat1, lon1, lat2, lon2 = gauge.lat, gauge.lon, sample_lat, sample_lon
             dh_dlat += haversine_deriv_lat(lat1, lon1, lat2, lon2)/(np.sqrt(g*H))*obs_deriv_lat(lat1, lon1, lat2, lon2, loc, scale)
             dh_dlon += haversine_deriv_lon(lat1, lon1, lat2, lon2)/np.sqrt(g*H)*obs_deriv_lon(lat1, lon1, lat2, lon2, loc, scale)
@@ -360,8 +428,8 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
     def d_lat_prior(lat, lon, do):
         return float((depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std**2 * d_depth_dlatlon[0])
 
-    def d_lon_prior(lat, lon, do):
-        return float((depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std**2 * d_depth_dlatlon[1])
+    def d_lon_prior(lat, lon, do): return float((
+        depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std**2 * d_depth_dlatlon[1])
     d_mag_prior=1
     def d_dll_prior(dll): return float(dll / dll_std**2)
     def d_dlw_prior(dlw): return float(dlw / dlw_std**2)
@@ -369,11 +437,11 @@ def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, mode
         depth_mu - (depth_map(lat, lon) + 1000 * do)) / depth_std**2 * 1000 + do / do_std**2)
 
     def neg_lprior_grad_fun(sample): return np.array([d_lat_prior(sample[0], sample[1], sample[5]), d_lon_prior(sample[0], sample[1], sample[5]), d_mag_prior, d_dll_prior(sample[3]), d_dlw_prior(sample[4]), d_do_prior(sample[0], sample[1], sample[5])])
-        #
-        # if mode == 'height':
-        #     # This if statement is for debugging only, can be deleted
-        #     if neg_llh_grad is None or len(neg_llh_grad) == 0:
-        #         raise ValueError('neg_llh_grad is empty list')
+
+#     if mode == 'height':
+#         # This if statement is for debugging only, can be deleted
+#         if neg_llh_grad is None or len(neg_llh_grad) == 0:
+#             raise ValueError('neg_llh_grad is empty list')
 
     return neg_lprior_grad_fun(sample.values) + neg_llh_grad_fun(sample.values)
 
