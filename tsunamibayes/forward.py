@@ -34,7 +34,7 @@ class BaseForwardModel:
 class CompositeForwardModel(BaseForwardModel):
     def __init__(self,submodels):
         """Extracts all the gauge objects found within each element of the submodels
-        lists and pases those gauges into the constructor of the parent class.
+        lists and passes those gauges into the constructor of the parent class.
         
         Parameters
         ----------

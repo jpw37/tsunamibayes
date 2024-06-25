@@ -281,6 +281,7 @@ def make_setrun(config):
         gauges = build_gauges()
         fg = fgmax_tools.FGmaxGrid()
         
+        rundata.gaugedata.gauges = []
         fg.point_style = 0
         fg.min_level_check = amrdata.amr_levels_max
         fg.tstart_max = config.fgmax['tstart_max']
@@ -292,6 +293,8 @@ def make_setrun(config):
             if any(obstype in obstypes for obstype in gauge.obstypes):
                 xs.append(gauge.lon)
                 ys.append(gauge.lat)
+                rundata.gaugedata.gauges.append([i, gauge.lon, gauge.lat, 0, 1e10])
+
         print(f'xs: {xs}')
         print(f'ys: {ys}')
         fg.X = xs
