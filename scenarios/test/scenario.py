@@ -10,7 +10,7 @@ class MultiFaultScenario():
 
     def init_chain(self, u0=None, method=None, verbose=False, **kwargs):
         """Initializes a chain associated with scenarios[0]."""
-        self.scenarios.init_chain(  # used to be scenarios[0]
+        self.scenarios[0].init_chain(
             u0=u0,
             method=method,
             verbose=verbose,
@@ -19,12 +19,12 @@ class MultiFaultScenario():
 
     def resume_chain(self, output_dir):
         """Resumes a chain associated with scenarios[0]."""
-        self.scenarios.resume_chain(output_dir)   # used to be scenarios[0]
+        self.scenarios[0].resume_chain(output_dir)
 
     def sample(self, nsamples, output_dir=None, save_freq=1, verbose=False, refinement_ratios=None,
                multi_fidelity=False, ref_rat_max_values=None, config_path=None):
         """Samples from the chain."""
-        self.scenarios.sample(   # used to be scenarios[0]
+        self.scenarios[0].sample(
             nsamples,
             output_dir,
             save_freq,
@@ -134,7 +134,7 @@ class SulawesiScenario(BaseScenario):
         self.mystery_fault = forward_model.fault[2]
 
         # construct a single covariance matrix using the covariance matrices for flores and walanae
-        self.cov = covariance
+        self.cov = np.diag( np.hstack(( np.diag(flores_covariance), np.diag(walanae_covariance) )) )
 
 
 
@@ -156,7 +156,6 @@ class SulawesiScenario(BaseScenario):
             multivariate normal to produce proposal values for lat, lon,
             mag, etc.
         """
-
         proposal = sample.copy()
 
         # this used to be proposal[:-1] because of the fault index at the end
@@ -492,11 +491,11 @@ class SulawesiScenario(BaseScenario):
         model_params['walanae_width']           = walanae_width
         model_params['walanae_slip']            = walanae_slip
         model_params['walanae_strike']          = walanae_strike
-        model_params['walanae_strike_offset']   = sample['walanae_strike_offset']
+        # model_params['walanae_strike_offset']   = sample['walanae_strike_offset']
         model_params['walanae_dip']             = walanae_dip
-        model_params['walanae_dip_offset']      = sample['walanae_dip_offset']
+        # model_params['walanae_dip_offset']      = sample['walanae_dip_offset']
         model_params['walanae_depth']           = walanae_depth
-        model_params['walanae_depth_offset']    = sample['walanae_depth_offset']
+        # model_params['walanae_depth_offset']    = sample['walanae_depth_offset']
         model_params['walanae_rake']            = walanae_rake
         model_params['walanae_rake_offset']     = sample['walanae_rake_offset']
         model_params['mystery_latitude']        = sample['mystery_latitude']

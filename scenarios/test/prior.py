@@ -197,7 +197,7 @@ class SulawesiPrior(BasePrior):
         return pd.Series(params, columns)
 
 class LatLonPrior(BasePrior):
-    def __init__(self,fault,depth_dist,fault_id):
+    def __init__(self,fault,depth_dist):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
@@ -210,7 +210,6 @@ class LatLonPrior(BasePrior):
         """
         self.fault = fault
         self.depth_dist = depth_dist
-        self.fault_id = fault_id
 
     def logpdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
@@ -280,47 +279,24 @@ class LatLonPrior(BasePrior):
                 rake_offset = sample['mystery_rake_offset']
             )
 
+
         # compute subfaults (for out-of-bounds calculation)
-        # flores_length = calc_length(sample['flores_magnitude'],sample['flores_delta_logl'])
-        # walanae_length = calc_length(sample['walanae_magnitude'],sample['walanae_delta_logl'])
-        # flores_width = calc_width(sample['flores_magnitude'],sample['flores_delta_logw'])
-        # walanae_width = calc_width(sample['walanae_magnitude'],sample['walanae_delta_logl'])
-        
-        # find subfault params for each seperate fault and then hstack them into a single thing
-        
-        #flores_subfault_params = self.fault.subfault_split_RefCurve(
-        #    lat = sample['flores_latitude'],
-        #    lon = sample['flores_longitude'],
-        #    length = flores_length,
-        #    width = flores_width,
-        #    slip = 1,
-        #    depth_offset = sample['flores_depth_offset'],
-        #    dip_offset = sample['flores_dip_offset'],
-        #    rake_offset = sample['flores_rake_offset']
-        #)
-        #walanae_subfault_params = self.fault.subfault_split_RefCurve(
-        #    lat = sample['walanae_latitude'],
-        #    lon = sample['walanae_longitude'],
-        #    length = walanae_length,
-        #    width = walanae_width,
-        #    slip = 1,
-        #    depth_offset = sample['walanae_depth_offset'],
-        #    dip_offset = sample['walanae_dip_offset'],
-        #    rake_offset = sample['walanae_dip_offset']
-        #)
+        length = calc_length(sample['magnitude'],sample['delta_logl'])
+        width = calc_width(sample['magnitude'],sample['delta_logw'])
 
-        # print("this is flores_subfault_params")
-        # print(flores_subfault_params)
-        
-        # print("this is walanae_subfault_params")
-        # print(walanae_subfault_params)
-
-        # Hstack Flores and Walanae subfault params
-        #subfault_params = pd.concat([flores_subfault_params, walanae_subfault_params], axis=1)
+        subfault_params = self.fault.subfault_split_RefCurve(
+            lat = sample['latitude'],
+            lon = sample['longitude'],
+            length = length,
+            width = width,
+            slip = 1,
+            depth_offset = sample['depth_offset'],
+            dip_offset = sample['dip_offset'],
+            rake_offset = sample['rake_offset']
+        )
 
         if subfault_params.isnull().values.any():
             return np.NINF
-
         if out_of_bounds(subfault_params,self.fault.model_bounds):
             return np.NINF
         else:

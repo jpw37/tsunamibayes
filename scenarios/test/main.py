@@ -50,9 +50,8 @@ def setup(config, save_all_data):
         walanae_initialization_data,
         np.load(config.fault['mystery_data_path'])
     ]
-    
     geoclaw_bounds = config.geoclaw_bounds
-    bounds = geoclaw_bounds
+    bounds = [config.model_bounds_flo, config.model_bounds_wal]
     # Initialize the kernel for the Gaussian process fault. Strike, dip and
     #  depth will use the same kernel (the RBF kernel).
     flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
@@ -60,7 +59,7 @@ def setup(config, save_all_data):
     fault = [
         tb.fault.GaussianProcessFault( # Flores uses a GaussianProcessFault
             bounds=geoclaw_bounds,
-            model_bounds=bounds,
+            model_bounds=bounds[FAULT.FLORES],
             kers={
                 'depth': flores_kernel,
                 'dip': flores_kernel,
@@ -72,7 +71,7 @@ def setup(config, save_all_data):
         ),
         tb.fault.ReferenceCurveFault( # Walanae uses a ReferenceCurveFault
             bounds=geoclaw_bounds,
-            model_bounds=bounds,
+            model_bounds=bounds[FAULT.WALANAE],
             **fault_initialization_data[FAULT.WALANAE]
         ),
         tb.fault.GaussianProcessFault( # Mystery fault uses a GaussianProcessFault
@@ -181,7 +180,8 @@ def setup(config, save_all_data):
         stats.norm(scale=config.prior['rake_offset_std_mst'])
     ]
 
-    prior = SulawesiPrior(
+    prior = [
+        SulawesiPrior(
             latlon[FAULT.FLORES],
             mag[FAULT.FLORES],
             delta_logl[FAULT.FLORES],
@@ -189,7 +189,9 @@ def setup(config, save_all_data):
             depth_offset[FAULT.FLORES],
             dip_offset[FAULT.FLORES],
             strike_offset[FAULT.FLORES],
-            rake_offset[FAULT.FLORES],
+            rake_offset[FAULT.FLORES]
+        ),
+        SulawesiPrior(
             latlon[FAULT.WALANAE],
             mag[FAULT.WALANAE],
             delta_logl[FAULT.WALANAE],
@@ -207,6 +209,7 @@ def setup(config, save_all_data):
             strike_offset[FAULT.MYSTERY],
             rake_offset[FAULT.MYSTERY]
         )
+    ]
 
     # load gauges
     gauges = build_gauges()
@@ -215,12 +218,20 @@ def setup(config, save_all_data):
     config.fgmax['min_level_check'] = (
         len(config.geoclaw['refinement_ratios']) + 1
     )
-    forward_model = tb.GeoClawForwardModel(
+    forward_model = [
+        tb.GeoClawForwardModel(
             gauges,
-            fault,  # notice that fault is now a MultiFault object
+            fault[FAULT.FLORES],
+            config.fgmax,
+            config.geoclaw['dtopo_path']
+        ),
+        tb.GeoClawForwardModel(
+            gauges,
+            fault[FAULT.WALANAE],
             config.fgmax,
             config.geoclaw['dtopo_path']
         )
+    ]
 
     # Proposal kernel
     lat_std = [
@@ -271,8 +282,8 @@ def setup(config, save_all_data):
     ]
 
     # square for std => cov
-    covariance = np.diag(np.hstack((
-        np.square([
+    covariance = [
+        np.diag(np.square([
             lat_std[FAULT.FLORES],
             lon_std[FAULT.FLORES],
             mag_std[FAULT.FLORES],
@@ -281,8 +292,9 @@ def setup(config, save_all_data):
             depth_offset_std[FAULT.FLORES],
             dip_offset_std[FAULT.FLORES],
             strike_offset_std[FAULT.FLORES],
-            rake_offset_std[FAULT.FLORES]  ]),
-        np.square([
+            rake_offset_std[FAULT.FLORES]
+        ])),
+        np.diag(np.square([
             lat_std[FAULT.WALANAE],
             lon_std[FAULT.WALANAE],
             mag_std[FAULT.WALANAE],
@@ -310,6 +322,7 @@ def setup(config, save_all_data):
             covariance,
             save_all_data=save_all_data
         )
+    ]
     return MultiFaultScenario(scenarios)
 
 
@@ -345,6 +358,7 @@ if __name__ == "__main__":
     # build scenarios
     scenarios = setup(config, save_all_data=SAVE_ALL_DATA)
     
+
     # resume in-progress chain
     if args.resume:
         if args.verbose:
@@ -356,9 +370,8 @@ if __name__ == "__main__":
         if config.init['method'] == 'manual':
             u0 = {
                 key:val for key,val in config.init.items()
-                if key in scenarios.scenarios.sample_cols   # used to be scenarios[0]
+                if key in scenarios.scenarios[0].sample_cols
             }
-                        
             scenarios.init_chain(u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenarios.init_chain(
