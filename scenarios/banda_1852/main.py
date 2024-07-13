@@ -1,11 +1,19 @@
+import sys
+sys.path.insert(0,'/Users/nephi/tsunamibayes')
+sys.path.insert(0,'/opt/anaconda3/lib/python3.11/site-packages')
+import pandas
+import tsunamibayes as tb
+
 import numpy as np
 import scipy.stats as stats
 import json
-import tsunamibayes as tb
 from prior import LatLonPrior, BandaPrior
 from gauges import build_gauges
 from scenario import BandaScenario
 from forward import NeuralNetEmulator
+
+
+
 
 def setup(config):
     """Extracts the data from the config object to create the BandaFault object, 

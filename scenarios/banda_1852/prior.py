@@ -1,3 +1,7 @@
+import sys
+sys.path.insert(0,'/Users/nephi/tsunamibayes')
+sys.path.insert(0,'/opt/anaconda3/lib/python3.11/site-packages')
+
 import numpy as np
 from tsunamibayes import BasePrior
 from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
