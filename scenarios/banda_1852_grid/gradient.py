@@ -114,170 +114,152 @@ def compute_nn_grads(grad, sample, strike_map, dip_map, depth_map, step):
     return {'dN_dmag': dm, 'dN_ddll': dll, 'dN_ddlw': dlw, 'dN_dlat': dlat, 'dN_dlon': dlon, 'dN_ddo': ddo}
 
 def calc_adjoint(model_params, model_output, arrival_times):
-    # get gauge info, need lat and lon
+    # Get gauge info, need lat and lon
     gauge_names = ['Pulu Ai', 'Ambon', 'Banda Neira', 'Buru', 'Hulaliu',
                    'Saparua', 'Kulur', 'Ameth', 'Amahai']
-    gauges=build_gauges()
-    #print('MODEL PARAMETERS', model_params)
-    #print('MODEL @ LENGTH', np.array(model_params['length'])[-1])
-        #print('H', H)
-        #print('H', H)
-        #print("NN_Grads Keys", NN_grads.keys())
-        #new = []
-        #print('NN_Grads Values', NN_grads.values())
-        #for i in range(len(NN_grads.values())):
-        #    print(NN_grads.values())
-        #    print(NN_grads.values()[-1])
-        #print('NN_Grads Values Floats', new)
-        # parameters from gauge likelihood (in gauge.py)
-        #print("NN_Grads Keys", NN_grads.keys())
-        #new = []
-        #print('NN_Grads Values', NN_grads.values())
-        #for i in range(len(NN_grads.values())):
-        #    print(NN_grads.values())
-        #    print(NN_grads.values()[-1])
-        #print('NN_Grads Values Floats', new)
-        # parameters from gauge likelihood (in gauge.py)
-    #print("MODEL PARAMETERS VALUES", model_params.values())
-    #nn_model = NeuralNetEmulator(gauges, fault, retain_graph=True)
-#     print(model_params)
-#     print(type(model_params))
-    #grads, outputs = nn_model.compute_gradient(model_params)
-    # calculating the deriv of geoclaw w/ respect to okada params
+    gauges = build_gauges()
+    
+    for item in model_params.items():
+        print(item)
+        
+    print("Model Params:", model_params)
+
     grads = {}
     outputs = {}
+    
+    # Modify this when using rake on different scenario
     okada_params = ['length', 'width', 'depth', 'latitude', 'longitude', 'strike', 'slip', 'dip']
     
-    # okada_params = ['latitude', 'longitude', 'length', 'width', 'slip', 'dip', 'strike', 'depth']
     for i, gauge in enumerate(gauge_names):
+        print(i, gauge)
         temp_dict = {}
         
         arrival = arrival_times[i]
+        down, up = np.floor(arrival), np.ceil(arrival)
 
-        down, up = np.floor(arrival),np.ceil(arrival)
         if down <= 9:
-            lower_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(down))
+            lower_adjoint_file_name = f'/home/ilhah/fsl_groups/fslg_tsunami/nobackup/archive/1852_trail_run_chelsey/adjoint/_output/fort.q000{int(down)}'
         else:
-            lower_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(down))
+            lower_adjoint_file_name = f'/home/ilhah/fsl_groups/fslg_tsunami/nobackup/archive/1852_trail_run_chelsey/adjoint/_output/fort.q00{int(down)}'
+        
         if up <= 9:
-            upper_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q000' + str(int(up))
+            upper_adjoint_file_name = f'/home/ilhah/fsl_groups/fslg_tsunami/nobackup/archive/1852_trail_run_chelsey/adjoint/_output/fort.q000{int(up)}'
         else:
-            upper_adjoint_file_name = '/fsl_groups/fslg_tsunami/compute/1852_trail_run_chelsey/adjoint/_output/' + 'fort.q00' + str(int(up))
-        
+            upper_adjoint_file_name = f'/home/ilhah/fsl_groups/fslg_tsunami/nobackup/archive/1852_trail_run_chelsey/adjoint/_output/fort.q00{int(up)}'
 
-        lower_grid_dict, lower_info_dict = get_grids(lower_adjoint_file_name)
-        lower_desired_grid, lower_desired_info = useful_grids(lower_grid_dict, lower_info_dict, 130, 132.7, -6.5, -3.5)
-        lower_adjoint_grid, lower_adjoint_keys = condensed_grids(lower_desired_grid)
-        lower_temp_dict = {}
-         
-        
-        upper_grid_dict, upper_info_dict = get_grids(upper_adjoint_file_name)
-        upper_desired_grid, upper_desired_info = useful_grids(upper_grid_dict, upper_info_dict, 130, 132.7, -6.5, -3.5)
-        upper_adjoint_grid, upper_adjoint_keys = condensed_grids(upper_desired_grid)
-        upper_temp_dict = {}
-         
-        derivatives = get_derivatives()
-        for j, param in enumerate(okada_params):
-            sum_lower = 0
-            for k,grid in enumerate(lower_adjoint_keys):
-                mx, my, xlow, ylow, dx, dy = lower_info_dict[grid]
-                X = np.linspace(xlow, xlow+(dx*mx), mx)
-                Y = np.linspace(ylow, ylow+(dy*my), my)
-                okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
+        if i == 2 or i == 5:
+            # Calculate both lower and upper grids for Banda and Saparua
+            lower_grid_dict, lower_info_dict = get_grids(lower_adjoint_file_name)
+            lower_desired_grid, lower_desired_info = useful_grids(lower_grid_dict, lower_info_dict, 130, 132.7, -6.5, -3.5)
+            lower_adjoint_grid, lower_adjoint_keys = condensed_grids(lower_desired_grid)
+            lower_temp_dict = {}
 
-                x_deriv_lower = np.trapz(np.array(lower_adjoint_grid[grid]).T*okada_deriv_param, dx=dx, axis=0)
-                sum_lower += np.trapz(x_deriv_lower, dx=dy, axis=-1) 
-            lower_temp_dict[param] = sum_lower
-            
-            sum_upper = 0
-            for k,grid in enumerate(upper_adjoint_keys):
-                mx, my, xlow, ylow, dx, dy = upper_info_dict[grid]
-                X = np.linspace(xlow, xlow+(dx*mx), mx)
-                Y = np.linspace(ylow, ylow+(dy*my), my)
-                okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
+            upper_grid_dict, upper_info_dict = get_grids(upper_adjoint_file_name)
+            upper_desired_grid, upper_desired_info = useful_grids(upper_grid_dict, upper_info_dict, 130, 132.7, -6.5, -3.5)
+            upper_adjoint_grid, upper_adjoint_keys = condensed_grids(upper_desired_grid)
+            upper_temp_dict = {}
 
-                x_deriv_upper = np.trapz(np.array(upper_adjoint_grid[grid]).T*okada_deriv_param, dx=dx, axis=0)
-                sum_upper += np.trapz(x_deriv_upper, dx=dy, axis=-1) 
-            upper_temp_dict[param] = sum_upper
-       
-        
-        if up - arrival < arrival - down:
-            temp_dict = upper_temp_dict
+            derivatives = get_derivatives()
+            for j, param in enumerate(okada_params):
+                sum_lower = 0
+                for k, grid in enumerate(lower_adjoint_keys):
+                    mx, my, xlow, ylow, dx, dy = lower_info_dict[grid]
+                    X = np.linspace(xlow, xlow + (dx * mx), mx)
+                    Y = np.linspace(ylow, ylow + (dy * my), my)
+                    okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), 
+                                                        float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), 
+                                                        float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), 
+                                                        float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), 
+                                                        float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
+
+                    x_deriv_lower = np.trapz(np.array(lower_adjoint_grid[grid]).T * okada_deriv_param, dx = dx, axis = 0)
+                    sum_lower += np.trapz(x_deriv_lower, dx = dy, axis = -1) 
+                lower_temp_dict[param] = sum_lower
+
+                sum_upper = 0
+                for k, grid in enumerate(upper_adjoint_keys):
+                    mx, my, xlow, ylow, dx, dy = upper_info_dict[grid]
+                    X = np.linspace(xlow, xlow + (dx * mx), mx)
+                    Y = np.linspace(ylow, ylow + (dy * my), my)
+                    okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), 
+                                                        float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), 
+                                                        float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), 
+                                                        float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), 
+                                                        float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
+
+                    x_deriv_upper = np.trapz(np.array(upper_adjoint_grid[grid]).T * okada_deriv_param, dx = dx, axis = 0)
+                    sum_upper += np.trapz(x_deriv_upper, dx = dy, axis = -1) 
+                upper_temp_dict[param] = sum_upper
+
+            if up - arrival < arrival - down:
+                temp_dict = upper_temp_dict
+            else:
+                temp_dict = lower_temp_dict
         else:
-            temp_dict = lower_temp_dict
-            
-        dt = 60
-        # Finite difference between the dicts todo
-        # time_temp_dict = (upper_temp_dict- lower_temp_dict) / dt
-            
-        grads[gauge+' height'] = temp_dict
+            # Calculate only the closest grid for other indices
+            closest_adjoint_file_name = lower_adjoint_file_name if up - arrival >= arrival - down else upper_adjoint_file_name
 
+            closest_grid_dict, closest_info_dict = get_grids(closest_adjoint_file_name)
+            closest_desired_grid, closest_desired_info = useful_grids(closest_grid_dict, closest_info_dict, 130, 132.7, -6.5, -3.5)
+            closest_adjoint_grid, closest_adjoint_keys = condensed_grids(closest_desired_grid)
 
+            derivatives = get_derivatives()
+            for j, param in enumerate(okada_params):
+                sum_closest = 0
+                for k, grid in enumerate(closest_adjoint_keys):
+                    mx, my, xlow, ylow, dx, dy = closest_info_dict[grid]
+                    X = np.linspace(xlow, xlow + (dx * mx), mx)
+                    Y = np.linspace(ylow, ylow + (dy * my), my)
+                    okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), 
+                                                        float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), 
+                                                        float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), 
+                                                        float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), 
+                                                        float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
 
-
-        # ARRIVAL TIMES GRADIENT APPROXIMATIONS
-        banda_gauge = GaugeSolution(gauge_id=2, path="")
-        times = banda_gauge.t
-        eta = banda_gauge.q[-1]
-        max_index = np.argmax(eta)
+                    x_deriv_closest = np.trapz(np.array(closest_adjoint_grid[grid]).T * okada_deriv_param, dx = dx, axis = 0)
+                    sum_closest += np.trapz(x_deriv_closest, dx = dy, axis = -1) 
+                temp_dict[param] = sum_closest
         
-        # Find the time corresponding to the maximum height
-        max_height = eta[max_index]
-        max_time = times[max_index]
-        if max_index == 0:  # Endpoint at the beginning
-            h = times[1] - times[0]
-            first_derivative = (eta[1] - eta[0]) / h
-            second_derivative = (eta[2] - 2 * eta[1] + eta[0]) / h**2
-        elif max_index == len(times) - 1:  # Endpoint at the end
-            h = times[-1] - times[-2]
-            first_derivative = (eta[-1] - eta[-2]) / h
-            second_derivative = (eta[-1] - 2 * eta[-2] + eta[-3]) / h**2
-        else:  # Use central difference for non-endpoints
-            h = times[max_index + 1] - times[max_index]
-            first_derivative = (eta[max_index + 1] - eta[max_index - 1]) / (2 * h)
-            second_derivative = (eta[max_index + 1] - 2 * eta[max_index] + eta[max_index - 1]) / (h**2)
+        grads[gauge + ' height'] = temp_dict
 
-        print()
-        print(f"Banda Max Height: {max_height}")
-        print(f"Banda Max Time: {max_time}")
-        print(f"Banda First Derivative: {first_derivative}")
-        print(f"Banda Second Derivative: {second_derivative}")
-        print()
+        if i == 2 or i == 5:
+            # ARRIVAL TIMES GRADIENT APPROXIMATIONS for index 2 (Banda) or 5 (Saparua)
+            time_gauge = GaugeSolution(gauge_id=i, path="")
+            times = time_gauge.t
+            eta = time_gauge.q[-1]
+            max_index = np.argmax(eta)
 
-        saparua_gauge = GaugeSolution(gauge_id=5, path="")
-        times = saparua_gauge.t
-        eta = saparua_gauge.q[-1]
-        max_index = np.argmax(eta)
-        
-        # Find the time corresponding to the maximum height
-        max_height = eta[max_index]
-        max_time = times[max_index]
-        if max_index == 0:  # Endpoint at the beginning
-            h = times[1] - times[0]
-            first_derivative = (eta[1] - eta[0]) / h
-            second_derivative = (eta[2] - 2 * eta[1] + eta[0]) / h**2
-        elif max_index == len(times) - 1:  # Endpoint at the end
-            h = times[-1] - times[-2]
-            first_derivative = (eta[-1] - eta[-2]) / h
-            second_derivative = (eta[-1] - 2 * eta[-2] + eta[-3]) / h**2
-        else:  # Use central difference for non-endpoints
-            h = times[max_index + 1] - times[max_index]
-            first_derivative = (eta[max_index + 1] - eta[max_index - 1]) / (2 * h)
-            second_derivative = (eta[max_index + 1] - 2 * eta[max_index] + eta[max_index - 1]) / (h**2)
-
-        print()
-        print(f"Saparua Max Height: {max_height}")
-        print(f"Saparua Max Time: {max_time}")
-        print(f"Saparua First Derivative: {first_derivative}")
-        print(f"Saparua Second Derivative: {second_derivative}")
-        print()
+            # Find the time corresponding to the maximum height
+            max_height = eta[max_index]
+            max_time = times[max_index]
+            if max_index == 0:  # Endpoint at the beginning
+                h = times[1] - times[0]
+                first_derivative = (eta[1] - eta[0]) / h
+                time_second_derivative = (eta[2] - 2 * eta[1] + eta[0]) / h**2
+            elif max_index == len(times) - 1:  # Endpoint at the end
+                h = times[-1] - times[-2]
+                first_derivative = (eta[-1] - eta[-2]) / h
+                time_second_derivative = (eta[-1] - 2 * eta[-2] + eta[-3]) / h**2
+            else:  # Use central difference for non-endpoints
+                h = times[max_index + 1] - times[max_index]
+                first_derivative = (eta[max_index + 1] - eta[max_index - 1]) / (2 * h)
+                time_second_derivative = (eta[max_index + 1] - 2 * eta[max_index] + eta[max_index - 1]) / (h**2)
 
 
+        print(f"Wave Height derivatives for {gauge}: {temp_dict}")    
+        if i == 2 or i == 5:
+            dt = 60
+            time_temp_dict = {}
+            for param in okada_params:
+                time_temp_dict[param] = -((upper_temp_dict[param] - lower_temp_dict[param]) / dt) / time_second_derivative
+            print(f"Arrival time derivatives for {gauge}: {time_temp_dict}")   
+        print() 
 
 
-        # find the actual heights from geoclaw output
-        outputs[gauge+' height'] = model_output[gauge+' height']
+        # Find the actual heights from geoclaw output
+        outputs[gauge + ' height'] = model_output[gauge + ' height']
     return grads, outputs
+
 
 def dU(sample, strike_map, dip_map, depth_map, config, fault, model_params, model_output, arrival_times, grads, outputs, step=0.01):
     """Use the simplified tsunami formula to compute the gradient
