@@ -1,10 +1,9 @@
 import os
-import json
 import numpy as np
 import pandas as pd
-# from .fault import BaseFault
-# from .maketopo import write_dtopo
-# from . import models
+from landslide_height_model import LandslideHeightModel
+from time_model_class import TimeModel
+from height_model_class import HeightModel
 
 
 class BaseForwardModel:
@@ -130,6 +129,8 @@ class ToyForwardModel(BaseForwardModel):
         self.dtopo_path = dtopo_path
         self.gauges = gauges
 
+    # landslide simulation
+    #     def run(self, model_params, lref=None, verbose=False):
     def run(self, model_params, verbose=False):
         """Runs the forward model for a specified sample's model parameters,
         then returns the computed arrival times, wave heights, and inundation
@@ -155,69 +156,6 @@ class ToyForwardModel(BaseForwardModel):
             scenario's gauges names plus 'arrivals', 'height', or 'inundation'.
             The associated values are floats.
         """
-        ########################################################################
-        # # split fault into subfaults aligning to fault zone geometry
-        # subfault_params = self.fault.subfault_split_RefCurve(
-        #     lat=model_params['latitude'],
-        #     lon=model_params['longitude'],
-        #     length=model_params['length'],
-        #     width=model_params['width'],
-        #     slip=model_params['slip'],
-        #     depth_offset=model_params['depth_offset'],
-        #     dip_offset=model_params['dip_offset'],
-        #     rake_offset=model_params['rake_offset'],
-        #     strike_offset=model_params['strike_offset'],
-        #     rake=model_params['rake']
-        # )
-        ########################################################################
-
-        ########################################################################
-        # # I think every mention of fault will have to be replaced by fault[index]
-        #
-        # # create and write dtopo file
-        # write_dtopo(
-        #     subfault_params, self.fault.bounds, self.dtopo_path, verbose
-        # )
-        ########################################################################
-
-        # # clear .output
-        # os.system('rm .output')
-        #
-        # # run GeoClaw
-        # os.system('make .output')
-
-        # # load fgmax and bathymetry data
-        # fgmax_data = np.loadtxt(self.valuemax_path)
-        # bath_data = np.loadtxt(self.aux1_path)
-        # print('********')
-        # print('GeoClawForwardModel.run() data:')
-        # with open(self.valuemax_path, 'r') as vm_file:
-        #     print(self.valuemax_path, ':')
-        #     print(vm_file.read())
-        # with open(self.aux1_path, 'r') as aux1_file:
-        #     print(self.aux1_path, ':')
-        #     print(aux1_file.read())
-        # print('PRINTING fgmax_data')
-        # print(fgmax_data)
-        # print("PRINTING bath_data")
-        # print(bath_data)
-        # print("Done printing GeoClawForwardModel.run() data.")
-        # print("********")
-
-        # this is the arrival time of the first wave, not the maximum wave
-        # converting from seconds to minutes
-        # arrival_times = fgmax_data[:, -1] / 60
-        #
-        # max_heights = fgmax_data[:, 3]
-        # bath_depth = bath_data[:, -1]
-        # from Simplified Formula 2.0 import WaveHeight
-        # wave_height = WaveHeight(dictionary_of_parameters)
-
-        #Need to call the toy model
-        arrival_times = None
-        max_heights = None
-        bath_depth = None
-
         # write this code the right way lol
         # move magic numbers into attributes or parameters to be passed in
         # write the grid reading so that it reads magic numbers as necessary
@@ -225,35 +163,12 @@ class ToyForwardModel(BaseForwardModel):
         # anything else to make the models bathymetry data agnostic
         # talk to prof whitehead about data
 
-        from height_model_class import HeightModel
-        from time_model_class import TimeModel
         model_output = pd.Series(dtype='float64')
 
-        # for gauge in self.gauges:
-        #     time_ = time_model(guage info)
-        #     time, path = time_.dijkstras_algorithm()
-        #     height = height_model(guage info, path)
-        #     if 'arrival' in gauge.obstypes:
-        #         model_output[gauge.name + ' arrival'] = time
-        #     if 'height' in gauge.obstypes:
-        #         model_output[gauge.name + ' height'] = height
-
-        # return model_output
-
-
-        # these are locations where the wave never reached the gauge.
-        # max_heights[max_heights < 1e-15] = -9999
-        # max_heights[np.abs(max_heights) > 1e15] = -9999
-        #
-        # bath_depth[max_heights == 0] = 0
-        # wave_heights = max_heights + bath_depth
-        #
-        # model_output = pd.Series(dtype='float64')
-        # idx_gauge_start = 0
-        # idx_gauge_end = 0
         for gauge in self.gauges:
             time_ = TimeModel((model_params['longitude'], model_params['latitude']), (gauge.lon, gauge.lat), self.dtopo_path)
             path, time = time_.dijkstras_algorithm()
+            center_mass_depth = 2800
             height_ = HeightModel(
                 model_params['slip'],
                 model_params['length'],
@@ -266,6 +181,18 @@ class ToyForwardModel(BaseForwardModel):
                 gauge.lon,
                 path,
                 self.dtopo_path
+
+
+                # center_mass_depth,
+                # model_params['thickness'],
+                # model_params['initial_velocity'],
+                # model_params['volume'],
+                # model_params['aspect_ratio'],
+                # model_params['latitude'],
+                # model_params['longitude'],
+                # gauge.lat,
+                # gauge.lon,
+                # lref=lref
             )
             height = height_.wave_height()
             if 'arrival' in gauge.obstypes:
@@ -277,26 +204,7 @@ class ToyForwardModel(BaseForwardModel):
             # print()
 
         return model_output
-        # for i, gauge in enumerate(self.gauges):
-        #     num_pts_in_this_gauge = len(gauge.lat)
-        #     idx_gauge_end += num_pts_in_this_gauge
-        #     if 'arrival' in gauge.obstypes:
-        #         model_output[gauge.name + ' arrival'] = np.mean(
-        #             arrival_times[idx_gauge_start:idx_gauge_end]
-        #         )
-        #     if 'height' in gauge.obstypes:
-        #         model_output[gauge.name + ' height'] = np.mean(
-        #             wave_heights[idx_gauge_start:idx_gauge_end]
-        #         )
-        #     if 'inundation' in gauge.obstypes:
-        #         model_output[gauge.name + ' inundation'] = models.inundation(
-        #             np.mean(wave_heights[idx_gauge_start:idx_gauge_end]),
-        #             gauge.beta,
-        #             gauge.n
-        #         )
-        #     idx_gauge_start += num_pts_in_this_gauge
-        #
-        # return model_output
+
 
 
 class GeoClawForwardModel(BaseForwardModel):

@@ -1,9 +1,9 @@
-from .gaussian_process_regressor import GPR
+# from .gaussian_process_regressor import GPR
 import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
-from .utils import displace, haversine, bearing
+from utils import displace, haversine, bearing
 
 
 class BaseFault:
@@ -1145,224 +1145,224 @@ class ReferenceCurveFault(BaseFault):
         )
 
 
-class GaussianProcessFault(BaseFault):
-    """A class for fault-related data, where depth_map, dip_map, strike_map,
-    rake_map are found by training a Gaussian process on sample depth, dip,
-    strike, and rake data.
-    """
-    def __init__(
-        self,
-        lats,
-        lons,
-        depths,
-        dips,
-        strikes,
-        rakes,
-        bounds,
-        model_bounds,
-        kers,
-        noise=None
-    ):
-        """Initializes all the necessary variables for the subclass.
-
-        Parameters
-        ----------
-        lats : (N,) ndarray
-            Array containing latitudes of points on the fault.
-        lons : (N,) ndarray
-            Array containing longitudes of points on the fault.
-        depths : (N,) ndarray
-            Array containing depth value at each latitude-longitude pair.
-        dips : (N,) ndarray
-            Array containing dip value at each latitude-longitude pair.
-        strikes : (N,) ndarray
-            Array containing strike value at each latitude-longitude pair.
-        bounds : dict
-            Dictionary containing the model bounds. Keys are 'lon_min',
-            'lon_max', 'lat_min', 'lat_max'.
-        kernels : dict
-            Dictionary containing the kernel functions for each of the
-            three Gaussian processes to fit. Keys are 'depth', 'dip',
-            'strike', and 'rake'.
-        noise : dict
-            Dictionary containing the noise level for each of the three
-            Gaussian processes. Keys are 'depth', 'dip', and 'strike'.
-            If
-        """
-        super().__init__(bounds)
-        self.model_bounds = model_bounds
-
-        if noise is None:
-            noise = {'depth': 1, 'dip': 1, 'strike': 1, 'rake': 1}
-
-        # Initialize the GPRs.
-        self.depth_gpr = GPR(
-            kernel=kers['depth'],
-            noise_level=noise['depth']
-        )
-        self.dip_gpr = GPR(
-            kernel=kers['dip'],
-            noise_level=noise['dip']
-        )
-        self.strike_gpr = GPR(
-            kernel=kers['strike'],
-            noise_level=noise['strike']
-        )
-        self.rake_gpr = GPR(
-            kernel=kers['rake'],
-            noise_level=noise['rake']
-        )
-
-        # Train each of the GPRs.
-        X = np.vstack([lats, lons]).T
-        self.depth_gpr.fit(X,depths)
-        self.dip_gpr.fit(X,dips)
-        self.strike_gpr.fit(X,strikes)
-        self.rake_gpr.fit(X,rakes)
-
-    @classmethod
-    def from_file(cls, filename, bounds, kers, noise):
-        """Alternate constructor for the GaussianProcessFault class.
-
-        Parameters
-        ----------
-        filename : string
-            String containing the filepath to the .npz file containing the
-            necessary data.
-            The file is expected to be an .npz file with the following
-            attributes:
-                lats : (N,) ndarray
-                lons : (N,) ndarray
-                depths : (N,) ndarray
-                dips : (N,) ndarray
-                strikes : (N,) ndarray
-                rakes : (N,) ndarray
-        """
-        arrays = np.load(filename)
-        return cls(**arrays, bounds=bounds, kers=kers, noise=noise)
-
-    def strike_map(self,lat,lon,return_std=False):
-        """Computes the weighted mean strike angle.
-
-        Parameters
-        ----------
-        lat : float or np.array (n,1)
-            The latitude coordinate (degrees) near the fault.
-            is to be calculated.
-        lon : float or np.array (n,1)
-            The latitude coordinate (degrees) near the fault.
-
-        Returns
-        -------
-        mean : float or np.array(n,)
-            The interpolated strike (in degrees) for the given coordinate.
-        std : (optional) float or np.array (n,)
-            The standard deviation (in degrees) around each strike prediction.
-        """
-        latlon = np.vstack([lat, lon]).T
-        pred = self.strike_gpr.predict(latlon,return_std=return_std)
-
-        # In scalar cases, ensure we don't propagate arrays.
-        if np.isscalar(lat):
-            if return_std:
-                pred = (pred[0].item(), pred[1].item())
-            else:
-                pred = pred.item()
-
-        return pred
-
-    def depth_map(self,lat,lon,return_std=False):
-        """Computes the depth for a given lat-lon coordinate.
-
-        Parameters
-        ----------
-        lat : float or np.array (n,1)
-            The latitude coordinate (degrees) near the fault.
-            is to be calculated.
-        lon : float or np.array (n,1)
-            The latitude coordinate (degrees) near the fault.
-
-        Returns
-        -------
-        depth : float or np.array (n,)
-            The interpolated depth (in meters) for the given coordinate.
-        std : (optional) float or np.array (n,)
-            The standard deviation (in meters) around each depth prediction.
-        """
-        latlon = np.vstack([lat, lon]).T
-        pred = self.depth_gpr.predict(latlon,return_std=return_std)
-
-        # The treatment is different if we need the standard deviation.
-        if return_std:
-            depth, std = pred
-            depth *= 1000. # Change to meters.
-            if np.isscalar(lat):
-                return depth.item(), std.item()
-            return depth, std
-
-        # Procedure when standard deviation is not needed.
-        pred *= 1000. # Change to meters.
-        if np.isscalar(lat):
-            pred = pred.item()
-
-        return pred
-
-    def dip_map(self,lat,lon,return_std=False):
-        """Computes the dip for a given lat-lon coordinate.
-
-        Parameters
-        ----------
-        lat : float or np.array (n,)
-            The latitude coordinate (degrees) near the fault.
-            is to be calculated.
-        lon : float or np.array (n,)
-            The latitude coordinate (degrees) near the fault.
-
-        Returns
-        -------
-        dip : float or np.array (n,)
-            The interpolated dip (in degrees) for the given coordinate.
-        std : (optional) float or np.array (n,)
-            The standard deviation (in degrees) around each dip prediction.
-        """
-        latlon = np.vstack([lat, lon]).T
-        pred = self.dip_gpr.predict(latlon, return_std=return_std)
-
-        # In scalar cases, ensure we don't propagate arrays.
-        if np.isscalar(lat):
-            if return_std:
-                pred = (pred[0].item(), pred[1].item())
-            else:
-                pred = pred.item()
-
-        return pred
-
-    def rake_map(self,lat,lon,return_std=False):
-        """Computes the rake for a given lat-lon coordinate.
-
-        Parameters
-        ----------
-        lat : float or np.array (n,)
-            The latitude coordinate (degrees) near the fault.
-            is to be calculated.
-        lon : float or np.array (n,)
-            The latitude coordinate (degrees) near the fault.
-
-        Returns
-        -------
-        dip : float or np.array (n,)
-            The interpolated dip (in degrees) for the given coordinate.
-        std : (optional) float or np.array (n,)
-            The standard deviation (in degrees) around each dip prediction.
-        """
-        latlon = np.vstack([lat, lon]).T
-        pred = self.rake_gpr.predict(latlon, return_std=return_std)
-
-        # In scalar cases, ensure we don't propagate arrays.
-        if np.isscalar(lat):
-            if return_std:
-                pred = (pred[0].item(), pred[1].item())
-            else:
-                pred = pred.item()
-
-        return pred
+# class GaussianProcessFault(BaseFault):
+#     """A class for fault-related data, where depth_map, dip_map, strike_map,
+#     rake_map are found by training a Gaussian process on sample depth, dip,
+#     strike, and rake data.
+#     """
+#     def __init__(
+#         self,
+#         lats,
+#         lons,
+#         depths,
+#         dips,
+#         strikes,
+#         rakes,
+#         bounds,
+#         model_bounds,
+#         kers,
+#         noise=None
+#     ):
+#         """Initializes all the necessary variables for the subclass.
+#
+#         Parameters
+#         ----------
+#         lats : (N,) ndarray
+#             Array containing latitudes of points on the fault.
+#         lons : (N,) ndarray
+#             Array containing longitudes of points on the fault.
+#         depths : (N,) ndarray
+#             Array containing depth value at each latitude-longitude pair.
+#         dips : (N,) ndarray
+#             Array containing dip value at each latitude-longitude pair.
+#         strikes : (N,) ndarray
+#             Array containing strike value at each latitude-longitude pair.
+#         bounds : dict
+#             Dictionary containing the model bounds. Keys are 'lon_min',
+#             'lon_max', 'lat_min', 'lat_max'.
+#         kernels : dict
+#             Dictionary containing the kernel functions for each of the
+#             three Gaussian processes to fit. Keys are 'depth', 'dip',
+#             'strike', and 'rake'.
+#         noise : dict
+#             Dictionary containing the noise level for each of the three
+#             Gaussian processes. Keys are 'depth', 'dip', and 'strike'.
+#             If
+#         """
+#         super().__init__(bounds)
+#         self.model_bounds = model_bounds
+#
+#         if noise is None:
+#             noise = {'depth': 1, 'dip': 1, 'strike': 1, 'rake': 1}
+#
+#         # Initialize the GPRs.
+#         self.depth_gpr = GPR(
+#             kernel=kers['depth'],
+#             noise_level=noise['depth']
+#         )
+#         self.dip_gpr = GPR(
+#             kernel=kers['dip'],
+#             noise_level=noise['dip']
+#         )
+#         self.strike_gpr = GPR(
+#             kernel=kers['strike'],
+#             noise_level=noise['strike']
+#         )
+#         self.rake_gpr = GPR(
+#             kernel=kers['rake'],
+#             noise_level=noise['rake']
+#         )
+#
+#         # Train each of the GPRs.
+#         X = np.vstack([lats, lons]).T
+#         self.depth_gpr.fit(X,depths)
+#         self.dip_gpr.fit(X,dips)
+#         self.strike_gpr.fit(X,strikes)
+#         self.rake_gpr.fit(X,rakes)
+#
+#     @classmethod
+#     def from_file(cls, filename, bounds, kers, noise):
+#         """Alternate constructor for the GaussianProcessFault class.
+#
+#         Parameters
+#         ----------
+#         filename : string
+#             String containing the filepath to the .npz file containing the
+#             necessary data.
+#             The file is expected to be an .npz file with the following
+#             attributes:
+#                 lats : (N,) ndarray
+#                 lons : (N,) ndarray
+#                 depths : (N,) ndarray
+#                 dips : (N,) ndarray
+#                 strikes : (N,) ndarray
+#                 rakes : (N,) ndarray
+#         """
+#         arrays = np.load(filename)
+#         return cls(**arrays, bounds=bounds, kers=kers, noise=noise)
+#
+#     def strike_map(self,lat,lon,return_std=False):
+#         """Computes the weighted mean strike angle.
+#
+#         Parameters
+#         ----------
+#         lat : float or np.array (n,1)
+#             The latitude coordinate (degrees) near the fault.
+#             is to be calculated.
+#         lon : float or np.array (n,1)
+#             The latitude coordinate (degrees) near the fault.
+#
+#         Returns
+#         -------
+#         mean : float or np.array(n,)
+#             The interpolated strike (in degrees) for the given coordinate.
+#         std : (optional) float or np.array (n,)
+#             The standard deviation (in degrees) around each strike prediction.
+#         """
+#         latlon = np.vstack([lat, lon]).T
+#         pred = self.strike_gpr.predict(latlon,return_std=return_std)
+#
+#         # In scalar cases, ensure we don't propagate arrays.
+#         if np.isscalar(lat):
+#             if return_std:
+#                 pred = (pred[0].item(), pred[1].item())
+#             else:
+#                 pred = pred.item()
+#
+#         return pred
+#
+#     def depth_map(self,lat,lon,return_std=False):
+#         """Computes the depth for a given lat-lon coordinate.
+#
+#         Parameters
+#         ----------
+#         lat : float or np.array (n,1)
+#             The latitude coordinate (degrees) near the fault.
+#             is to be calculated.
+#         lon : float or np.array (n,1)
+#             The latitude coordinate (degrees) near the fault.
+#
+#         Returns
+#         -------
+#         depth : float or np.array (n,)
+#             The interpolated depth (in meters) for the given coordinate.
+#         std : (optional) float or np.array (n,)
+#             The standard deviation (in meters) around each depth prediction.
+#         """
+#         latlon = np.vstack([lat, lon]).T
+#         pred = self.depth_gpr.predict(latlon,return_std=return_std)
+#
+#         # The treatment is different if we need the standard deviation.
+#         if return_std:
+#             depth, std = pred
+#             depth *= 1000. # Change to meters.
+#             if np.isscalar(lat):
+#                 return depth.item(), std.item()
+#             return depth, std
+#
+#         # Procedure when standard deviation is not needed.
+#         pred *= 1000. # Change to meters.
+#         if np.isscalar(lat):
+#             pred = pred.item()
+#
+#         return pred
+#
+#     def dip_map(self,lat,lon,return_std=False):
+#         """Computes the dip for a given lat-lon coordinate.
+#
+#         Parameters
+#         ----------
+#         lat : float or np.array (n,)
+#             The latitude coordinate (degrees) near the fault.
+#             is to be calculated.
+#         lon : float or np.array (n,)
+#             The latitude coordinate (degrees) near the fault.
+#
+#         Returns
+#         -------
+#         dip : float or np.array (n,)
+#             The interpolated dip (in degrees) for the given coordinate.
+#         std : (optional) float or np.array (n,)
+#             The standard deviation (in degrees) around each dip prediction.
+#         """
+#         latlon = np.vstack([lat, lon]).T
+#         pred = self.dip_gpr.predict(latlon, return_std=return_std)
+#
+#         # In scalar cases, ensure we don't propagate arrays.
+#         if np.isscalar(lat):
+#             if return_std:
+#                 pred = (pred[0].item(), pred[1].item())
+#             else:
+#                 pred = pred.item()
+#
+#         return pred
+#
+#     def rake_map(self,lat,lon,return_std=False):
+#         """Computes the rake for a given lat-lon coordinate.
+#
+#         Parameters
+#         ----------
+#         lat : float or np.array (n,)
+#             The latitude coordinate (degrees) near the fault.
+#             is to be calculated.
+#         lon : float or np.array (n,)
+#             The latitude coordinate (degrees) near the fault.
+#
+#         Returns
+#         -------
+#         dip : float or np.array (n,)
+#             The interpolated dip (in degrees) for the given coordinate.
+#         std : (optional) float or np.array (n,)
+#             The standard deviation (in degrees) around each dip prediction.
+#         """
+#         latlon = np.vstack([lat, lon]).T
+#         pred = self.rake_gpr.predict(latlon, return_std=return_std)
+#
+#         # In scalar cases, ensure we don't propagate arrays.
+#         if np.isscalar(lat):
+#             if return_std:
+#                 pred = (pred[0].item(), pred[1].item())
+#             else:
+#                 pred = pred.item()
+#
+#         return pred

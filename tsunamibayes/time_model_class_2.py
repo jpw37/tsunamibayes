@@ -1,7 +1,9 @@
 import heapq
 import math
+import sys
 import time
 import numpy as np
+
 
 class TimeModel:
     """A class representing a model for calculating time-based paths."""
@@ -14,7 +16,7 @@ class TimeModel:
         - start_lat_long (tuple): Tuple containing start latitude and longitude.
         - end_lat_long (tuple): Tuple containing end latitude and longitude.
         """
-        # Read the bathymetry data from a file
+        # Read the bathymetry data from a file (specified by sys.argv[1])
         self.lines = self.readlines(filename)
 
         # Extract grid properties (ncols, nrows, etc.) from the read lines
@@ -88,7 +90,7 @@ class TimeModel:
             # Explore the neighbors of the current node
             for neighbor in self.get_neighbors(current_node, rows, cols):
                 if self.grid[neighbor[0]][neighbor[1]] >= 0:
-                    continue # Skip obstacles or non-traversable nodes(nodes on land)
+                    continue  # Skip obstacles or non-traversable nodes(nodes on land)
 
                 # Calculate time required to move from current node to neighbor
                 neighbor_depth = self.grid[neighbor[0]][neighbor[1]]
@@ -108,17 +110,18 @@ class TimeModel:
         path = []
         current = self.end_point
         while current:
+            # path.append(current)
+            # current = visited[current]
             try:
                 path.append(current)
                 current = visited[current]
-            except (KeyError, TypeError) as e: # if an error gets thrown here,
-                return None, -1                 # that means that the surrounding lat longs are all positive elevation
-
+            except (KeyError, TypeError) as e:  # if an error gets thrown here,
+                return None, -1  # that means that the surrounding lat longs are all positive elevation
 
         path.reverse()  # Reverse to get the path from start to end
         lat_long_path = self.convert_path_to_lat_long(path)
         total_time = distance[self.end_point]  # Total time taken for the shortest path
-        return lat_long_path, total_time/60
+        return lat_long_path, total_time / 60
 
     def get_neighbors(self, node, rows, cols):
         """
@@ -155,7 +158,8 @@ class TimeModel:
         Returns:
         - grid (list): Grid of latitude and longitude coordinates.
         """
-        start_value = (self.xllcorner, self.yllcorner)  # Starting latitude and longitude to line up with the bathymetry data
+        start_value = (
+        self.xllcorner, self.yllcorner)  # Starting latitude and longitude to line up with the bathymetry data
         increment = self.cellsize
         rows = self.nrows
         columns = self.ncols
@@ -181,7 +185,7 @@ class TimeModel:
         - closest_position (tuple): Closest grid point coordinates.
         """
         closest_value_diff = float('inf')  # Initialize a variable to track the closest value difference
-        closest_position = (0,0) # Initialize a variable to store the closest position
+        closest_position = (0, 0)  # Initialize a variable to store the closest position
 
         # Iterate through the grid to find the closest grid point
         for i in range(len(self.lat_long_grid)):
@@ -195,11 +199,11 @@ class TimeModel:
                 # and self.grid[closest_position[0]][closest_position[1]] < 0
                 thing = self.grid[i][j]
                 if value_diff < closest_value_diff and thing < 0:
-                    #print("Close", thing)
+                    # print("Close", thing)
                     closest_value_diff = value_diff  # Update the closest value difference
                     closest_position = (i, j)  # Update the closest position
-        #thing = self.grid[closest_position[0]][closest_position[1]]
-        return closest_position   # Return the coordinates of the closest grid point
+        # thing = self.grid[closest_position[0]][closest_position[1]]
+        return closest_position  # Return the coordinates of the closest grid point
 
     def convert_path_to_lat_long(self, path):
         """
@@ -214,58 +218,6 @@ class TimeModel:
         # Convert each grid point in the path to latitude and longitude coordinates
         lat_long_path = [self.lat_long_grid[row][col] for (row, col) in path]
         return lat_long_path
-    
-    def compute_derivative(self, h=None, fidelity=1):
-        """
-        Computes the derivative of the arrival time in the landslide model 
-        with respect to latitude and longitude using a finite centered difference
-        approximation.
-
-        Parameters:
-        - h (int): Step size for the finite difference approximation.
-
-        Returns:
-        - derivative (tuple): Tuple containing the derivative of the arrival time
-        """
-
-        file_path = r"C:\Users\ashle\Documents\Whitehead Research\Research 2023\1852\etopo.tt3"
-
-        # Initialize the step size
-        if type(h) != int or h is None:
-            h = self.cellsize
-
-
-        # Compute the derivative of the arrival time with respect to latitude
-        lat_plus_h = (self.start_lat_long[0], self.start_lat_long[1] + h)
-        lat_minus_h = (self.start_lat_long[0], self.start_lat_long[1] - h)
-        derivative_lat_plus_instance = TimeModel(lat_plus_h, self.end_lat_long, file_path)
-        path, arrival_time_plus_h = derivative_lat_plus_instance.dijkstras_algorithm()
-        derivative_lat_minus_instance = TimeModel(lat_minus_h, self.end_lat_long, file_path)
-        path, arrival_time_minus_h = derivative_lat_minus_instance.dijkstras_algorithm()
-        dT_dlat = (arrival_time_plus_h - arrival_time_minus_h) / (2 * h)
-        print(f"arrival_time_plus_h: {round(arrival_time_plus_h, 3)}")
-        print(f"arrival_time_minus_h: {round(arrival_time_minus_h, 3)}")
-        print(f"dT_dlat: {round(dT_dlat, 3)}")
-        dT_dlat *= self.cellsize
-
-        # Compute the derivative of the arrival time with respect to longitude
-        long_plus_h = (self.start_lat_long[0] + h, self.start_lat_long[1])
-        long_minus_h = (self.start_lat_long[0] - h, self.start_lat_long[1])
-        derivative_long_plus_instance = TimeModel(long_plus_h, self.end_lat_long, file_path)
-        path, arrival_time_plus_h = derivative_long_plus_instance.dijkstras_algorithm()
-        derivative_long_minus_instance = TimeModel(long_minus_h, self.end_lat_long, file_path)
-        path, arrival_time_minus_h = derivative_long_minus_instance.dijkstras_algorithm()
-        dT_dlong = (arrival_time_plus_h - arrival_time_minus_h) / (2 * h)
-        print(f"arrival_time_plus_h: {round(arrival_time_plus_h, 3)}")
-        print(f"arrival_time_minus_h: {round(arrival_time_minus_h, 3)}")
-        print(f"dT_dlong: {round(dT_dlong, 3)}")
-        dT_dlong *= self.cellsize
-
-
-
-        # return (dT_dlat, dT_dlong)
-        print(f"dT_dlat dT_dlong: {round(dT_dlong, 3)},{round(dT_dlat, 3)}")
-        return [-dT_dlong, -dT_dlat]
 
     def shifted_start(self):
         # width = 103587.2508 / 111111  # width in meters approximated to degrees
@@ -282,17 +234,14 @@ class TimeModel:
         width = 103587.2508 / 111111  # width in meters approximated to degrees
         lon1, lat1 = self.start_lat_long
         lon2, lat2 = self.end_lat_long
-        dist = math.sqrt((lon2 - lon1) ** 2 + (lat2 - lat1) ** 2) #distance formula
+        dist = math.sqrt((lon2 - lon1) ** 2 + (lat2 - lat1) ** 2)  # distance formula
         unit_vector_x = (lon2 - lon1) / dist
         unit_vector_y = (lat2 - lat1) / dist
 
-        x = lon1 + (width/2) * unit_vector_x
-        y = lat1 + (width/2) * unit_vector_y
+        x = lon1 + (width / 2) * unit_vector_x
+        y = lat1 + (width / 2) * unit_vector_y
 
         return x, y
-
-
-
 
 
 if __name__ == '__main__':
@@ -300,8 +249,6 @@ if __name__ == '__main__':
     file_path = r"C:\Users\ashle\Documents\Whitehead Research\Research 2023\1852\etopo.tt3"
     start_lat_long = (131.75, -5.52)
     end_lat_long = (128.657, -3.576)
-
-
 
     time_model_instance = TimeModel(start_lat_long, end_lat_long, file_path)
     path, total_time = time_model_instance.dijkstras_algorithm()
@@ -316,5 +263,3 @@ if __name__ == '__main__':
     elapsed_time = end_time - start_time
 
     print(f"Elapsed Time: {elapsed_time} seconds")
-
-

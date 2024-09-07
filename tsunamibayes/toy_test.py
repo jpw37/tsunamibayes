@@ -42,19 +42,19 @@ earthquake_params = {
     'width': 145077,
     'rake': 90,
     'dip_offset': 10.993,
-    'latitude': -4.678971296,
-    'longitude': 132.1308854,
+    'latitude': -5.522627782,
+    'longitude': 131.7545311,
 }
 
 landslide_params = {'center_mass_depth': 2800,  # meters
-    'thickness': 50,  # meters
+    'thickness': 43.00891068,  # meters
     'width': 8,  # kilometers
     'length': 1,  # meters
-    'landslide_speed': 20,  # meters per second
-    'volume': 30000000000,
-    'aspect_ratio': .375,
-    'lat1': -6.2,
-    'lon1': 130}
+    'initial_velocity': 92.50870467,  # meters per second
+    'volume': 22167043776,
+    'aspect_ratio': 0.39666532,
+    'latitude': -6.2,
+    'longitude': 130}
 
 
 def build_gauges():
