@@ -1,6 +1,4 @@
 import sys
-sys.path.insert(0,'/Users/nephi/tsunamibayes')
-sys.path.insert(0,'/opt/anaconda3/lib/python3.11/site-packages')
 import pandas
 import tsunamibayes as tb
 

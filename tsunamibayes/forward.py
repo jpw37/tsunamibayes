@@ -97,7 +97,7 @@ class CompositeForwardModel(BaseForwardModel):
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
-    def __init__(self,gauges,fault,fgmax_params,dtopo_path):
+    def __init__(self,gauges,fault,fgmax_params,dtopo_path,fault_path):
         """Initializes all the necessary variables for the GeoClawForwardModel subclass.
         
         Parameters
@@ -119,6 +119,7 @@ class GeoClawForwardModel(BaseForwardModel):
         super().__init__(gauges)
         self.fault = fault
         self.dtopo_path = dtopo_path
+        self.fault_path = fault_path
         self.fgmax_params = fgmax_params
         # self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
         self.valuemax_path = fgmax_params['valuemax_path']
@@ -163,6 +164,17 @@ class GeoClawForwardModel(BaseForwardModel):
                                                     model_params['depth_offset'],
                                                     model_params['rake'])
         print('Made subfault')
+        # create and write .fault file
+        #make copy of the subfault, add necessary parameters, and format it as required by
+        #fakequakes.
+        fault_writer = subfault_params;
+        fault_writer['type'] = 0.5
+        fault_writer['risetime'] = 0.5
+        fault_writer['depth'] = fault_writer['depth'] / 100
+        header = ['longitude', 'latitude', 'depth', 'strike', 'dip', 'type', 'risetime', 'length', 'width']
+        fault_writer.to_string(self.fault_path, columns=header,header=False)
+        # run fakequakes and generate .rupt file
+        ###HERE NEXT TIME
         # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
         print('Made dtopo file')
