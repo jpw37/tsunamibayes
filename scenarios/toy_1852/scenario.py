@@ -28,7 +28,7 @@ class BandaScenario(BaseScenario):
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.
-        
+
         Parameters
         ----------
         sample : pandas Series of floats
@@ -43,7 +43,15 @@ class BandaScenario(BaseScenario):
             to produce proposal values for lat, long, mag, etc. 
         """
         proposal = sample.copy()
-        proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
+        # proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
+        fixed_changes = {
+            'latitude': 0.1,
+            'longitude': 0.1,
+            'magnitude': 0.1,
+        }
+        for key, value in fixed_changes.items():
+               if key in proposal:
+                       proposal[key] += value
         return proposal
 
     def proposal_logpdf(self,u,v):

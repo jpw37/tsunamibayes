@@ -1,0 +1,16 @@
+10.0	# tstart_max
+10000000000.0	# tend_max
+0.0	# dt_check
+6	# min_level_check
+1.5	# arrival_tol
+0	# point_style
+9	# n_pts
+129.775 -4.5175	# Pulu Ai
+128.178 -3.691	# Ambon
+129.8965 -4.5248	# Banda Neira
+127.113 -3.3815	# Buru
+128.557 -3.543	# Hulaliu
+128.657 -3.576	# Saparua
+128.562 -3.501	# Kulur
+128.807 -3.6455	# Ameth
+128.921 -3.338	# Amahai
