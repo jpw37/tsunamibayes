@@ -147,22 +147,45 @@ class BaseScenario:
             )
 
         # evaluate forward model and compute log-likelihood
+        #if verbose: print("Running forward model...",flush=True)
+        #model_params = self.map_to_model_params(u0)
+        #self.model_params.loc[0] = model_params
+
+        #model_output = self.forward_model.run(model_params,verbose)
+        #self.model_output.loc[0] = model_output
+
+        #if verbose: print("Evaluating log-likelihood:")
+        #llh = self.forward_model.llh(model_output,verbose)
+        #if verbose: print("Total llh = {:.3E}".format(llh))
+
+        # save prior logpdf, log-likelihood, and posterior logpdf
+        #bayes_data = pd.Series(
+        #    [prior_logpdf,llh,prior_logpdf+llh],
+        #    index=self.bayes_data_cols
+        #)
+        #self.bayes_data.loc[0] = bayes_data
+
+
+        # evaluate forward model and compute log-likelihood
         if verbose: print("Running forward model...",flush=True)
         model_params = self.map_to_model_params(u0)
+        print('Running geoclaw in init_chain')
+        print(model_params)
+        print('----------------------------')
         self.model_params.loc[0] = model_params
-
-        model_output = self.forward_model.run(model_params,verbose)
+        #if verbose: print('Returning dummy for forward model')
+        model_output, arrival_times = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
+        self.arrival_times = arrival_times
 
         if verbose: print("Evaluating log-likelihood:")
+        #if verbose: print('Returning dummy for log-likelihood')
         llh = self.forward_model.llh(model_output,verbose)
+
         if verbose: print("Total llh = {:.3E}".format(llh))
 
         # save prior logpdf, log-likelihood, and posterior logpdf
-        bayes_data = pd.Series(
-            [prior_logpdf,llh,prior_logpdf+llh],
-            index=self.bayes_data_cols
-        )
+        bayes_data = pd.Series([prior_logpdf,llh,prior_logpdf+llh],index=self.bayes_data_cols)
         self.bayes_data.loc[0] = bayes_data
 
     def resume_chain(self,output_dir):
@@ -355,6 +378,13 @@ class BaseScenario:
             accepted = (np.random.rand() < alpha)
             if accepted:
                 if verbose: print("Proposal accepted",flush=True)
+                
+                print('i', i)
+                print('self.model_output', self.model_output)
+                print('model_output', model_output)
+                #print(f"Shape of model_output: {model_output.shape}")
+                #print(f"Type of model_output: {type(model_output)}")
+
                 self.samples.loc[i] = proposal
                 self.model_params.loc[i] = model_params
                 self.model_output.loc[i] = model_output

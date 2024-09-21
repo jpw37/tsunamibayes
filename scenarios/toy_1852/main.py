@@ -51,11 +51,11 @@ def setup(config):
     # load gauges
     gauges = build_gauges()
 
-    # # Forward model
-    # config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
-    # forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
-    #                                        config.geoclaw['dtopo_path'])
-    forward_model=tb.ToyForwardModel(gauges)
+    # Forward model
+    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
+    forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
+                                            config.geoclaw['dtopo_path'])
+    #forward_model=tb.ToyForwardModel(gauges)
 
     # Proposal kernel
     lat_std = config.proposal_kernel['lat_std']
@@ -76,9 +76,9 @@ def setup(config):
     return BandaScenario(prior,forward_model,covariance)
 
 if __name__ == "__main__":
-    # import os
+    import os
     from tsunamibayes.utils import parser, Config
-    # from tsunamibayes.setrun import write_setrun
+    from tsunamibayes.setrun import write_setrun
 
     # parse command line arguments
     args = parser.parse_args()
@@ -92,13 +92,13 @@ if __name__ == "__main__":
         config.read(args.config_path)
 
     # write setrun.py file
-    # if args.verbose: print("Writing setrun.py")
-    # write_setrun(args.config_path)
-    #
-    # # copy Makefile
-    # if args.verbose: print("Copying Makefile")
-    # makefile_path = tb.__file__[:-11]+'Makefile'
-    # os.system("cp {} Makefile".format(makefile_path))
+    if args.verbose: print("Writing setrun.py")
+    write_setrun(args.config_path)
+
+    # copy Makefile
+    if args.verbose: print("Copying Makefile")
+    makefile_path = tb.__file__[:-11]+'Makefile'
+    os.system("cp {} Makefile".format(makefile_path))
 
     # build scenario
     scenario = setup(config)
@@ -107,14 +107,14 @@ if __name__ == "__main__":
     if args.resume:
         if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
         scenario.resume_chain(args.output_dir)
-    
+
     # initialize new chain
-    else: 
+    else:
         if config.init['method'] == 'manual':
             u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
             scenario.init_chain(u0,verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
             scenario.init_chain(method='prior_rvs',verbose=args.verbose)
-  
+
     scenario.sample(args.n_samples,output_dir=args.output_dir,
                     save_freq=args.save_freq,verbose=args.verbose)

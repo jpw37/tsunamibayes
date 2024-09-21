@@ -233,7 +233,6 @@ class GeoClawForwardModel(BaseForwardModel):
             The loglikelihood of the given sample's model output. A measure of how likely
             that model output is when compared to the actual observation data at each gauge.
         """
-        return -1
         llh = 0
         if verbose: print("Gauge Log\n---------")
         for gauge in self.gauges:
@@ -258,7 +257,6 @@ class GeoClawForwardModel(BaseForwardModel):
                 if verbose: print("inundation: {:.3f}\tllh: {:.3e}".format(inundation,log_p))
         return llh
     # Can probably comment this all out except for writing the gauge locs
-
     def write_fgmax_grid(self,gauges,fgmax_params):
         """Writes a file to store a specific scenario's parameters for the 
         fixed grid maximum monitoring feature in GeoClaw.

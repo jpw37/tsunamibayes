@@ -1,8 +1,6 @@
 import os
 import glob
-from gauges import build_gauges
 from clawpack.clawutil import data
-from clawpack.geoclaw import fgmax_tools
 
 try:
     CLAW = os.environ['CLAW']
@@ -14,23 +12,24 @@ scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 
 def make_setrun(config):
     """Passes the configuration data into the setrun function.
-    
+
     Parameters
     ----------
     config : Config object
-        The object that contains the default bounds, initial conditions, 
-        fault information, and topography information from the .cfg files. 
+        The object that contains the default bounds, initial conditions,
+        fault information, and topography information from the .cfg files.
 
     Returns
     -------
     setrun : (function)
-        The function that prepares the necessary data to use Geoglaw to model the scenario's topography.
+        The function that prepares the necessary data to use Geoglaw to model
+        the scenario's topography.
     """
 
     def setrun(claw_pkg='geoclaw'):
-        """Initializes the necessary phsyics and topograhpy parameters 
+        """Initializes the necessary phsyics and topograhpy parameters
         in prepare to run Geoclaw.
-        
+
         Parameters
         ----------
         claw_pkg : string
@@ -39,7 +38,7 @@ def make_setrun(config):
         Returns
         -------
         rundata : object of class ClawRunData
-            A data-based object that deals with the topography of the seafloor. 
+            A data-based object that deals with the topography of the seafloor.
         """
         assert claw_pkg.lower() == 'geoclaw',  "Expected claw_pkg = 'geoclaw'"
 
@@ -85,7 +84,9 @@ def make_setrun(config):
             topo_data.topofiles.append([3,1,maxlevel,0.,1.e10, file])
 
         dtopo_data = rundata.dtopo_data
-        dtopo_data.dtopofiles.append([3,maxlevel,maxlevel,config.geoclaw['dtopo_path']])
+        dtopo_data.dtopofiles.append(
+            [3,maxlevel,maxlevel,config.geoclaw['dtopo_path']]
+        )
         dtopo_data.dt_max_dtopo = 0.2
 
         #------------------------------------------------------------------
@@ -98,11 +99,11 @@ def make_setrun(config):
         clawdata.num_dim = num_dim
 
         # Lower and upper edge of computational domain:
-        clawdata.lower[0] = config.model_bounds['lon_min']      # west longitude
-        clawdata.upper[0] = config.model_bounds['lon_max']       # east longitude
+        clawdata.lower[0] = config.geoclaw_bounds['lon_min'] # west longitude
+        clawdata.upper[0] = config.geoclaw_bounds['lon_max'] # east longitude
 
-        clawdata.lower[1] = config.model_bounds['lat_min']       # south latitude
-        clawdata.upper[1] = config.model_bounds['lat_max']         # north latitude
+        clawdata.lower[1] = config.geoclaw_bounds['lat_min'] # south latitude
+        clawdata.upper[1] = config.geoclaw_bounds['lat_max'] # north latitude
 
         # Number of grid cells: Coarsest grid
         clawdata.num_cells[0] = config.geoclaw['xcoarse_grid']
@@ -111,10 +112,11 @@ def make_setrun(config):
         # Number of equations in the system:
         clawdata.num_eqn = 3
 
-        # Number of auxiliary variables in the aux array (initialized in setaux)
+        # Number of auxiliary variables in aux array (initialized in setaux)
         clawdata.num_aux = 3
 
-        # Index of aux array corresponding to capacity function, if there is one:
+        # Index of aux array corresponding to capacity function, if there is
+        # one:
         clawdata.capa_index = 2
 
         # Initial time:
@@ -124,13 +126,13 @@ def make_setrun(config):
         # Output nout frames at equally spaced times up to tfinal:
         clawdata.num_output_times = 1
         clawdata.tfinal = config.geoclaw['run_time']
-        clawdata.output_t0 = True  # output at initial (or restart) time?
+        clawdata.output_t0 = True  # output at initial (or restart) time
 
-        clawdata.output_format = 'ascii'      # 'ascii' or 'netcdf'
+        clawdata.output_format = 'ascii' # 'ascii' or 'netcdf'
 
-        clawdata.output_q_components = 'all'   # need all
-        clawdata.output_aux_components = 'none'  # eta=h+B is in q
-        clawdata.output_aux_onlyonce = False    # output aux arrays each frame
+        clawdata.output_q_components = 'all' # need all
+        clawdata.output_aux_components = 'none' # eta=h+B is in q
+        clawdata.output_aux_onlyonce = False # output aux arrays each frame
 
         clawdata.verbosity = config.geoclaw['verbosity']
 
@@ -139,7 +141,7 @@ def make_setrun(config):
         # --------------
 
         # if dt_variable==1: variable time steps used based on cfl_desired,
-        # if dt_variable==0: fixed time steps dt = dt_initial will always be used.
+        # if dt_variable==0: fixed time steps dt = dt_initial always used.
         clawdata.dt_variable = True
 
         # Initial time step for variable dt.
@@ -189,9 +191,12 @@ def make_setrun(config):
         clawdata.use_fwaves = True    # True ==> use f-wave version of algorithms
 
         # Source terms splitting:
-        #   src_split == 0 or 'none'    ==> no source term (src routine never called)
-        #   src_split == 1 or 'godunov' ==> Godunov (1st order) splitting used,
-        #   src_split == 2 or 'strang'  ==> Strang (2nd order) splitting used,  not recommended.
+        #   src_split == 0 or 'none'
+        #     ==> no source term (src routine never called)
+        #   src_split == 1 or 'godunov'
+        #     ==> Godunov (1st order) splitting used,
+        #   src_split == 2 or 'strang'
+        #     ==> Strang (2nd order) splitting used, not recommended.
         clawdata.source_split = 'godunov'
 
         # --------------------
@@ -231,8 +236,8 @@ def make_setrun(config):
         #   'center',  'capacity', 'xleft', or 'yleft'  (see documentation).
         amrdata.aux_type = ['center','capacity','yleft']
 
-        # Flag using refinement routine flag2refine rather than richardson error
-        amrdata.flag_richardson = False    # use Richardson?
+        # Flag using refinement routine flag2refine instead of richardson error
+        amrdata.flag_richardson = False  # use Richardson?
         amrdata.flag2refine = False
         amrdata.flag2refine_tol = 0.5
 
@@ -243,8 +248,9 @@ def make_setrun(config):
         # (typically the same as regrid_interval so waves don't escape):
         amrdata.regrid_buffer_width  = 2
 
-        # clustering alg. cutoff for (# flagged pts) / (total # of cells refined)
-        # (closer to 1.0 => more small grids may be needed to cover flagged cells)
+        # clustering alg. cutoff for (# flagged pts) / (total # cells refined)
+        # (closer to 1.0 => more small grids may be needed to cover flagged
+        # cells)
         amrdata.clustering_cutoff = 0.700000
 
         # print info about each regridding up to this level:
@@ -252,16 +258,16 @@ def make_setrun(config):
 
         #  ----- For developers -----
         # Toggle debugging print statements:
-        amrdata.dprint = False      # print domain flags
-        amrdata.eprint = False      # print err est flags
-        amrdata.edebug = False      # even more err est flags
-        amrdata.gprint = False      # grid bisection/clustering
-        amrdata.nprint = False      # proper nesting output
-        amrdata.pprint = False      # proj. of tagged points
-        amrdata.rprint = False      # print regridding summary
-        amrdata.sprint = False      # space/memory output
-        amrdata.tprint = True       # time step reporting each level
-        amrdata.uprint = False      # update/upbnd reporting
+        amrdata.dprint = False  # print domain flags
+        amrdata.eprint = False  # print err est flags
+        amrdata.edebug = False  # even more err est flags
+        amrdata.gprint = False  # grid bisection/clustering
+        amrdata.nprint = False  # proper nesting output
+        amrdata.pprint = False  # proj. of tagged points
+        amrdata.rprint = False  # print regridding summary
+        amrdata.sprint = False  # space/memory output
+        amrdata.tprint = True   # time step reporting each level
+        amrdata.uprint = False  # update/upbnd reporting
 
         # More AMR parameters can be set -- see the defaults in pyclaw/data.py
 
@@ -277,31 +283,11 @@ def make_setrun(config):
         # ---------------
         # FGMax:
         # ---------------
-        obstypes = ['arrival', 'height', 'inundation']
-        gauges = build_gauges()
-        fg = fgmax_tools.FGmaxGrid()
-        
-        rundata.gaugedata.gauges = []
-        fg.point_style = 0
-        fg.min_level_check = amrdata.amr_levels_max
-        fg.tstart_max = config.fgmax['tstart_max']
-        fg.tend_max = config.fgmax['tend_max']
-        fg.dt_check = config.fgmax['dt_check']
-        fg.interp_method = 0
-        xs, ys = [], []
-        for i, gauge in enumerate(gauges):
-            if any(obstype in obstypes for obstype in gauge.obstypes):
-                xs.append(gauge.lon)
-                ys.append(gauge.lat)
-                rundata.gaugedata.gauges.append([i, gauge.lon, gauge.lat, 0, 1e10])
-
-        print(f'xs: {xs}')
-        print(f'ys: {ys}')
-        fg.X = xs
-        fg.Y = ys
-        fg.npts = len(xs)
-
-        rundata.fgmax_data.fgmax_grids.append(fg)
+        # == fgmax.data values ==
+        fgmax_files = rundata.fgmax_data.fgmax_files
+        # for fixed grids append to this list names of any fgmax input files
+        fgmax_files.append(config.fgmax['fgmax_grid_path'])
+        rundata.fgmax_data.num_fgmax_val = 1
 
         #------------------------------------------------------------------
         # Adjoint specific data:
@@ -331,11 +317,11 @@ def make_setrun(config):
 
 def write_setrun(config_path=None):
     """Opens and writes a new setrun.py file for a specific scenario
-    containing the tsunamibayes' setrun.py functions and with code 
-    instructions to read the scenario's default configuration file paths. 
-    
+    containing the tsunamibayes' setrun.py functions and with code
+    instructions to read the scenario's default configuration file paths.
+
     config_path : string
-        An additional file path which stores necessary information for the 
+        An additional file path which stores necessary information for the
         scenario configuration, optional. Defaults to None.
     """
     with open('setrun.py','w') as f:
