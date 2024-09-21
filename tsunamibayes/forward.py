@@ -1,10 +1,12 @@
 import os
-import json
 import numpy as np
 import pandas as pd
 from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
+from landslide_height_model import LandslideHeightModel
+from time_model_class import TimeModel
+from height_model_class import HeightModel
 
 class BaseForwardModel:
     """A parent class giving the outline for other subclasses to run the forward model."""
@@ -94,6 +96,108 @@ class CompositeForwardModel(BaseForwardModel):
         for submodel in submodels:
             llh += submodel.llh(model_output,verbose)
         return llh
+
+
+
+class ToyForwardModel(BaseForwardModel):
+    obstypes = ['arrival', 'height', 'inundation']
+    def __init__(self, gauges, fault, dtopo_path):
+        """Initializes all the necessary variables for the GeoClawForwardModel
+        subclass.
+
+        Parameters
+        ----------
+        gauges : (list) of Gauge objects
+            The list of gauge objects containing location data and distribution
+            functions for the arrival, height, and inundation parameters for
+            each gauge location.
+        fault : Fault object
+            Ususally a previously constructed GridFault object.
+        dtopo_path : string
+            The name of the .tt3 file location containing the GeoClaw
+            information of dtopo. Used later on to create and write the dtopo
+            file.
+        """
+        super().__init__(gauges)
+        self.fault = fault
+        self.dtopo_path = dtopo_path
+        self.gauges = gauges
+
+    # landslide simulation
+    #     def run(self, model_params, lref=None, verbose=False):
+    def run(self, model_params, verbose=False):
+        """Runs the forward model for a specified sample's model parameters,
+        then returns the computed arrival times, wave heights, and inundation
+        distances for each gauge location, as appropriate.
+        Essentially, this function works 'backwards' from a sample model of the
+        fault rupture's parameters to compute what the gauge's observations
+        would have been like for that given earthquake event sample.
+
+        Parameters
+        ----------
+        model_params : dict
+            The sample's model parameters. The dictionary whose keys are the
+            okada parameters: 'latitude', 'longitude', 'depth_offset',
+            'strike', 'length', 'width', 'slip', 'depth', 'dip', 'rake', and
+            whose associated values are floats.
+        verbose : bool
+            Flag for verbose output, optional. Default is False.
+
+        Returns
+        -------
+        model_output : pandas Series
+            A pandas series whose axes labels are the combinations of the
+            scenario's gauges names plus 'arrivals', 'height', or 'inundation'.
+            The associated values are floats.
+        """
+        # write this code the right way lol
+        # move magic numbers into attributes or parameters to be passed in
+        # write the grid reading so that it reads magic numbers as necessary
+        # write docstrings for the rest of the functions
+        # anything else to make the models bathymetry data agnostic
+        # talk to prof whitehead about data
+
+        model_output = pd.Series(dtype='float64')
+
+        for gauge in self.gauges:
+            time_ = TimeModel((model_params['longitude'], model_params['latitude']), (gauge.lon, gauge.lat), self.dtopo_path)
+            path, time = time_.dijkstras_algorithm()
+            center_mass_depth = 2800
+            height_ = HeightModel(
+                model_params['slip'],
+                model_params['length'],
+                model_params['width'],
+                model_params['rake'],
+                model_params['dip_offset'],
+                model_params['latitude'],
+                model_params['longitude'],
+                gauge.lat,
+                gauge.lon,
+                path,
+                self.dtopo_path
+
+
+                # center_mass_depth,
+                # model_params['thickness'],
+                # model_params['initial_velocity'],
+                # model_params['volume'],
+                # model_params['aspect_ratio'],
+                # model_params['latitude'],
+                # model_params['longitude'],
+                # gauge.lat,
+                # gauge.lon,
+                # lref=lref
+            )
+            height = height_.wave_height()
+            if 'arrival' in gauge.obstypes:
+                model_output[gauge.name + ' arrival'] = time
+            if 'height' in gauge.obstypes:
+                model_output[gauge.name + ' height'] = height
+            # print(gauge.name)
+            # print(model_output)
+            # print()
+
+        return model_output
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
