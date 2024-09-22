@@ -4,9 +4,9 @@ import pandas as pd
 from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
-from landslide_height_model import LandslideHeightModel
-from time_model_class import TimeModel
-from height_model_class import HeightModel
+# from landslide_height_model import LandslideHeightModel
+# from time_model_class import TimeModel
+# from height_model_class import HeightModel
 
 class BaseForwardModel:
     """A parent class giving the outline for other subclasses to run the forward model."""

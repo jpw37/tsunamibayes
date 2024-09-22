@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
-from utils import displace, haversine, bearing
+from .utils import displace, haversine, bearing
 
 
 class BaseFault:
