@@ -379,23 +379,23 @@ class BaseScenario:
             if accepted:
                 if verbose: print("Proposal accepted",flush=True)
                 
-                print('i', i)
-                pd.set_option('display.max_rows', None)  # Show all rows
-                pd.set_option('display.max_columns', None) 
-                print('self.model_output', self.model_output)
-                print('type of model_output', type(model_output))
-                print('model_output', model_output)
-                print('panda_series_model_output', pd.Series(model_output))
-                #print(f"Shape of model_output: {model_output.shape}")
-                #print(f"Type of model_output: {type(model_output)}")
+                # print('i', i)
+                # pd.set_option('display.max_rows', None)  # Show all rows
+                # pd.set_option('display.max_columns', None) 
+                # print('self.model_output', self.model_output)
+                # print('type of model_output', type(model_output))
+                # print('model_output', model_output)
+                # print('panda_series_model_output', pd.Series(model_output))
+                # print(f"Shape of model_output: {model_output.shape}")
+                # print(f"Type of model_output: {type(model_output)}")
 
                 self.samples.loc[i] = proposal
                 self.model_params.loc[i] = model_params
                 locations_series, observations_data = model_output
-                print( "locations_series", locations_series)
-                print("observations_data", observations_data)
-                print("first part of model_output", model_output[0])
-                self.model_output.loc[i] = observations_data
+                # print( "locations_series", locations_series)
+                # print("observations_data", observations_data)
+                # print("first part of model_output", model_output[0])
+                self.model_output.loc[i] = locations_series
                 # self.model_output.loc[i] = pd.Series(model_output).values
                 # self.model_output.loc[i] = model_output
                 self.bayes_data.loc[i] = bayes_data
