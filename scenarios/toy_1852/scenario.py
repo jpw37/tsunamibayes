@@ -3,6 +3,13 @@ import pandas as pd
 from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
 
+def lat_lon_generator():
+        eq_lat = np.linspace(-7, -5, num=9)
+        eq_lon = np.linspace(133, 130, num=5)
+        for lat in eq_lat:
+            for lon in eq_lon:
+                yield (lon, lat)
+
 class BandaScenario(BaseScenario):
     sample_cols = ['latitude','longitude','magnitude','delta_logl','delta_logw',
                    'depth_offset']
@@ -25,6 +32,7 @@ class BandaScenario(BaseScenario):
         super().__init__(prior,forward_model)
         self.fault = forward_model.fault
         self.cov = covariance
+        self.lat_lon_gen = lat_lon_generator()
 
     def propose(self,sample):
         """Random walk proposal of a new sample using a multivariate normal.
@@ -44,14 +52,22 @@ class BandaScenario(BaseScenario):
         """
         proposal = sample.copy()
         # proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
-        fixed_changes = {
-            'latitude': 0.1,
-            'longitude': 0.1,
-            'magnitude': 0.1,
-        }
-        for key, value in fixed_changes.items():
-               if key in proposal:
-                       proposal[key] += value
+        # fixed_changes = {
+        #     'latitude': 0.1,
+        #     'longitude': 0.1,
+        #     'magnitude': 0.1,
+        # }
+        # for key, value in fixed_changes.items():
+        #        if key in proposal:
+        #                proposal[key] += value
+
+        # Generate new lat/lon values from the generator
+        new_lon, new_lat = next(self.lat_lon_gen)
+
+        # Update proposal with new lat/lon values from the generator
+        proposal['latitude'] = new_lat
+        proposal['longitude'] = new_lon
+
         return proposal
 
     def proposal_logpdf(self,u,v):

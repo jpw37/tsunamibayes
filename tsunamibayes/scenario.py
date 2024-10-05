@@ -322,6 +322,7 @@ class BaseScenario:
 
             # If prior logpdf is -infinity, reject proposal and bypass forward
             # model
+            
             if prior_logpdf == np.NINF:
                 # set acceptance probablity to 0
                 alpha = 0

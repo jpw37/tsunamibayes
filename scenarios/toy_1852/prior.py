@@ -121,22 +121,23 @@ class LatLonPrior(BasePrior):
             for the depth distribution evaluated at the sample's depth. 
         """
         # compute subfaults (for out-of-bounds calculation)
-        length = calc_length(sample['magnitude'],sample['delta_logl'])
-        width = calc_width(sample['magnitude'],sample['delta_logw'])
-        subfault_params = self.fault.subfault_split(sample['latitude'],
-                                                    sample['longitude'],
-                                                    length,
-                                                    width,
-                                                    1,
-                                                    sample['depth_offset'])
+        # length = calc_length(sample['magnitude'],sample['delta_logl'])
+        # width = calc_width(sample['magnitude'],sample['delta_logw'])
+        # subfault_params = self.fault.subfault_split(sample['latitude'],
+        #                                             sample['longitude'],
+        #                                             length,
+        #                                             width,
+        #                                             1,
+        #                                             sample['depth_offset'])
         
-        if subfault_params.isnull().values.any():
-            return np.NINF
-        if out_of_bounds(subfault_params,self.fault.bounds):
-            return np.NINF
-        else:
-            depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
-            return self.depth_dist.logpdf(depth)
+        # if subfault_params.isnull().values.any():
+        #     return np.NINF
+        # if out_of_bounds(subfault_params,self.fault.bounds):
+        #     return np.NINF
+        # else:
+        #     depth = self.fault.depth_map(sample['latitude'],sample['longitude']) + 1000*sample['depth_offset']
+        #     return self.depth_dist.logpdf(depth)
+        return -1
 
     def pdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,

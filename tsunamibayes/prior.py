@@ -36,7 +36,8 @@ class TestPrior(BasePrior):
         logpdf : float
             The log of the probability density function for the sample.
         """
-        return stats.halfnorm.logpdf(sample['magnitude'])
+        #return stats.halfnorm.logpdf(sample['magnitude'])
+        return -1
 
     def rvs(self):
         """Returns a float value for a halfnormal random variate."""
