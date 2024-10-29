@@ -2,6 +2,8 @@ import os
 import json
 import numpy as np
 import pandas as pd
+from obspy import UTCDateTime
+
 from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
@@ -166,6 +168,7 @@ class GeoClawForwardModel(BaseForwardModel):
                                                     model_params['rake'])
         print('Made subfault')
         # create and write .fault file
+
         #make copy of the subfault, add necessary parameters, and format it as required by
         #fakequakes.
         fault_writer = subfault_params;
@@ -174,10 +177,15 @@ class GeoClawForwardModel(BaseForwardModel):
         fault_writer['depth'] = fault_writer['depth'] / 100
         header = ['longitude', 'latitude', 'depth', 'strike', 'dip', 'type', 'risetime', 'length', 'width']
         fault_writer.to_string(self.fault_path, columns=header,header=False)
+
         # run fakequakes and generate .rupt file
-        #Set all parameters for the fakequakes fun
+        #Set all parameters for the fakequakes run
+
+        home = os.getcwd() + '/'  # This sets the current working directory as the home path
+        project_name = 'banda'  # Name of project folder that will be set up in home directory
+
         # Runtime parameters
-        ncpus = 2  # how many CPUS you want to use for parallelization (needs ot be at least 2)
+        ncpus = 2  # how many CPUS you want to use for parallelization (needs to be at least 2)
         Nrealizations = 1  # Number of fake ruptures to generate per magnitude bin
         hot_start = 0  # If code quits in the middle of running, it will pick back up at this index
 
@@ -191,12 +199,13 @@ class GeoClawForwardModel(BaseForwardModel):
         load_distances = 0  # This should be zero the first time you run FakeQuakes with your fault model.
 
         UTM_zone = '52M'  # UTM_zone for rupture region
-        time_epi = UTCDateTime(
-            '1852-11-26T07:40:00Z')  # Origin time of event (can set to any time, as long as it's not in the future)
+        time_epi = UTCDateTime('1852-11-26T07:40:00Z')  # Origin time of event (can set to any time, as long as it's not in the future)
+        """WE KNOW THIS, ALREADY DEFINED IN CONFIG"""
         target_Mw = np.array([8.5])  # Desired magnitude(s), can either be one value or an array
-        hypocenter = [125.888654, -2.386416,
-                      477.613]  # Coordinates of subfault closest to desired hypocenter, or set to None for random
+        """NEED TO FIND WAY TO DETERMINE HYPOCENTER FROM LAT AND LON"""
+        hypocenter = [125.888654, -2.386416,477.613]
         force_hypocenter = True  # Set to True if hypocenter specified
+        """CHECK WHERE THIS IS SPECIFIED"""
         rake = 45  # Average rake for subfaults
         scaling_law = 'S'  # Type of rupture: T for thrust, S for strike-slip, N for normal
         force_magnitude = True  # Set to True if you want the rupture magnitude to equal the exact target magnitude
@@ -211,8 +220,7 @@ class GeoClawForwardModel(BaseForwardModel):
 
         # Rupture propagation parameters
         rise_time = 'MH2017'  # Rise time scaling to use. 'GP2010' uses Graves and Pitarka (2010), 'GP2015' uses Graves and Pitarka (2015), 'S1999' uses Sommerville (1999), and 'MH2017' uses Melgar and Hayes (2017).
-        rise_time_depths = [10,
-                            15]  # Transition depths for rise time scaling (if slip shallower than first index, rise times are twice as long as calculated)
+        rise_time_depths = [10, 15]  # Transition depths for rise time scaling (if slip shallower than first index, rise times are twice as long as calculated)
         max_slip = 40  # Maximum slip (m) allowed in the model
         max_slip_rule = False  # If true, uses a magntidude-depence for max slip
         shear_wave_fraction_shallow = 0.49  # Shear wave fraction for depths shallower than rise_time_depths[0]
@@ -222,6 +230,20 @@ class GeoClawForwardModel(BaseForwardModel):
         num_modes = 3  # Number of modes in K-L expansion
         slab_name = None  # Slab 2.0 Ascii file for 3D geometry, set to None for simple 2D geometry
         mesh_name = None  # GMSH output file for 3D geometry, set to None for simple 2D geometry
+
+        fakequakes.generate_ruptures(home, project_name, run_name, fault_name, slab_name, mesh_name, load_distances,
+                                     distances_name, UTM_zone, target_Mw, model_name, hurst, Ldip, Lstrike, num_modes,
+                                     Nrealizations, rake, rise_time,
+                                     rise_time_depths, time_epi, max_slip, source_time_function, lognormal,
+                                     slip_standard_deviation, scaling_law,
+                                     ncpus, zvals=[0.0, 1.0, -0.8], mean_slip_name=mean_slip_name,
+                                     force_magnitude=force_magnitude, force_area=force_area,
+                                     hypocenter=hypocenter, force_hypocenter=force_hypocenter,
+                                     shear_wave_fraction_shallow=shear_wave_fraction_shallow,
+                                     shear_wave_fraction_deep=shear_wave_fraction_deep, max_slip_rule=max_slip_rule,
+                                     stochastic_rake=False)
+
+
 
         # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
