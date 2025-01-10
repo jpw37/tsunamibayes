@@ -206,7 +206,7 @@ class GeoClawForwardModel(BaseForwardModel):
         hypocenter = [125.888654, -2.386416,477.613]
         force_hypocenter = True  # Set to True if hypocenter specified
         """CHECK WHERE THIS IS SPECIFIED"""
-        rake = 45  # Average rake for subfaults
+        rake = 90  # Average rake for subfaults
         scaling_law = 'S'  # Type of rupture: T for thrust, S for strike-slip, N for normal
         force_magnitude = True  # Set to True if you want the rupture magnitude to equal the exact target magnitude
         force_area = True  # Set to True if you want the ruptures to fill the whole fault model
