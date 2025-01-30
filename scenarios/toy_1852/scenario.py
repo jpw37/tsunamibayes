@@ -30,6 +30,7 @@ class BandaScenario(BaseScenario):
             the scenario's latitude, longitude, magnitude, delta logl & logw, and depth offset.
         """
         super().__init__(prior,forward_model)
+        self.prior = prior
         self.fault = forward_model.fault
         self.cov = covariance
         self.lat_lon_gen = lat_lon_generator()
@@ -50,7 +51,7 @@ class BandaScenario(BaseScenario):
             Essentailly the same format as 'sample', we have simply added a multivariate normal
             to produce proposal values for lat, long, mag, etc. 
         """
-        proposal = sample.copy()
+        # proposal = sample.copy()
         # proposal += np.random.multivariate_normal(np.zeros(len(self.sample_cols)),cov=self.cov)
         # fixed_changes = {
         #     'latitude': 0.1,
@@ -61,14 +62,25 @@ class BandaScenario(BaseScenario):
         #        if key in proposal:
         #                proposal[key] += value
 
-        # Generate new lat/lon values from the generator
-        new_lon, new_lat = next(self.lat_lon_gen)
+        # # Generate new lat/lon values from the generator
+        # new_lon, new_lat = next(self.lat_lon_gen)
 
-        # Update proposal with new lat/lon values from the generator
-        proposal['latitude'] = new_lat
-        proposal['longitude'] = new_lon
+        # # Update proposal with new lat/lon values from the generator
+        # proposal['latitude'] = new_lat
+        # proposal['longitude'] = new_lon
 
-        return proposal
+
+        # Combine samples into a single structure
+        proposal = {
+            'latitude': self.prior.latlon.rvs()[0],
+            'longitude': self.prior.latlon.rvs()[1],	
+            'magnitude': self.prior.mag.rvs(),
+            'delta_logl': self.prior.delta_logl.rvs(),
+            'delta_logw': self.prior.delta_logw.rvs(),
+            'depth_offset': self.prior.depth_offset.rvs()
+        }
+
+        return pd.Series(proposal)
 
     def proposal_logpdf(self,u,v):
         """Evaluate the logpdf of the proposal kernel, expressed as the
