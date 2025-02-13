@@ -383,6 +383,28 @@ class GridFault(BaseFault):
             return arr[0]
         else:
             return arr
+        
+    def write_to_fault(self, filename):
+        qlat = (self.lat[0] + self.lat[-1]) /2
+        qlon = (self.lon[0] + self.lon[-1]) /2
+        subfaults = self.subfault_split(qlat,qlon,self.width,self.length,qslip=0)
+
+        #Clear out each row we don't need and fill those which are necessary
+        subfaults['type'] = 0.5
+        subfaults['risetime'] = 0.5
+        subfaults['depth'] = subfaults['depth']/100
+        header = ['longitude', 'latitude','depth','strike','dip','type','risetime','length','width']
+
+        #Set precision for each data entry
+        subfaults['depth'] = subfaults['depth'].apply(lambda x: round(x,3))
+        subfaults['strike'] = subfaults['strike'].apply(lambda x: round(x,2))
+        subfaults['dip'] = subfaults['dip'].apply(lambda x: round(x,2))
+        subfaults['length'] = subfaults['length'].apply(lambda x: round(x,2))
+        subfaults['width'] = subfaults['width'].apply(lambda x: round(x,2))
+
+
+        #Write our .fault file
+        subfaults.to_string(filename,columns = header, header=False)
 
 def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     """Loads the depth, dip, and strike data for the fault and returns a dictionary of arrays
