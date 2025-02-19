@@ -376,7 +376,8 @@ class BaseScenario:
             )
 
             # accept/reject
-            accepted = (np.random.rand() < alpha)
+            # accepted = (np.random.rand() < alpha)
+            accepted = True
             if accepted:
                 if verbose: print("Proposal accepted",flush=True)
                 
