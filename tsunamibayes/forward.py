@@ -8,6 +8,7 @@ from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
 from mudpy import fakequakes
+from mudpy import TBfakequakes
 
 class BaseForwardModel:
     """A parent class giving the outline for other subclasses to run the forward model."""
@@ -231,17 +232,32 @@ class GeoClawForwardModel(BaseForwardModel):
         slab_name = None  # Slab 2.0 Ascii file for 3D geometry, set to None for simple 2D geometry
         mesh_name = None  # GMSH output file for 3D geometry, set to None for simple 2D geometry
 
-        fakequakes.generate_ruptures(home, project_name, run_name, fault_name, slab_name, mesh_name, load_distances,
-                                     distances_name, UTM_zone, target_Mw, model_name, hurst, Ldip, Lstrike, num_modes,
-                                     Nrealizations, rake, rise_time,
-                                     rise_time_depths, time_epi, max_slip, source_time_function, lognormal,
-                                     slip_standard_deviation, scaling_law,
-                                     ncpus, zvals=[0.0, 1.0, -0.8], mean_slip_name=mean_slip_name,
-                                     force_magnitude=force_magnitude, force_area=force_area,
-                                     hypocenter=hypocenter, force_hypocenter=force_hypocenter,
-                                     shear_wave_fraction_shallow=shear_wave_fraction_shallow,
-                                     shear_wave_fraction_deep=shear_wave_fraction_deep, max_slip_rule=max_slip_rule,
-                                     stochastic_rake=False)
+        #our extra tbfakequakes parameters
+        rise_time_depths0 = rise_time_depths[0]
+        rise_time_depths1 = rise_time_depths[1]
+        tMw = target_Mw[0]
+        slip_tol = 1e-2
+        no_random = False
+        shypo = None
+        use_hypo_fraction = True
+        zvals = [0.0, 0.0, 0.0]
+        stochastic_rake = True
+
+        quake = TBFakequakes.run_parallel_generate_ruptures(home, project_name, run_name, fault_name, slab_name, mesh_name,
+                                                        load_distances, distances_name, UTM_zone, target_Mw, model_name,
+                                                        hurst, Ldip, Lstrike,
+                                                        num_modes, Nrealizations, rake, rise_time, rise_time_depths0,
+                                                        rise_time_depths1,
+                                                        time_epi, max_slip,
+                                                        source_time_function, lognormal, slip_standard_deviation,
+                                                        scaling_law, ncpus,
+                                                        force_magnitude,
+                                                        force_area, mean_slip_name, hypocenter, slip_tol,
+                                                        force_hypocenter,
+                                                        no_random, shypo, use_hypo_fraction,
+                                                        shear_wave_fraction_shallow,
+                                                        shear_wave_fraction_deep,
+                                                        max_slip_rule, zvals, stochastic_rake)
 
 
 
