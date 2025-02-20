@@ -160,6 +160,7 @@ class BandaScenario(BaseScenario):
             'width','slip','depth','dip','rake',
             and whose associated values are the newly calculated values from the sample.
         """
+        #FAULT: Here, we're simply calling strike_map, dip_map, depth_map. A good place to test the multifault???
         length = calc_length(sample['magnitude'], sample['delta_logl'])
         width = calc_width(sample['magnitude'], sample['delta_logw'])
         slip = calc_slip(sample['magnitude'], length, width)

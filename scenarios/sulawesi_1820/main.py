@@ -1,78 +1,279 @@
 import numpy as np
 import scipy.stats as stats
 import json
+import pickle
 import tsunamibayes as tb
-from prior import LatLonPrior, BandaPrior
+from tsunamibayes.gaussian_process_regressor import GPR
+from prior import LatLonPrior, SulawesiPrior
 from gauges import build_gauges
-from scenario import BandaScenario
+from scenario import SulawesiScenario, MultiFaultScenario
+from enum import IntEnum
+
+# Used to easily reference the two faults.
+class FAULT(IntEnum):
+    FLORES = 0
+    WALANAE = 1
+
+
+# Dip angle assumed to be 25 degrees.
+def walanae_dip(x):
+    return np.ones(np.shape(x))*25
+
+def walanae_depth(dist):
+    """Gives depth based on distance from fault line."""
+    depth = dist*np.tan(np.deg2rad(walanae_dip(dist)))
+    return depth
+
 
 def setup(config):
-    """Extracts the data from the config object to create the BandaFault object, 
-    and then declares the scenario's initial prior, forward model, and covariance 
-    in order to create the BandaScenario. 
-    
+    """Extracts the data from the config object to create the SulawesiFault
+    object, and then declares the scenario's initial prior, forward model, and
+    covariance in order to create the SulawesiScenario.
+
     Parameters
     ----------
     config : Config object
-        The config object that contains the default scenario data to use for the sampling.
-        Essentially, this sets all the initial conditions for the bounds, prior, fault, etc.
-    
+        The config object that contains the default scenario data to use for
+        the sampling. Essentially, this sets all the initial conditions for the
+        bounds, prior, fault, etc.
+
     Returns
     -------
     BandaScenario : BandaScenario object
     """
-    # Banda Arc fault object
-    arrays = np.load(config.fault['grid_data_path'])
-    fault = tb.GridFault(bounds=config.model_bounds,**arrays)
+    #Flores and Walanae fault objects
+    with open(config.fault['walanae_data_path'], 'rb') as file:
+        walanae_initialization_data = pickle.load(file)
+
+    fault_initialization_data = [
+        np.load(config.fault['flores_data_path']),
+        walanae_initialization_data
+    ]
+    geoclaw_bounds = config.geoclaw_bounds
+    bounds = [config.model_bounds_flo, config.model_bounds_wal]
+    # Initialize the kernel for the Gaussian process fault. Strike, dip and
+    #  depth will use the same kernel (the RBF kernel).
+    flores_kernel = lambda x,y: GPR.rbf_kernel(x,y,sig=0.75)
+    fault = [
+        tb.fault.GaussianProcessFault( # Flores uses a GaussianProcessFault
+            bounds=geoclaw_bounds,
+            model_bounds=bounds[FAULT.FLORES],
+            kers={
+                'depth': flores_kernel,
+                'dip': flores_kernel,
+                'strike': flores_kernel,
+                'rake': flores_kernel
+            },
+            noise={'depth': 1, 'dip': 1, 'strike': 1, 'rake': 1},
+            **fault_initialization_data[FAULT.FLORES]
+        ),
+        tb.fault.ReferenceCurveFault( # Walanae uses a ReferenceCurveFault
+            bounds=geoclaw_bounds,
+            model_bounds=bounds[FAULT.WALANAE],
+            **fault_initialization_data[FAULT.WALANAE]
+        )
+    ]
+
 
     # Priors
     # latitude/longitude
-    depth_mu = config.prior['depth_mu']
-    depth_std = config.prior['depth_std']
-    mindepth = config.prior['mindepth']
-    maxdepth = config.prior['maxdepth']
-    a,b = (mindepth - depth_mu) / depth_std, (maxdepth - depth_mu) / depth_std
-    depth_dist = stats.truncnorm(a,b,loc=depth_mu,scale=depth_std)
-    latlon = LatLonPrior(fault,depth_dist)
+    depth_mu = [config.prior['depth_mu_flo'], config.prior['depth_mu_wal']]
+    depth_std = [config.prior['depth_std_flo'], config.prior['depth_std_wal']]
+    mindepth = [config.prior['mindepth_flo'], config.prior['mindepth_wal']]
+    maxdepth = [config.prior['maxdepth_flo'], config.prior['maxdepth_wal']]
+
+    lower_bound_depth = [
+        (md-dmu)/dstd for md, dmu, dstd in zip(mindepth, depth_mu, depth_std)
+    ]
+
+    upper_bound_depth = [
+        (md-dmu)/dstd for md, dmu, dstd in zip(maxdepth, depth_mu, depth_std)
+    ]
+
+    depth_dist = [
+        stats.truncnorm(lb,ub,loc=dmu,scale=dstd) for lb,ub,dmu,dstd in zip(
+            lower_bound_depth, upper_bound_depth, depth_mu, depth_std
+        )
+    ]
+
+    latlon = [
+        LatLonPrior(fault[FAULT.FLORES], depth_dist[FAULT.FLORES]),
+        LatLonPrior(fault[FAULT.WALANAE], depth_dist[FAULT.WALANAE])
+    ]
 
     # magnitude
-    mag = stats.truncexpon(b=config.prior['mag_b'],loc=config.prior['mag_loc'])
+    mag = [
+        stats.truncexpon(
+            b=config.prior['mag_b_flo'],
+            loc=config.prior['mag_loc_flo'],
+            scale=config.prior['mag_scale_flo']
+        ),
+        stats.truncexpon(
+            b=config.prior['mag_b_wal'],
+            loc=config.prior['mag_loc_wal'],
+            scale=config.prior['mag_scale_wal']
+        )
+    ]
 
     # delta_logl
-    delta_logl = stats.norm(scale=config.prior['delta_logl_std']) # sample standard deviation from data
+    # sample standard deviation from data
+    delta_logl = [
+        stats.norm(scale=config.prior['delta_logl_std_flo']),
+        stats.norm(scale=config.prior['delta_logl_std_wal'])
+    ]
 
     # delta_logw
-    delta_logw = stats.norm(scale=config.prior['delta_logw_std']) # sample standard deviation from data
+    # sample standard deviation from data
+    delta_logw = [
+        stats.norm(scale=config.prior['delta_logw_std_flo']),
+        stats.norm(scale=config.prior['delta_logw_std_wal'])
+    ]
 
-    # depth offset
-    depth_offset = stats.norm(scale=config.prior['depth_offset_std']) # in km to avoid numerically singular covariance matrix
-    prior = BandaPrior(latlon,mag,delta_logl,delta_logw,depth_offset)
+    # depth offset in km to avoid numerically singular covariance matrix
+    depth_offset = [
+        stats.norm(scale=config.prior['depth_offset_std_flo']),
+        stats.norm(scale=config.prior['depth_offset_std_wal'])
+    ]
+
+    dip_offset = [
+        stats.norm(scale=config.prior['dip_offset_std_flo']),
+        stats.norm(scale=config.prior['dip_offset_std_wal'])
+    ]
+
+    strike_offset = [
+        stats.norm(scale=config.prior['strike_offset_std_flo']),
+        stats.norm(scale=config.prior['strike_offset_std_wal'])
+    ]
+
+    rake_offset = [
+        stats.norm(scale=config.prior['rake_offset_std_flo']),
+        stats.norm(scale=config.prior['rake_offset_std_wal'])
+    ]
+
+    prior = [
+        SulawesiPrior(
+            latlon[FAULT.FLORES],
+            mag[FAULT.FLORES],
+            delta_logl[FAULT.FLORES],
+            delta_logw[FAULT.FLORES],
+            depth_offset[FAULT.FLORES],
+            dip_offset[FAULT.FLORES],
+            strike_offset[FAULT.FLORES],
+            rake_offset[FAULT.FLORES]
+        ),
+        SulawesiPrior(
+            latlon[FAULT.WALANAE],
+            mag[FAULT.WALANAE],
+            delta_logl[FAULT.WALANAE],
+            delta_logw[FAULT.WALANAE],
+            depth_offset[FAULT.WALANAE],
+            dip_offset[FAULT.WALANAE],
+            strike_offset[FAULT.WALANAE],
+            rake_offset[FAULT.WALANAE]
+        )
+    ]
 
     # load gauges
     gauges = build_gauges()
 
     # Forward model
-    config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
-    forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
-                                           config.geoclaw['dtopo_path'])
+    config.fgmax['min_level_check'] = (
+        len(config.geoclaw['refinement_ratios']) + 1
+    )
+    forward_model = [
+        tb.GeoClawForwardModel(
+            gauges,
+            fault[FAULT.FLORES],
+            config.fgmax,
+            config.geoclaw['dtopo_path']
+        ),
+        tb.GeoClawForwardModel(
+            gauges,
+            fault[FAULT.WALANAE],
+            config.fgmax,
+            config.geoclaw['dtopo_path']
+        )
+    ]
 
     # Proposal kernel
-    lat_std = config.proposal_kernel['lat_std']
-    lon_std = config.proposal_kernel['lon_std']
-    mag_std = config.proposal_kernel['mag_std']
-    delta_logl_std = config.proposal_kernel['delta_logl_std']
-    delta_logw_std = config.proposal_kernel['delta_logw_std']
-    depth_offset_std = config.proposal_kernel['depth_offset_std'] #in km to avoid singular covariance matrix
+    lat_std = [
+        config.proposal_kernel['lat_std_flo'],
+        config.proposal_kernel['lat_std_wal']
+    ]
+    lon_std = [
+        config.proposal_kernel['lon_std_flo'],
+        config.proposal_kernel['lon_std_wal']
+    ]
+    mag_std = [
+        config.proposal_kernel['mag_std_flo'],
+        config.proposal_kernel['mag_std_wal']
+    ]
+    delta_logl_std = [
+        config.proposal_kernel['delta_logl_std_flo'],
+        config.proposal_kernel['delta_logl_std_wal']
+    ]
+    delta_logw_std = [
+        config.proposal_kernel['delta_logw_std_flo'],
+        config.proposal_kernel['delta_logw_std_wal']
+    ]
+    # in km to avoid singular covariance matrix
+    depth_offset_std = [
+        config.proposal_kernel['depth_offset_std_flo'],
+        config.proposal_kernel['depth_offset_std_wal']
+    ]
+    dip_offset_std = [
+        config.proposal_kernel['dip_offset_std_flo'],
+        config.proposal_kernel['dip_offset_std_wal']
+    ]
+    strike_offset_std = [
+        config.proposal_kernel['strike_offset_std_flo'],
+        config.proposal_kernel['strike_offset_std_wal']
+    ]
+    rake_offset_std = [
+        config.proposal_kernel['rake_offset_std_flo'],
+        config.proposal_kernel['rake_offset_std_wal']
+    ]
 
     # square for std => cov
-    covariance = np.diag(np.square([lat_std,
-                             lon_std,
-                             mag_std,
-                             delta_logl_std,
-                             delta_logw_std,
-                             depth_offset_std]))
+    covariance = [
+        np.diag(np.square([
+            lat_std[FAULT.FLORES],
+            lon_std[FAULT.FLORES],
+            mag_std[FAULT.FLORES],
+            delta_logl_std[FAULT.FLORES],
+            delta_logw_std[FAULT.FLORES],
+            depth_offset_std[FAULT.FLORES],
+            dip_offset_std[FAULT.FLORES],
+            strike_offset_std[FAULT.FLORES],
+            rake_offset_std[FAULT.FLORES]
+        ])),
+        np.diag(np.square([
+            lat_std[FAULT.WALANAE],
+            lon_std[FAULT.WALANAE],
+            mag_std[FAULT.WALANAE],
+            delta_logl_std[FAULT.WALANAE],
+            delta_logw_std[FAULT.WALANAE],
+            depth_offset_std[FAULT.WALANAE],
+            dip_offset_std[FAULT.WALANAE],
+            strike_offset_std[FAULT.WALANAE],
+            rake_offset_std[FAULT.WALANAE]
+        ]))
+    ]
 
-    return BandaScenario(prior,forward_model,covariance)
+    scenarios = [
+        SulawesiScenario(
+            prior[FAULT.FLORES],
+            forward_model[FAULT.FLORES],
+            covariance[FAULT.FLORES]
+        ),
+        SulawesiScenario(
+            prior[FAULT.WALANAE],
+            forward_model[FAULT.WALANAE],
+            covariance[FAULT.WALANAE]
+        )
+    ]
+    return MultiFaultScenario(scenarios)
+
 
 if __name__ == "__main__":
     import os
@@ -99,21 +300,32 @@ if __name__ == "__main__":
     makefile_path = tb.__file__[:-11]+'Makefile'
     os.system("cp {} Makefile".format(makefile_path))
 
-    # build scenario
-    scenario = setup(config)
+    # build scenarios
+    scenarios = setup(config)
 
     # resume in-progress chain
     if args.resume:
-        if args.verbose: print("Resuming chain from: {}".format(args.output_dir),flush=True)
-        scenario.resume_chain(args.output_dir)
-    
+        if args.verbose:
+            print("Resuming chain from: {}".format(args.output_dir),flush=True)
+        scenarios.resume_chain(args.output_dir)
+
     # initialize new chain
-    else: 
+    else:
         if config.init['method'] == 'manual':
-            u0 = {key:val for key,val in config.init.items() if key in scenario.sample_cols}
-            scenario.init_chain(u0,verbose=args.verbose)
+            u0 = {
+                key:val for key,val in config.init.items()
+                if key in scenarios.scenarios[0].sample_cols
+            }
+            scenarios.init_chain(u0, verbose=args.verbose)
         elif config.init['method'] == 'prior_rvs':
-            scenario.init_chain(method='prior_rvs',verbose=args.verbose)
-  
-    scenario.sample(args.n_samples,output_dir=args.output_dir,
-                    save_freq=args.save_freq,verbose=args.verbose)
+            scenarios.init_chain(
+                method='prior_rvs',
+                verbose=args.verbose
+            )
+
+    scenarios.sample(
+        args.n_samples,
+        output_dir=args.output_dir,
+        save_freq=args.save_freq,
+        verbose=args.verbose
+    )

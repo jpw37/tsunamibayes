@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def rotation_matrix(axis, theta):
     """
     Return the rotation matrix associated with counterclockwise rotation about
@@ -41,6 +42,7 @@ def convert_rectangular(lat, lon, depth=0):
 
     return loc
 
+
 def fault_plane(hypocenter, lat, lon, length, width, strike, dip):
     """ Finds the length and width vectors describing the fault plane as a
     rectangle centered at the hypocenter with given parameters.
@@ -59,9 +61,10 @@ def fault_plane(hypocenter, lat, lon, length, width, strike, dip):
     Returns:
         length_vec ((3,) ndarray): the vector between the hypocenter of the
             fault plane and the center of the short edges
-        width_vec ((3,) ndarray): the vector between the hypocenter of the fault
-            plane and the center of the long edges
-        hypocenter ((3,) ndarray): location of the hypocenter in rectangular coordinates
+        width_vec ((3,) ndarray): the vector between the hypocenter of the
+            fault plane and the center of the long edges
+        hypocenter ((3,) ndarray): location of the hypocenter in rectangular
+            coordinates
     """
     hypocenter_dir = hypocenter / np.linalg.norm(hypocenter)
 
@@ -84,6 +87,7 @@ def fault_plane(hypocenter, lat, lon, length, width, strike, dip):
 
     return len_vec, width_vec
 
+
 def distance(site_lat, site_lon, length, width, strike, dip, depth, hypo_lat,
             hypo_lon, grid_size=100):
     """Computes the shortest distance between a point on a spherical globe and
@@ -93,11 +97,13 @@ def distance(site_lat, site_lon, length, width, strike, dip, depth, hypo_lat,
     ----------
     site_lat (float) - Latitude of the observation site (degrees)
     site_lon (float) - Longitude of the observation site (d)
-    strike(deg) - Orientation of the top edge, measured in degrees clockwise form North. The
-        fault plane dips downward to the right when moving along the top edge in the strike direction.
-    dip(deg) - Angle at which the plane dips downward from the top edge
-        a positive angle between 0 and 90 degrees.
-    depth(km) - Depth below sea level (positive) of the hypocenter of the earthquake
+    strike(deg) - Orientation of the top edge, measured in degrees clockwise
+        from North. The fault plane dips downward to the right when moving
+        along the top edge in the strike direction.
+    dip(deg) - Angle at which the plane dips downward from the top edge -- a
+        positive angle between 0 and 90 degrees.
+    depth(km) - Depth below sea level (positive) of the hypocenter of the
+        earthquake
     length(km) - Length of top edge of the fault rectangle
     width(km) - Length of inclined edge of fault rectange
     hypo_lat (float) - Latitude of epicenter of earthquake (degrees)
@@ -105,7 +111,8 @@ def distance(site_lat, site_lon, length, width, strike, dip, depth, hypo_lat,
 
     Returns:
     ----------
-    distance(float) - The shortest distance between site and the Okada rectangle
+    distance(float) - The shortest distance between site and the Okada
+        rectangle
     """
 
     hypocenter = convert_rectangular(hypo_lat, hypo_lon, depth)
@@ -114,7 +121,9 @@ def distance(site_lat, site_lon, length, width, strike, dip, depth, hypo_lat,
     strike = np.deg2rad(strike)
     dip = np.deg2rad(dip)
 
-    len_vec, wid_vec = fault_plane(hypocenter, hypo_lat, hypo_lon, length, width, strike, dip)
+    len_vec, wid_vec = fault_plane(
+        hypocenter, hypo_lat, hypo_lon, length, width, strike, dip
+    )
 
     t = np.linspace(-1, 1, grid_size)
     X, Y = np.meshgrid(t, t)

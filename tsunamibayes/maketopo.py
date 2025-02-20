@@ -20,7 +20,7 @@ def make_fault_dtopo(subfault_params,bounds,ruptfile=False,verbose=False):
     verbose : bool
         Flag for verbose output, optional. Default is False.
         If true, prints the fault's subfault parameters as well as the
-        momement magnitude and seismic moment of the fault. 
+        momement magnitude and seismic moment of the fault.
 
     Returns
     -------

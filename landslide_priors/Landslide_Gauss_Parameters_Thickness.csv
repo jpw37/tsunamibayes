@@ -1,0 +1,12 @@
+Id,Calculated area (km2),Thickness (m),Calculated volume (km3),Mean Slope,Minimum depth of Scar (m),Maximum depth of Scar (m),Dirt Density (kg/m3),Water Density,Coulomb friction coefficient,Surface skin friction
+308,524.123,25,1.5,1.45,550,110,,,,
+331,798.055,35,27.932,1.08,,,,,,
+393,1100.306,30,33.009,0.28,,,,,,
+394,565.017,30,16.951,0.28,,,,,,
+929,446.493,75,4.4,1.49,350,600,,,,
+979,228.477,90,20.563,3.98,,750,,,,
+1014,2.051,15,0.005,7.09,,,,,,
+1,,10,,4.92,,150,,,,
+2,,100,,,,,,,,
+30,,130,,0.5,,,1700,1100,0.005,0.002
+36,5,350,0.3,,,3500,,,,
