@@ -5,7 +5,7 @@ import json
 
 def get_grids(filename):
     data = []
-    f = open(filename, 'r') # 'r' = read
+    f = open(filename, 'r')  # 'r' = read
     lines = f.read().split()
     f.close()
 
@@ -14,12 +14,13 @@ def get_grids(filename):
     max_grid = 100
     grid_num_list = []
 
-    for i in range(200):
+    for _ in range(200):
         grid_num = int(lines[0])
         grid_num_list.append(grid_num)
         if grid_num > max_grid:
             max_grid = grid_num
 
+        # The corresponding parameters are the second entry in each of first lines
         AMR_level = int(lines[2])
         mx = int(lines[4])
         my = int(lines[6])
@@ -35,68 +36,94 @@ def get_grids(filename):
         for k in range(my):
             grid_temp = np.zeros((mx, 4))
             for i in range(mx):
-                grid_temp[i,:] = [lines[j+i] for i in range(4)]
-                j+=4
+                grid_temp[i, :] = [lines[j + i] for i in range(4)]
+                j += 4
             grid.append(grid_temp.tolist())
-        lines = lines[16+4*mx*my:]
+        lines = lines[16 + 4 * mx * my:]
         if lines[:3] == []:
             break
         grid_dict[grid_num] = grid
     return grid_dict, info_dict
 
-def useful_grids(grid, info, lat_min, lat_max, long_min, long_max):
-    """with open(grid) as f:
-        dat = f.read()
-    data = json.loads(dat)
-    grid = {}
-    for key in list(data.keys()):
-        grid[key] = np.array(data[key])
 
-    with open(info) as f:
-        dat = f.read()
-    data = json.loads(dat)
-    info = {}
-    for key in list(data.keys()):
-        info[key] = np.array(data[key])"""
+def useful_grids(grid, info, long_min, long_max, lat_min, lat_max):
+    """
+    Filters grids based on whether any of their four corners fall within the specified longitude and latitude bounds.
+    
+    Args:
+        grid (dict): Dictionary containing grid data.
+        info (dict): Dictionary containing grid info where:
+                     info[i][2] = bottom-left longitude
+                     info[i][3] = bottom-left latitude
+                     info[i][0] = mx (number of points in x direction)
+                     info[i][1] = my (number of points in y direction)
+                     info[i][4] = dx (grid spacing in x direction)
+                     info[i][5] = dy (grid spacing in y direction)
+        long_min (float): Minimum longitude boundary.
+        long_max (float): Maximum longitude boundary.
+        lat_min (float): Minimum latitude boundary.
+        lat_max (float): Maximum latitude boundary.
+
+    Returns:
+        dict, dict: Filtered grid and info dictionaries containing only grids whose corners fall within the specified bounds.
+    """
 
     desired_grid = {}
     desired_info = {}
+
     for i in range(1, 129):
-        #i = str(i)
-        if info[i][2]>lat_min and info[i][2]<lat_max and info[i][3]>long_min and info[i][3]<long_max:
-            desired_grid[i] = grid[i]
-            desired_info[i] = info[i]
+        if i in grid.keys():
+            # Extract grid information
+            bottom_left_long = info[i][2]
+            bottom_left_lat = info[i][3]
+            mx = info[i][0]
+            my = info[i][1]
+            dx = info[i][4]
+            dy = info[i][5]
+
+            # Calculate the coordinates of the four corners
+            bottom_right_long = bottom_left_long
+            bottom_right_lat = bottom_left_lat + dy * my
+            
+            top_left_long = bottom_left_long + dx * mx
+            top_left_lat = bottom_left_lat
+            
+            top_right_long = bottom_left_long + dx * mx
+            top_right_lat = bottom_left_lat + dy * my
+
+            # Check if any of the four corners are within the specified bounds
+            # if (
+            #     (long_min <= bottom_left_long <= long_max and lat_min <= bottom_left_lat <= lat_max) or
+            #     (long_min <= bottom_right_long <= long_max and lat_min <= bottom_right_lat <= lat_max) or
+            #     (long_min <= top_left_long <= long_max and lat_min <= top_left_lat <= lat_max) or
+            #     (long_min <= top_right_long <= long_max and lat_min <= top_right_lat <= lat_max)
+            # ):
+            # 66951461 is only in grid, 466 is lefts within grid, 485 is rights within grid, 486 is both within grid
+            
+            
+            if (
+                ((long_min <= bottom_left_long <= long_max and lat_min <= bottom_left_lat <= lat_max) and
+                (long_min <= top_left_long <= long_max and lat_min <= top_left_lat <= lat_max)) or 
+                ((long_min <= bottom_right_long <= long_max and lat_min <= bottom_right_lat <= lat_max) and
+                (long_min <= top_right_long <= long_max and lat_min <= top_right_lat <= lat_max))
+            ):
+                desired_grid[i] = grid[i]
+                desired_info[i] = info[i]
+
     return desired_grid, desired_info
+
 
 def condensed_grids(desired_grid):
     condensed_grid = {}
     for i in desired_grid.keys():
         grid = np.array(desired_grid[i])
-        x,y,z = grid.shape
-        temp_grid = np.zeros((y,x))
+        x, y, z = grid.shape
+        temp_grid = np.zeros((y, x))
         for j in range(x):
-            temp_grid[:,j] = grid[j][:,3]
+            temp_grid[:, j] = grid[j][:, 3]
         condensed_grid[i] = temp_grid.tolist()
     return condensed_grid, list(desired_grid.keys())
-    """with open(outfile, 'w') as f:
-        f.write(json.dumps(condensed_grid))"""
 
-"""def write(grid, info_grid, outfile):
-    #file = open(outfile, 'w+')
-    #content = str(grid)
-    #file.write(content)
-    #file.close()
-    #new_dict = {}
-    #for key, value in grid.items():
-    #    new_dict[key] = value
-
-    print(np.array(grid[2]).shape)
-    with open(outfile, 'w') as f:
-        #for key, value in grid.items():
-        #    f.write('%s:%s/n' % (key, value))
-        f.write(json.dumps(grid))
-    with open('info.txt', 'w') as f:
-        f.write(json.dumps(info_grid))"""
 
 def parse_args(argv: Optional[List[str]] = None) -> Namespace:
     """Parse and validate arguments.
@@ -110,15 +137,16 @@ def parse_args(argv: Optional[List[str]] = None) -> Namespace:
 
     argp: ArgumentParser = ArgumentParser()
 
-    argp.add_argument("filename", help = "name of file", type=str)
-    argp.add_argument("outfile", help = "name of output file", type=str)
-    argp.add_argument("lat_min", help = "estimate of lower bound of lattitude of subgrid", type=float)
-    argp.add_argument("lat_max", help = "estimate of upper bound of lattitude of subgrid", type=float)
-    argp.add_argument("long_min", help = "estimate of lower bound of longitude of subgrid", type=float)
-    argp.add_argument("long_max", help = "estimate of upper bound of longitude of subgrid", type=float)
+    argp.add_argument("filename", help="name of file", type=str)
+    argp.add_argument("outfile", help="name of output file", type=str)
+    argp.add_argument("long_min", help="estimate of lower bound of longitude of subgrid", type=float)
+    argp.add_argument("long_max", help="estimate of upper bound of longitude of subgrid", type=float)
+    argp.add_argument("lat_min", help="estimate of lower bound of latitude of subgrid", type=float)
+    argp.add_argument("lat_max", help="estimate of upper bound of latitude of subgrid", type=float)
     args: Namespace = argp.parse_args()
 
     return args
+
 
 def main(args: Optional[Namespace] = None) -> None:
     """Executes main program.
@@ -133,33 +161,11 @@ def main(args: Optional[Namespace] = None) -> None:
     if args is None:
         args = parse_args()
 
-    #if not args.output_dir.exists():
-    #    args.output_dir.mkdir()
-
     grid_dict, info_dict = get_grids(args.filename)
-    desired_grid, desired_info = useful_grids(grid_dict, info_dict, args.lat_min, args.lat_max, args.long_min, args.long_max)
+    desired_grid, desired_info = useful_grids(grid_dict, info_dict, args.long_min, args.long_max, args.lat_min, args.lat_max)
     condensed_grid = condensed_grids(desired_grid)
 
 
 if __name__ == "__main__":
     _args: Namespace = parse_args()
     main(_args)
-
-
-#print('grid list', grid_num_list)
-#print('number of grids', len(grid_num_list))
-
-#print(grid.shape)
-#print('grid len:', len(grid_dict[128]))
-#print('grid:', grid_dict[128][0])
-#print(lines[16+4*mx*my-4:16+4*mx*my+10])
-#print(lines[16+4*mx])
-#print(lines[16+4*mx+1])
-
-#print(grid[0,0].typeof())
-#f.close()
-#for i in range(10):
-#    print(lines[i])
-#print(lines[0])
-#print(len(lines[0]))
-#print(lines[0][3:6])

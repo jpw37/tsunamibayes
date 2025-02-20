@@ -80,7 +80,8 @@ class BandaScenario(BaseScenario):
             q = sample.copy()
             #p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
             p = np.random.multivariate_normal(np.zeros(len(q)), cov=self.cov)
-            grads, outputs = calc_adjoint(self.model_params, self.model_output, self.arrival_times)
+            # grads, outputs = calc_adjoint(self.model_params, self.model_output, self.arrival_times)
+            grads, outputs = calc_adjoint(model_params, self.model_output, self.arrival_times)
             
             print('Initial p', p)
             print('Initial q', q)                 

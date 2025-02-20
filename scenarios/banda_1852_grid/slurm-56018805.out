@@ -1,0 +1,21 @@
+/home/cnoorda2/.bash_profile: line 1: .~/bashrc: No such file or directory
+bash: conda: command not found
+Copying scenario files to /fslgroup/fslg_tsunami/tsunamibayes/tsunamibayes/scenerios/hmc_banda_1852/56018805_m8...
+resdir: 
+cfg: config_file.cfg
+scendir: /fslgroup/fslg_tsunami/hmc/tsunamibayes/scenarios/banda_1852_grid
+rundir: /fslgroup/fslg_tsunami/tsunamibayes/tsunamibayes/scenerios/hmc_banda_1852/56018805_m8
+logfile: /fslgroup/fslg_tsunami/tsunamibayes/tsunamibayes/scenerios/hmc_banda_1852/56018805_m8/run.log
+pyargs: -v --cfg config_file.cfg
+Installing Clawpack in /tmp/56018805/clawpack-v5.9.0...
+bash: pip: command not found
+FFLAGS=-O2 -fPIC -fopenmp -fdefault-integer-8
+OMP_NUM_THREADS=24
+OMP_STACKSIZE=8192M
+stack size unlimited
+LOG: Thu Mar 16 12:07:31 MDT 2023: MCMC run start
+  File "main.py", line 110
+    print("Resuming chain from: {}".format(args.output_dir),flush=True)
+                                                                 ^
+SyntaxError: invalid syntax
+LOG: Thu Mar 16 12:07:32 MDT 2023: MCMC run complete
