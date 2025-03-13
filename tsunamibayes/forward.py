@@ -6,8 +6,7 @@ from obspy import UTCDateTime
 from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
-from mudpy import fakequakes
-import mudpy
+from mudpy import fakequakes, TBFakequakes
 
 class BaseForwardModel:
     """A parent class giving the outline for other subclasses to run the forward model."""
@@ -220,6 +219,9 @@ class GeoClawForwardModel(BaseForwardModel):
         dtopo_path : string
             The name of the .tt3 file location containing the GeoClaw information of dtopo.
             Used later on to create and write dtopo file.
+        fault_path : string
+            The path to the directory you want to store the fault file in so that fakequakes
+            can generate a stochastic dtopo file
         """
         super().__init__(gauges)
         self.fault = fault
@@ -287,6 +289,8 @@ class GeoClawForwardModel(BaseForwardModel):
         #Set all parameters for the fakequakes run
 
         home = os.getcwd() + '/'  # This sets the current working directory as the home path
+
+        #TODO change this to be read in from a parameter
         project_name = 'banda'  # Name of project folder that will be set up in home directory
 
         # Runtime parameters
@@ -304,7 +308,6 @@ class GeoClawForwardModel(BaseForwardModel):
         load_distances = 0  # This should be zero the first time you run FakeQuakes with your fault model.
 
         UTM_zone = '52M'  # UTM_zone for rupture region
-        time_epi = UTCDateTime('1852-11-26T07:40:00Z')  # Origin time of event (can set to any time, as long as it's not in the future)
         """WE KNOW THIS, ALREADY DEFINED IN CONFIG"""
         target_Mw = np.array([8.5])  # Desired magnitude(s), can either be one value or an array
         """NEED TO FIND WAY TO DETERMINE HYPOCENTER FROM LAT AND LON"""
@@ -352,7 +355,7 @@ class GeoClawForwardModel(BaseForwardModel):
                                                         hurst, Ldip, Lstrike,
                                                         num_modes, Nrealizations, rake, rise_time, rise_time_depths0,
                                                         rise_time_depths1,
-                                                        time_epi, max_slip,
+                                                        max_slip,
                                                         source_time_function, lognormal, slip_standard_deviation,
                                                         scaling_law, ncpus,
                                                         force_magnitude,
@@ -362,6 +365,8 @@ class GeoClawForwardModel(BaseForwardModel):
                                                         shear_wave_fraction_shallow,
                                                         shear_wave_fraction_deep,
                                                         max_slip_rule, zvals, stochastic_rake)
+
+        #TODO: Postprocess the quake to write to the dtopo file
 
 
 
