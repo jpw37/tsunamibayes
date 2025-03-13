@@ -7,7 +7,7 @@ from .fault import BaseFault
 from .maketopo import write_dtopo
 from . import models
 from mudpy import fakequakes
-from mudpy import TBfakequakes
+import mudpy
 
 class BaseForwardModel:
     """A parent class giving the outline for other subclasses to run the forward model."""
@@ -261,6 +261,9 @@ class GeoClawForwardModel(BaseForwardModel):
         print('Entered geoclaw run, using model params')
         print(model_params)
         print(type(model_params))
+
+        ###Pull from scenario and utils to calculate the info you need for this.
+
         subfault_params = self.fault.subfault_split(model_params['latitude'],
                                                     model_params['longitude'],
                                                     model_params['length'],
