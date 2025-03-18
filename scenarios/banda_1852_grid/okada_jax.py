@@ -27,13 +27,14 @@ def okada_derivative(length, width, depth, latitude, longitude, strike, slip, di
         dZ: grid of seafloor deformation of each coordinate on the X x Y spatial grid
     '''
 
-    x0 = X[0]
-    y0 = Y[0]
+    # x0 = X[0]
+    # y0 = Y[0]
     x_length = len(X)
     y_length = len(Y)
 
     radians = np.pi/180 # radians conversion
     earth_radius = 6.378e6 # radius of the earth
+    lat_to_meter = earth_radius * radians
 
     dip *= radians# convert dip to radians
     rake *= radians # convert rake to radians
@@ -41,12 +42,15 @@ def okada_derivative(length, width, depth, latitude, longitude, strike, slip, di
     half_length = length * 0.5 # get the half length
 
     # calculate focal depth used for Okada's model (adjust depth according to angle of dip)
-    depth = depth + width * np.sin(dip)
+    depth = depth + 0.5 * width * np.sin(dip)
 
-    dx = width * np.cos(dip) * np.cos(strike)
-    dy = width * np.cos(dip) * np.sin(strike)
-    yl = earth_radius * (latitude-y0) * radians - dy
+    # dx = width * np.cos(dip) * np.cos(strike)
+    # dy = width * np.cos(dip) * np.sin(strike)
+    # yl = earth_radius * (latitude-y0) * radians
 
+
+    up_dip = (-width * np.cos(dip) * np.cos(strike) / (lat_to_meter * np.cos(latitude * radians)),
+                   width * np.cos(dip) * np.sin(strike) / (lat_to_meter))
 
     ds = slip * np.cos(rake) # displacement of strike
     dd = slip * np.sin(rake) # displacement of dip
@@ -59,14 +63,18 @@ def okada_derivative(length, width, depth, latitude, longitude, strike, slip, di
 
     # compare to okada.py xl calculation
     # = earth_radius * np.cos(radians*y0) * (longitude-x0) * radians + dx
-    xl = earth_radius * np.cos(radians*y) * (longitude-x0) * radians + dx
-    yy = earth_radius * (y-y0*np.ones_like(y)) * radians
+    # xl = earth_radius * np.cos(radians*y) * (longitude-x0) * radians 
     #xx = earth_radius * np.cos(radians*y0) * (x-x0*np.ones_like(x)) * radians
-    xx = earth_radius * np.cos(radians*y) * (x-x0*np.ones_like(x)) * radians
+    
+    x_bottom = longitude - 0.5 * up_dip[0]
+    y_bottom = latitude - 0.5 * up_dip[1]
+    
+    xx = lat_to_meter * np.cos(radians*y) * (x-x_bottom*np.ones_like(x))
+    yy = lat_to_meter * (y-y_bottom*np.ones_like(y))
 
     # use trigonometry to figure out how much distance was moved along the strike and dip
-    x1 = (xx-xl*np.ones_like(xx)) * np.sin(strike) + (yy-yl*np.ones_like(yy)) * np.cos(strike)
-    x2 = (xx-xl*np.ones_like(xx)) * np.cos(strike) - (yy-yl*np.ones_like(yy)) * np.sin(strike)
+    x1 = xx * np.sin(strike) + yy * np.cos(strike)
+    x2 = xx * np.cos(strike) - yy * np.sin(strike)
 
     # In Okada's paper, x2 is distance up the fault plane, not down dip:
     # the distance along dip should be negative (down)
