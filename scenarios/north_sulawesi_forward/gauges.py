@@ -10,114 +10,183 @@ def build_gauges():
     """
     gauges = list()
 
-    # Pulu Ai
-    name = 'Pulu Ai'
+    # Bontang
+    name = 'Bontang'
     dists = dict()
     dists['height'] = stats.norm(loc=3,scale=0.8)
     gauge = Gauge(name,dists)
-    gauge.lat = -4.5175
-    gauge.lon = 129.775
+    gauge.lat = 0.1068972
+    gauge.lon = 117.5809318
     gauge.loc = 3
     gauge.scale = 0.8
     gauges.append(gauge)
 
-    # Ambon
-    name = 'Ambon'
+    # Tandjoengbatoe
+    name = 'Tandjoengbatoe'
     dists = dict()
     dists['height'] = stats.norm(loc=1.8,scale=0.4)
     gauge = Gauge(name,dists)
-    gauge.lat = -3.691
-    gauge.lon = 128.178
+    gauge.lat = 2.2686718
+    gauge.lon = 118.1075566
     gauge.loc = 1.8
     gauge.scale = 0.4
     gauges.append(gauge)
 
-    # Banda Neira
-    name = 'Banda Neira'
+
+    # Tarakan
+    name = 'Tarakan'
     dists = dict()
-    dists['arrival'] = stats.skewnorm(a=2,loc=15,scale=5)
-    dists['height'] = stats.norm(loc=6.5,scale=1.5)
-    dists['inundation'] = stats.norm(loc=185,scale=65)
-    gauge = Gauge(name,dists)
-    gauge.lat = -4.5248
-    gauge.lon = 129.8965
-    gauge.beta = 4.253277987952933
-    gauge.n = 0.06
-    gauge.loc = 6.5
-    gauge.scale = 1.5
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 3.2342551
+    gauge.lon = 117.5669208
+    gauge.loc = 1.8
+    gauge.scale = 0.4
     gauges.append(gauge)
 
-    # Buru
-    name = 'Buru'
+    # Tawau
+    name = 'Tawau'
     dists = dict()
-    dists['height'] = stats.chi(df=1.01,loc=0.5,scale=1.5)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.3815
-    gauge.lon = 127.113
-    gauge.df = 1.01
-    gauge.loc = 0.5
-    gauge.scale = 1.5
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 4.2204775
+    gauge.lon = 117.8909199
+    gauge.loc = 1.8
+    gauge.scale = 0.4
     gauges.append(gauge)
 
-    # Hulaliu
-    name = 'Hulaliu'
+    # Semporna
+    name = 'Semporna'
     dists = dict()
-    dists['height'] = stats.chi(df=1.01,loc=0.5,scale=2.0)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.543
-    gauge.lon = 128.557
-    gauge.df = 1.01
-    gauge.loc = 0.5
-    gauge.scale = 2.0
-    gauges.append(gauge)
-    
-    # Saparua
-    name = 'Saparua'
-    dists = dict()
-    dists['arrival'] = stats.norm(loc=45,scale=5)
-    dists['height'] = stats.norm(loc=5,scale=1)
-    dists['inundation'] = stats.norm(loc=125,scale=40)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.576
-    gauge.lon = 128.657
-    gauge.beta = 1.1067189507222546
-    gauge.n = 0.06
-    gauge.loc = 5
-    gauge.scale = 1
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 4.5194959
+    gauge.lon = 118.6169157
+    gauge.loc = 1.8
+    gauge.scale = 0.4
     gauges.append(gauge)
 
-    # Kulur
-    name = 'Kulur'
+    # Bongao Island
+    name = 'Bongao Island'
     dists = dict()
-    dists['height'] = stats.norm(loc=3,scale=1)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.501
-    gauge.lon = 128.562
-    gauge.loc = 3
-    gauge.scale = 1
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 5.0063209
+    gauge.lon = 119.7659900
+    gauge.loc = 1.8
+    gauge.scale = 0.4
     gauges.append(gauge)
 
-    # Ameth
-    name = 'Ameth'
+    # Zamboanga
+    name = 'Zamboanga'
     dists = dict()
-    dists['height'] = stats.norm(loc=3,scale=1)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.6455
-    gauge.lon = 128.807
-    gauge.loc = 3
-    gauge.scale = 1
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 6.8588280
+    gauge.lon = 122.0952185
+    gauge.loc = 1.8
+    gauge.scale = 0.4
     gauges.append(gauge)
 
-    # Amahai
-    name = 'Amahai'
+    # Pagadian
+    name = 'Pagadian'
     dists = dict()
-    dists['height'] = stats.norm(loc=3.5,scale=1)
-    gauge = Gauge(name,dists)
-    gauge.lat = -3.338
-    gauge.lon = 128.921
-    gauge.loc = 3.5
-    gauge.scale = 1
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 7.7526962
+    gauge.lon = 123.4887627
+    gauge.loc = 1.8
+    gauge.scale = 0.4
     gauges.append(gauge)
+
+    # General Santos
+    name = 'General Santos'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 6.0926422
+    gauge.lon = 125.1775301
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
+    # Manado
+    name = 'Manado'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 1.4847164
+    gauge.lon = 124.8161636
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
+    # Tahuna
+    name = 'Tahuna'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 3.5933601
+    gauge.lon = 125.4635514
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
+    # Boroko
+    name = 'Boroko'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 0.9307962
+    gauge.lon = 123.2932107
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
+    # Genlum
+    name = 'Genlum'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 0.9444927
+    gauge.lon = 123.0304609
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
+    # Boeol
+    name = 'Boeol'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 1.1686772
+    gauge.lon = 121.4511943
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
+    # Tolotoli
+    name = 'Tolotoli'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = 0.9743408
+    gauge.lon = 120.6464167
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
+    # Palu
+    name = 'Palu'
+    dists = dict()
+    dists['height'] = stats.norm(loc=1.8, scale=0.4)
+    gauge = Gauge(name, dists)
+    gauge.lat = -0.8623012
+    gauge.lon = 119.8639246
+    gauge.loc = 1.8
+    gauge.scale = 0.4
+    gauges.append(gauge)
+
 
     return gauges
 
