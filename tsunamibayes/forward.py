@@ -367,11 +367,12 @@ class GeoClawForwardModel(BaseForwardModel):
                                                         max_slip_rule, zvals, stochastic_rake)
 
         #TODO: Postprocess the quake to write to the dtopo file
-
+        ruptfile = "ruptfile.txt"
+        np.savetxt(ruptfile,quake)
 
 
         # create and write dtopo file
-        write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,verbose)
+        write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,ruptfile=ruptfile,verbose=verbose)
         print('Made dtopo file')
         # clear .output
         os.system('rm .output')
