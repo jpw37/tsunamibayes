@@ -16,7 +16,7 @@ def build_gauges():
     dists['height'] = stats.norm(loc=3,scale=0.8)
     gauge = Gauge(name,dists)
     gauge.lat = [-1.2968463, -1.2902488, -1.2772992]
-    gauge.lon = [116.8047846, 116.8590154, 116.9160517 ]
+    gauge.lon = [116.8047846, 116.8590154, 116.9160517]
     gauge.loc = 3
     gauge.scale = 0.8
     gauges.append(gauge)
