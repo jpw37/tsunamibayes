@@ -184,6 +184,21 @@ def calc_width(magnitude, delta_logw):
     return 10**logw
 
 
+def calc_magnitude_from_length(length, delta_logl):
+    a = 0.5233956445903871     # slope
+    b = 1.0974498706605313     # intercept
+
+    # length_km = length/1000
+
+    # print("length" + type(length))
+
+    # return (np.log(length) - b - delta_logl)/a
+
+    logl = np.log10(length)  # Compute log10 of length
+    magnitude = (logl - b - delta_logl) / a  # Solve for magnitude
+    return magnitude
+
+
 def calc_slip(magnitude, length, width, mu=4e10):
     """Computes the slip (or displacement) of the fault from the earthquake's
     magnitude and the rupture area using a regression formula.

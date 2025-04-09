@@ -3,8 +3,10 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import multivariate_normal
-from .utils import displace, haversine, bearing
-
+from utils import displace, haversine, bearing, calc_width, calc_magnitude_from_length
+from matplotlib import pyplot as plt
+import cartopy.crs as ccrs
+from geopy.distance import geodesic
 
 class BaseFault:
     """A class for data relating to the fault"""
@@ -448,7 +450,7 @@ class BaseFault:
 
 class GridFault(BaseFault):
     """A subclass that inherits from BaseFault.  """
-    def __init__(self,lat,lon,depth,dip,strike,bounds):
+    def __init__(self,lat,lon,depth,dip,strike,bounds, fault_name = "none", wanted_depth=0, delta_log=0):
         """Initializes all the correct variables for the GridFault subclass.
         Creates interpolations for depth, dip, and strike
         which will be used later to determine values at specific points.
@@ -498,6 +500,25 @@ class GridFault(BaseFault):
         self.depth = np.nan_to_num(depth)
         self.dip = dip
         self.strike = strike
+        self.wanted_depth = wanted_depth
+
+        fig = plt.figure(figsize=(12, 8))
+        self.ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+
+        Lon, Lat = np.meshgrid(lon, lat)
+
+        self.length, self.centroid = self.calculate_fault_midpoint(self.depth_map(Lat, Lon), fault_name, Lon, Lat, wanted_depth)
+
+        print("length:")
+        print(self.length)
+
+        self.magnitude = 0
+        self.width = 0
+
+        for key in self.length:
+            length_value = self.length[key]
+            self.magnitude = calc_magnitude_from_length(length_value, delta_log)
+            self.width = calc_width(self.magnitude, delta_log)
 
     @classmethod
     def from_slab2(cls,depth_file,dip_file,strike_file,bounds):
@@ -614,6 +635,67 @@ class GridFault(BaseFault):
             return arr[0]
         else:
             return arr
+
+    def plot_faults(self, depth_map, Lon, Lat, wanted_depth):
+        # Define a grid for latitude and longitude
+
+        lon_values = np.linspace(self.bounds['lon_min'], self.bounds['lon_max'], Lon.shape[0])
+        lat_values = np.linspace(self.bounds['lat_max'], self.bounds['lat_min'], Lat.shape[1])
+        Lon, Lat = np.meshgrid(lon_values, lat_values)
+
+        # Create a figure
+        self.ax.set_extent([self.bounds['lon_min'], self.bounds['lon_max'],
+                       self.bounds['lat_min'], self.bounds['lat_max']], crs=ccrs.PlateCarree())
+
+        self.ax.coastlines(resolution='10m')
+
+        # Plot SUL slab contours
+        fault_contour = self.ax.contour(Lon, Lat, depth_map, levels=[wanted_depth], colors='red', transform=ccrs.PlateCarree())
+
+        return fault_contour
+
+    def calculate_fault_midpoint(self, depth_map, label, Lon, Lat, wanted_depth):
+        segment_index = 1
+
+        length_dict = {}
+
+        contour = self.plot_faults(depth_map, Lon, Lat, wanted_depth)
+
+        midpoint = None
+
+        for segment_group in contour.allsegs:
+            for segment in segment_group:
+                if len(segment) > 1:
+                    segment_length = 0
+                    contour_points = []
+
+                    for i in range(len(segment) - 1):
+                        point1 = (segment[i][1], segment[i][0])
+                        point2 = (segment[i + 1][1], segment[i + 1][0])
+                        small_segment_length = geodesic(point1, point2).meters
+                        segment_length += small_segment_length
+                        contour_points.append((small_segment_length, point2))
+
+                    segment_name = f"{label} Segment {segment_index}"
+                    if segment_length < 20000:
+                        break
+
+                    length_dict[segment_name] = segment_length
+                    half_length = segment_length / 2
+                    cumulative_length = 0
+
+                    for seg_len, point in contour_points:
+                        cumulative_length += seg_len
+                        if cumulative_length >= half_length:
+                            midpoint = point
+                            break
+
+                    if midpoint:
+                        self.ax.plot(midpoint[1], midpoint[0], 'o', markersize=6, label=f'Midpoint {label}', transform=ccrs.PlateCarree())
+
+                    segment_index += 1
+
+        return length_dict, midpoint
 
 def load_slab2_data(depth_file,dip_file,strike_file,bounds):
     """Loads the depth, dip, and strike data for the fault and returns a
