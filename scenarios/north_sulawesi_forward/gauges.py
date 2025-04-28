@@ -154,7 +154,7 @@ def build_gauges():
     gauges.append(gauge)
 
     # Genlum
-    name = 'Genlum'
+    name = 'Genluma'
     dists = dict()
     dists['height'] = stats.norm(loc=1.8, scale=0.4)
     gauge = Gauge(name, dists)
