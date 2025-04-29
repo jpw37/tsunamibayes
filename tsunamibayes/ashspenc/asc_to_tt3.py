@@ -44,4 +44,4 @@ def asc_to_tt3(asc_file, tt3_file):
 
 
 if __name__ =='__main__':
-    meta = asc_to_tt3('C:\\Users\\ashle\\Documents\\GitHub\\tsunamibayes\\tsunamibayes\\ashspenc\\north_sulewesi_bathymetry.asc', 'north_sulewesi_bathy.tt3')
+    meta = asc_to_tt3(r'C:\Users\ashle\Documents\GitHub\tsunamibayes\tsunamibayes\ashspenc\GEBCO_28_Apr_2025_5086e97df180\gebco_2024_n10.0_s-2.0_w116.0_e129.0.asc', 'north_sulewesi_bathy.tt3')
