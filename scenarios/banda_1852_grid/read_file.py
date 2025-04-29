@@ -101,14 +101,15 @@ def useful_grids(grid, info, long_min, long_max, lat_min, lat_max):
             # 66951461 is only in grid, 466 is lefts within grid, 485 is rights within grid, 486 is both within grid
             
             
-            if (
-                ((long_min <= bottom_left_long <= long_max and lat_min <= bottom_left_lat <= lat_max) and
-                (long_min <= top_left_long <= long_max and lat_min <= top_left_lat <= lat_max)) or 
-                ((long_min <= bottom_right_long <= long_max and lat_min <= bottom_right_lat <= lat_max) and
-                (long_min <= top_right_long <= long_max and lat_min <= top_right_lat <= lat_max))
-            ):
-                desired_grid[i] = grid[i]
-                desired_info[i] = info[i]
+            # if (
+            #     ((long_min <= bottom_left_long <= long_max and lat_min <= bottom_left_lat <= lat_max) and
+            #     (long_min <= top_left_long <= long_max and lat_min <= top_left_lat <= lat_max)) or 
+            #     ((long_min <= bottom_right_long <= long_max and lat_min <= bottom_right_lat <= lat_max) and
+            #     (long_min <= top_right_long <= long_max and lat_min <= top_right_lat <= lat_max))
+            # ):
+            #2696618 uses this 
+            desired_grid[i] = grid[i]
+            desired_info[i] = info[i]
 
     return desired_grid, desired_info
 

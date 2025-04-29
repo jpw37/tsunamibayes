@@ -9,6 +9,8 @@ from read_file import get_grids, useful_grids, condensed_grids
 from okada_jax import get_derivatives, get_okada_deriv
 from tsunamibayes.utils import haversine, haversine_deriv_lat, haversine_deriv_lon
 from clawpack.pyclaw.gauges import GaugeSolution
+import pickle
+import jax.numpy as jnp
 global neg_llh_grad, neg_lprior_grad
 neg_llh_grad = None
 neg_lprior_grad = None
@@ -117,6 +119,8 @@ def calc_adjoint(model_params, model_output, arrival_times):
     # Get gauge info, need lat and lon
     gauge_names = ['Pulu Ai', 'Ambon', 'Banda Neira', 'Buru', 'Hulaliu',
                    'Saparua', 'Kulur', 'Ameth', 'Amahai']
+    
+    #Necessary?
     gauges = build_gauges()
     
 
@@ -124,12 +128,17 @@ def calc_adjoint(model_params, model_output, arrival_times):
     outputs = {}
     
     # Modify this when using rake on different scenario
-    okada_params = ['length', 'width', 'depth', 'latitude', 'longitude', 'strike', 'slip', 'dip']
+    okada_params = ['length', 'width', 'depth', 'latitude', 'longitude', 'strike', 'slip', 'dip','rake']
     print("arrival times:",arrival_times)
+    
+    okada_deriv_dict = {}
+    grid_dict_info = {}
+    
     for i, gauge in enumerate(gauge_names):
+        if i not in okada_deriv_dict:
+                okada_deriv_dict[i] = {}
         print(i, gauge)
         temp_dict = {}
-        print("New temp dict",gauge,"Gauge ^",temp_dict)
         
         arrival = arrival_times[i]
         down, up = np.floor(arrival), np.ceil(arrival)
@@ -151,40 +160,62 @@ def calc_adjoint(model_params, model_output, arrival_times):
             # print("Lower grid dict",lower_info_dict)
             # print("Lower griddict keys", lower_grid_dict.keys())
             # print("lower info dict", lower_grid_dict)
-            # lower_desired_grid, lower_desired_info = useful_grids(lower_grid_dict, lower_info_dict, 125, 134, -9, -2)
-            lower_desired_grid, lower_desired_info = useful_grids(lower_grid_dict, lower_info_dict, 130, 132.7, -6.5, -3.5)
+            lower_desired_grid, lower_desired_info = useful_grids(lower_grid_dict, lower_info_dict, 125, 134, -9, -2)
+            # lower_desired_grid, lower_desired_info = useful_grids(lower_grid_dict, lower_info_dict, 130, 132.7, -6.5, -3.5)
             lower_adjoint_grid, lower_adjoint_keys = condensed_grids(lower_desired_grid)
             lower_temp_dict = {}
 
             upper_grid_dict, upper_info_dict = get_grids(upper_adjoint_file_name)
-            # upper_desired_grid, upper_desired_info = useful_grids(upper_grid_dict, upper_info_dict, 125, 134, -9, -2)
-            upper_desired_grid, upper_desired_info = useful_grids(upper_grid_dict, upper_info_dict, 130, 132.7, -6.5, -3.5)
+            upper_desired_grid, upper_desired_info = useful_grids(upper_grid_dict, upper_info_dict, 125, 134, -9, -2)
+            # upper_desired_grid, upper_desired_info = useful_grids(upper_grid_dict, upper_info_dict, 130, 132.7, -6.5, -2)
             upper_adjoint_grid, upper_adjoint_keys = condensed_grids(upper_desired_grid)
             upper_temp_dict = {}
+            
+            
+            grid_dict_info[i] = {
+                'lower_adjoint_grid': lower_adjoint_grid,
+                'lower_adjoint_keys': lower_adjoint_keys,
+                'lower_desired_grid': lower_desired_grid,
+                'lower_desired_info': lower_desired_info
+            }
+
 
             derivatives = get_derivatives()
             for j, param in enumerate(okada_params):
+                if j not in okada_deriv_dict[i]:
+                    okada_deriv_dict[i][j] = {}
                 sum_lower = 0
                 for k, grid in enumerate(lower_adjoint_keys):
                     mx, my, xlow, ylow, dx, dy = lower_info_dict[grid]
                     X = np.linspace(xlow, xlow + (dx * (mx-1)), mx)
                     Y = np.linspace(ylow, ylow + (dy * (my-1)), my)
-                    # okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), 
-                    #                                     float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), 
-                    #                                     float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), 
-                    #                                     float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), 
-                    #                                     float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
+
                     
                     okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])), 
                                                         float(np.array(model_params['width'])), float(np.array(model_params['depth'])), 
                                                         float(np.array(model_params['latitude'])), float(np.array(model_params['longitude'])), 
                                                         float(np.array(model_params['strike'])), float(np.array(model_params['slip'])), 
                                                         float(np.array(model_params['dip'])), float(np.array(model_params['rake'])), X, Y)
-
+                    okada_deriv_dict[i][j][k] = np.array(okada_deriv_param)
+                    if j == 1 and k == 1:
+                        print("LENGTH:", model_params['length'])
+                    
                     x_deriv_lower = np.trapz(np.array(lower_adjoint_grid[lower_adjoint_keys[k]]).T * okada_deriv_param, dx = dx, axis = 0)
                     if j == 1 and k == 1:
-                        print("Okada deriv param:", okada_deriv_param)
-                        print("X deriv lower:", x_deriv_lower)
+                        data = {
+                            'lower_adjoint_grid': np.array(lower_adjoint_grid[lower_adjoint_keys[k]]),
+                            'okada_deriv_param': okada_deriv_param,
+                            'x_deriv_lower': x_deriv_lower,
+                            'x_deriv_lower_sum': np.trapz(x_deriv_lower, dx=dy, axis=-1)
+                        }
+
+                        for key, value in data.items():
+                            np.save(f"{key}.npy", value) 
+                            if isinstance(value, np.ndarray): 
+                                np.savetxt(f"{key}.txt", value, fmt="%.6f") 
+                            else:  
+                                with open(f"{key}.txt", "w") as f:
+                                    f.write(str(value))
                     sum_lower += np.trapz(x_deriv_lower, dx = dy, axis = -1) 
                 lower_temp_dict[param] = sum_lower
 
@@ -193,12 +224,7 @@ def calc_adjoint(model_params, model_output, arrival_times):
                     mx, my, xlow, ylow, dx, dy = upper_info_dict[grid]
                     X = np.linspace(xlow, xlow + (dx * (mx-1)), mx)
                     Y = np.linspace(ylow, ylow + (dy * (my-1)), my)
-                    # okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])[-1]), 
-                    #                                     float(np.array(model_params['width'])[-1]), float(np.array(model_params['depth'])[-1]), 
-                    #                                     float(np.array(model_params['latitude'])[-1]), float(np.array(model_params['longitude'])[-1]), 
-                    #                                     float(np.array(model_params['strike'])[-1]), float(np.array(model_params['slip'])[-1]), 
-                    #                                     float(np.array(model_params['dip'])[-1]), float(np.array(model_params['rake'])[-1]), X, Y)
-                    
+                  
                     okada_deriv_param = get_okada_deriv(derivatives[j], float(np.array(model_params['length'])), 
                                                         float(np.array(model_params['width'])), float(np.array(model_params['depth'])), 
                                                         float(np.array(model_params['latitude'])), float(np.array(model_params['longitude'])), 
@@ -214,15 +240,21 @@ def calc_adjoint(model_params, model_output, arrival_times):
             else:
                 temp_dict = lower_temp_dict
         else:
+            
             # Calculate only the closest grid for other indices
             closest_adjoint_file_name = lower_adjoint_file_name if up - arrival >= arrival - down else upper_adjoint_file_name
 
             closest_grid_dict, closest_info_dict = get_grids(closest_adjoint_file_name)
-            # closest_desired_grid, closest_desired_info = useful_grids(closest_grid_dict, closest_info_dict, 125, 134, -9, -2)
-            closest_desired_grid, closest_desired_info = useful_grids(closest_grid_dict, closest_info_dict, 130, 132.7, -6.5, -3.5) 
+            closest_desired_grid, closest_desired_info = useful_grids(closest_grid_dict, closest_info_dict, 125, 134, -9, -2)
+            # closest_desired_grid, closest_desired_info = useful_grids(closest_grid_dict, closest_info_dict, 130, 132.7, -6.5, -3.5) 
             closest_adjoint_grid, closest_adjoint_keys = condensed_grids(closest_desired_grid)
 
-            
+            grid_dict_info[i] = {
+                'lower_adjoint_grid': closest_adjoint_grid,
+                'lower_adjoint_keys': closest_adjoint_keys,
+                'lower_desired_grid': closest_desired_grid,
+                'lower_desired_info': closest_desired_info
+            }
             # print("closest grid dict",closest_info_dict)
             # print("closest griddict keys", closest_grid_dict.keys())
             # print("closest info dict", closest_grid_dict)
@@ -230,6 +262,8 @@ def calc_adjoint(model_params, model_output, arrival_times):
             for j, param in enumerate(okada_params):
                 sum_closest = 0
                 
+                if j not in okada_deriv_dict[i]:
+                    okada_deriv_dict[i][j] = {}
                 for k, grid in enumerate(closest_adjoint_keys):
                     mx, my, xlow, ylow, dx, dy = closest_info_dict[grid]
                     X = np.linspace(xlow, xlow + (dx * (mx-1)), mx)
@@ -245,6 +279,8 @@ def calc_adjoint(model_params, model_output, arrival_times):
                                                         float(np.array(model_params['latitude'])), float(np.array(model_params['longitude'])), 
                                                         float(np.array(model_params['strike'])), float(np.array(model_params['slip'])), 
                                                         float(np.array(model_params['dip'])), float(np.array(model_params['rake'])), X, Y)
+                    okada_deriv_dict[i][j][k] = np.array(okada_deriv_param)
+                    
                     x_deriv_closest = np.trapz(np.array(closest_adjoint_grid[grid]).T * okada_deriv_param, dx = dx, axis = 0)
                     sum_closest += np.trapz(x_deriv_closest, dx = dy, axis = -1)
                 temp_dict[param] = sum_closest
@@ -286,7 +322,20 @@ def calc_adjoint(model_params, model_output, arrival_times):
 
         # Find the actual heights from geoclaw output
         outputs[gauge + ' height'] = model_output[gauge + ' height']
-    print("GRADSGRADSSGRADSAGARSDFASGASEGFWEFAWE",grads)
+    print("Grads",grads)
+    print("outputs")
+    print(outputs)
+    
+    
+    
+    def save_pickle(filename, data):
+        with open(filename, 'wb') as f:
+            pickle.dump(data, f)
+    
+    save_pickle('okada_deriv_dict.pkl', okada_deriv_dict)
+    save_pickle('grid_dict_info.pkl', grid_dict_info)
+    
+    
     return grads, outputs
 
 
