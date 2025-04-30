@@ -1,0 +1,74 @@
+Metadata-Version: 2.1
+Name: obspy
+Version: 1.4.1
+Summary: ObsPy - a Python framework for seismological observatories.
+Home-page: https://www.obspy.org
+Author: The ObsPy Development Team
+Author-email: devs@obspy.org
+License: GNU Lesser General Public License, Version 3 (LGPLv3)
+Project-URL: Bug Tracker, https://github.com/obspy/obspy/issues
+Project-URL: Documentation, https://docs.obspy.org/
+Project-URL: Source Code, https://github.com/obspy/obspy
+Keywords: ALSEP,ArcLink,array,array analysis,ASC,beachball,beamforming,cross correlation,database,dataless,Dataless SEED,DMX,earthquakes,Earthworm,EIDA,envelope,ESRI,events,FDSN,features,filter,focal mechanism,FOCMEC,GCF,GSE1,GSE2,hob,Tau-P,IASPEI,imaging,IMS,instrument correction,instrument simulation,IRIS,ISF,kinemetrics,KML,magnitude,MiniSEED,misfit,mopad,MSEED,NDK,NERA,NERIES,NonLinLoc,NLLOC,Nordic,NRL,observatory,ORFEUS,PDAS,picker,processing,PQLX,Q,real time,realtime,REFTEK,REFTEK130,RG-1.6,RT-130,RESP,response file,RT,SAC,scardec,sc3ml,SDS,SEED,SeedLink,SEG-2,SEG Y,SEISAN,Seismic Handler,seismology,seismogram,seismograms,shapefile,signal,slink,spectrogram,StationXML,taper,taup,travel time,trigger,VERCE,WAV,waveform,WaveServer,WaveServerV,WebDC,web service,WIN,Winston,XML-SEED,XSEED
+Platform: OS Independent
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Physics
+Requires-Python: >=3.8
+License-File: LICENSE.txt
+Requires-Dist: numpy >=1.20
+Requires-Dist: scipy >=1.7
+Requires-Dist: matplotlib >=3.3
+Requires-Dist: lxml
+Requires-Dist: setuptools
+Requires-Dist: sqlalchemy <2
+Requires-Dist: decorator
+Requires-Dist: requests
+Provides-Extra: all
+Requires-Dist: packaging ; extra == 'all'
+Requires-Dist: pyproj ; extra == 'all'
+Requires-Dist: pytest ; extra == 'all'
+Requires-Dist: pytest-json-report ; extra == 'all'
+Requires-Dist: geographiclib ; extra == 'all'
+Requires-Dist: cartopy ; extra == 'all'
+Requires-Dist: pyshp ; extra == 'all'
+Provides-Extra: geo
+Requires-Dist: geographiclib ; extra == 'geo'
+Provides-Extra: imaging
+Requires-Dist: cartopy ; extra == 'imaging'
+Provides-Extra: io.shapefile
+Requires-Dist: pyshp ; extra == 'io.shapefile'
+Provides-Extra: tests
+Requires-Dist: packaging ; extra == 'tests'
+Requires-Dist: pyproj ; extra == 'tests'
+Requires-Dist: pytest ; extra == 'tests'
+Requires-Dist: pytest-json-report ; extra == 'tests'
+
+ObsPy is an open-source project dedicated to provide a Python framework for
+processing seismological data. It provides parsers for common file formats,
+clients to access data centers and seismological signal processing routines
+which allow the manipulation of seismological time series (see Beyreuther et
+al. 2010, Megies et al. 2011).
+
+The goal of the ObsPy project is to facilitate rapid application development
+for seismology.
+
+For more information visit https://www.obspy.org.
+
+:copyright:
+    The ObsPy Development Team (devs@obspy.org)
+:license:
+    GNU Lesser General Public License, Version 3
+    (https://www.gnu.org/copyleft/lesser.html)

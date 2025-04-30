@@ -1,0 +1,101 @@
+---
+_copy: Copyright (c) 2004-2020 mudpy authors. Permission to use, copy,
+    modify, and distribute this software is granted under terms
+    provided in the LICENSE file distributed with this software.
+
+_desc: This is an alternative top-level configuration with some values adjusted
+    to better suit automated testing scenarios.
+
+_load:
+    - archetype.yaml
+    - command.yaml
+    - menu.yaml
+    - sample
+
+_lock: true
+
+.mudpy.filing.groups:
+    account:
+        flags:
+            - private
+.mudpy.filing.prefix: .
+.mudpy.filing.search:
+    - ""
+    - etc
+    - share
+    - data
+.mudpy.filing.stash: data
+
+.mudpy.linguistic.actions:
+    ?: ask
+    ",": begin
+    -: begin
+    :: begin
+    ;: begin
+    "!": exclaim
+    ...: muse
+    .: say
+.mudpy.linguistic.default_punctuation: .
+.mudpy.linguistic.typos:
+    i: I
+    i'd: I'd
+    i'll: I'll
+    i'm: I'm
+    teh: the
+    theyre: they're
+    youre: you're
+
+.mudpy.limit.admins:
+    - admin
+.mudpy.limit.avatars: 7
+.mudpy.limit.backups: 3
+# Debugging commands are dangerous, and may result in granting
+# administrative users access to the system account under which the
+# service runs. Be very sure you trust your admins before enabling!
+.mudpy.limit.debug: true
+.mudpy.limit.password_tries: 3
+
+.mudpy.log.file: var/mudpy.log
+.mudpy.log.lines: 1000
+.mudpy.log.stdout: true
+# .mudpy.log.syslog: mudpy
+
+.mudpy.movement.down.enter_term: above
+.mudpy.movement.down.exit_term: downward
+.mudpy.movement.down.vector: [0, 0, -1]
+.mudpy.movement.east.enter_term: the west
+.mudpy.movement.east.exit_term: to the east
+.mudpy.movement.east.vector: [1, 0, 0]
+.mudpy.movement.north.enter_term: the south
+.mudpy.movement.north.exit_term: to the north
+.mudpy.movement.north.vector: [0, 1, 0]
+.mudpy.movement.south.enter_term: the north
+.mudpy.movement.south.exit_term: to the south
+.mudpy.movement.south.vector: [0, -1, 0]
+.mudpy.movement.up.enter_term: below
+.mudpy.movement.up.exit_term: upward
+.mudpy.movement.up.vector: [0, 0, 1]
+.mudpy.movement.west.enter_term: the east
+.mudpy.movement.west.exit_term: to the west
+.mudpy.movement.west.vector: [-1, 0, 0]
+
+.mudpy.network.host: ::1
+.mudpy.network.port: 4000
+
+.mudpy.process.daemon: true
+.mudpy.process.pidfile: var/mudpy.pid
+
+.mudpy.timing.idle.disconnect.active: 6000
+.mudpy.timing.idle.disconnect.default: 6000
+.mudpy.timing.idle.disconnect.entering_account_name: 6000
+.mudpy.timing.idle.warn.active: 5000
+.mudpy.timing.idle.warn.default: 5000
+.mudpy.timing.idle.warn.entering_account_name: 5000
+.mudpy.timing.increment: 0.0001
+.mudpy.timing.save: 5000
+.mudpy.timing.status: 5000
+
+.mudpy.user.pref_admin:
+    - loglevel
+.mudpy.user.pref_allow:
+    - prompt

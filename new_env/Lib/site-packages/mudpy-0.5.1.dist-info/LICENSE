@@ -1,0 +1,31 @@
+===============
+ mudpy license
+===============
+
+The mudpy project employs the ISC license, a permissive free
+software license written by the Internet Systems Consortium and
+functionally equivalent to the 2-clause BSD license. Initially used
+for the ISC's own software releases, it has since become the
+preferred license of many projects (OpenBSD, for example).
+
+copyright notice
+----------------
+Copyright (c) 2004-2022 Jeremy Stanley <fungi@yuggoth.org> and other
+mudpy authors listed in the Git history or AUTHORS file.
+
+permission notice
+-----------------
+Permission to use, copy, modify, and distribute this software for
+any purpose with or without fee is hereby granted, provided that the
+above copyright notice and this permission notice appear in all
+copies.
+
+disclaimer
+----------
+The software is provided "as is" and the author disclaims all warranties
+with regard to this software including all implied warranties of
+merchantability and fitness. In no event shall the author be liable for
+any special, direct, indirect, or consequential damages or any damages
+whatsoever resulting from loss of use, data or profits, whether in an
+action of contract, negligence or other tortious action, arising out of
+or in connection with the use or performance of this software.

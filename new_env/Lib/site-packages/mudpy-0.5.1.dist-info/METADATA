@@ -1,0 +1,117 @@
+Metadata-Version: 2.1
+Name: mudpy
+Version: 0.5.1
+Summary: The mudpy MUD server engine.
+Author: Jeremy Stanley
+Author-email: fungi@yuggoth.org
+Maintainer: Jeremy Stanley
+Maintainer-email: fungi@yuggoth.org
+Project-URL: Big ChangeLog, https://mudpy.org/clog/mudpy/
+Project-URL: Browse Source, https://mudpy.org/code/mudpy/
+Project-URL: Bug Reporting, https://mudpy.org/bugs/mudpy/
+Project-URL: Documentation, https://mudpy.org/docs/mudpy/
+Project-URL: Git Clone URL, https://mudpy.org/code/mudpy/
+Project-URL: License Texts, https://mudpy.org/license/
+Project-URL: Release Files, https://mudpy.org/dist/mudpy/
+Keywords: game,mud,telnet
+Classifier: License :: OSI Approved :: ISC License (ISCL)
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Unix
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Topic :: Communications
+Classifier: Topic :: Communications :: BBS
+Classifier: Topic :: Communications :: Chat
+Classifier: Topic :: Games/Entertainment
+Classifier: Topic :: Games/Entertainment :: Multi-User Dungeons (MUD)
+Classifier: Topic :: Games/Entertainment :: Role-Playing
+Classifier: Topic :: Internet
+Requires-Python: >=3.7
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+License-File: AUTHORS
+Requires-Dist: passlib (>=1.7)
+Requires-Dist: pyyaml
+
+=======
+ mudpy
+=======
+
+.. Copyright (c) 2004-2019 mudpy authors. Permission to use, copy,
+   modify, and distribute this software is granted under terms
+   provided in the LICENSE file distributed with this software.
+
+The mudpy project aims to create a simple, generic, cross-platform,
+freely-redistributable MUD core engine which can be easily understood
+and extended. It is written in pure Python 3 and has only pure Python
+dependencies. All configuration and data are stored in
+consistently-formatted plain text (YAML 1.1) files for ease of
+administration. The core engine is unicode-clean internally and supports
+UTF-8 encoding for input and output of extended text characters.
+
+The mudpy program and sample content are released under a free and open
+license, and any bug reports, criticisms, ideas, patches, content
+submissions or other offers of collaboration are wholeheartedly welcome.
+
+what's missing
+--------------
+
+This project is still very much a work in progress, and is unlikely to
+be suitable for anyone who isn't willing to put in a bunch of work (help
+implementing features upstream is welcome, of course!). Here's a
+non-comprehensive list of missing things most folks are likely to expect
+in a MUD:
+
+* interactive objects/props
+* inventory/equipment management
+* non-player characters
+* a default combat system
+* sample races/classes and spells/skills
+* example implementation of character stats/progression
+* closeable/lockable portals
+* ability to change randomly-generated avatar names
+* pagination of the output stream
+
+what's included
+---------------
+
+The fundamentals of a multi-user service are in place, and foundations
+are laid on which the missing features above can be built. Here are some
+highlights of what's been implemented so far:
+
+* the beginnings of a MUD framework
+
+    - account creation, authentication and lobby menus
+    - movement between rooms/locations with inferred portals
+    - in-room communication between users
+    - setting and viewing user preferences
+    - an integrated command help system
+    - world creation and introspection commands for admins
+    - live reloading of configuration and source code
+
+* a full-featured Telnet service with a focus on IETF RFC compliance
+
+    - RFC 854 Telnet protocol
+    - RFC 856 binary mode
+    - RFC 857 echo control
+    - RFC 858 go-ahead suppression
+    - RFC 885 end-of-record transmission
+    - RFC 1091 terminal type
+    - RFC 1073 window size negotiation
+    - RFC 1184 line-at-a-time input mode
+    - RFC 1143 "Q method" negotiation state engine
+
+* mature development practices
+
+    - traditional Python distutils/setuptools/pip packaging
+    - comprehensive regression and style testing
+    - minimal runtime dependencies
+    - extensive logging
+    - flexible, generalized data model
+    - in-repository documentation

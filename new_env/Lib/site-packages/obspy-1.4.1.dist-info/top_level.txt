@@ -1,0 +1,8 @@
+evresp
+gcf
+gse2
+mseed
+obspy
+segy
+signal
+tau
