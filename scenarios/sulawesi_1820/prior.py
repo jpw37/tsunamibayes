@@ -143,7 +143,7 @@ class LatLonPrior(BasePrior):
         self.depth_dist = depth_dist
 
     def logpdf(self,sample):
-        """Checks to insure that the sample's subfaults are not out of bounds,
+        """Checks to ensure that the sample's subfaults are not out of bounds,
         then computes the log of the depth distribution's probability density
         function evaluated at the sample's depth.
 
