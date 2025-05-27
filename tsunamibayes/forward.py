@@ -201,7 +201,7 @@ class ToyForwardModel(BaseForwardModel):
 
 class GeoClawForwardModel(BaseForwardModel):
     obstypes = ['arrival','height','inundation']
-    def __init__(self,gauges,fault,fgmax_params,dtopo_path,fault_path):
+    def __init__(self,gauges,fault,fgmax_params,dtopo_path,fakequakes_params):
         """Initializes all the necessary variables for the GeoClawForwardModel subclass.
         
         Parameters
@@ -226,7 +226,7 @@ class GeoClawForwardModel(BaseForwardModel):
         super().__init__(gauges)
         self.fault = fault
         self.dtopo_path = dtopo_path
-        self.fault_path = fault_path
+        self.fakequakes_params = fakequakes_params
         self.fgmax_params = fgmax_params
         # self.fgmax_grid_path = fgmax_params['fgmax_grid_path']
         self.valuemax_path = fgmax_params['valuemax_path']
@@ -266,6 +266,7 @@ class GeoClawForwardModel(BaseForwardModel):
 
         ###Pull from scenario and utils to calculate the info you need for this.
 
+        #TODO add n and m for the number of subfaults as a parameter
         subfault_params = self.fault.subfault_split(model_params['latitude'],
                                                     model_params['longitude'],
                                                     model_params['length'],
@@ -278,99 +279,62 @@ class GeoClawForwardModel(BaseForwardModel):
 
         #make copy of the subfault, add necessary parameters, and format it as required by
         #fakequakes.
-        fault_writer = subfault_params;
+        fault_writer = subfault_params.copy()
         fault_writer['type'] = 0.5
         fault_writer['risetime'] = 0.5
         fault_writer['depth'] = fault_writer['depth'] / 100
         header = ['longitude', 'latitude', 'depth', 'strike', 'dip', 'type', 'risetime', 'length', 'width']
-        fault_writer.to_string(self.fault_path, columns=header,header=False)
+        fault_writer.to_string(self.fakequakes_params['fault_path'], columns=header,header=False)
 
         # run fakequakes and generate .rupt file
-        #Set all parameters for the fakequakes run
+        #Set all parameters for the fakequakes run using simplenamespace
 
-        home = os.getcwd() + '/'  # This sets the current working directory as the home path
+        # First build the nd and npz files
+        fakequakes.build_TauPyModel(self.fakequakes_params['prem_path'],self.fakequakes_params['nd_out_path'],self.fakequakes_params['fq_files_dir'],self.fakequakes_params['mod_path'], background_model='PREM')
 
-        #TODO change this to be read in from a parameter
-        project_name = 'banda'  # Name of project folder that will be set up in home directory
-
-        # Runtime parameters
-        ncpus = 2  # how many CPUS you want to use for parallelization (needs to be at least 2)
-        Nrealizations = 1  # Number of fake ruptures to generate per magnitude bin
-        hot_start = 0  # If code quits in the middle of running, it will pick back up at this index
-
-        # File parameters
-        model_name = 'mentawai.mod'  # Velocity model file name
-        fault_name = self.fault_path  # Fault model name
-        mean_slip_name = None  # Set to path of .rupt file if patterning synthetic runs after a mean rupture model
-        run_name = 'banda0000'  # Base name of each synthetic run (i.e. mentawai.000000, mentawai.000001, etc...)
-        rupture_list = 'ruptures.list'  # Name of list of ruptures that are used to generate waveforms.  'ruptures.list' uses the full list of ruptures FakeQuakes creates. If you create file with a sublist of ruptures, use that file name.
-        distances_name = 'banda'  # Name of matrix with estimated distances between subfaults i and j for every subfault pair
-        load_distances = 0  # This should be zero the first time you run FakeQuakes with your fault model.
-
-        UTM_zone = '52M'  # UTM_zone for rupture region
-        """WE KNOW THIS, ALREADY DEFINED IN CONFIG"""
-        target_Mw = np.array([8.5])  # Desired magnitude(s), can either be one value or an array
-        """NEED TO FIND WAY TO DETERMINE HYPOCENTER FROM LAT AND LON"""
-        hypocenter = [125.888654, -2.386416,477.613]
-        force_hypocenter = True  # Set to True if hypocenter specified
-        """CHECK WHERE THIS IS SPECIFIED"""
-        rake = 90  # Average rake for subfaults
-        scaling_law = 'S'  # Type of rupture: T for thrust, S for strike-slip, N for normal
-        force_magnitude = True  # Set to True if you want the rupture magnitude to equal the exact target magnitude
-        force_area = True  # Set to True if you want the ruptures to fill the whole fault model
-
-        # Correlation function parameters
-        hurst = 0.4  # Hurst exponent form Melgar and Hayes 2019
-        Ldip = 'auto'  # Correlation length scaling: 'auto' uses Melgar and Hayes 2019, 'MB2002' uses Mai and Beroza 2002
-        Lstrike = 'auto'  # Same as above
-        slip_standard_deviation = 0.9  # Standard deviation for slip statistics: Keep this at 0.9
-        lognormal = True  # Keep this as True to solve the problem of some negative slip subfaults that are produced
-
-        # Rupture propagation parameters
-        rise_time = 'MH2017'  # Rise time scaling to use. 'GP2010' uses Graves and Pitarka (2010), 'GP2015' uses Graves and Pitarka (2015), 'S1999' uses Sommerville (1999), and 'MH2017' uses Melgar and Hayes (2017).
-        rise_time_depths = [10, 15]  # Transition depths for rise time scaling (if slip shallower than first index, rise times are twice as long as calculated)
-        max_slip = 40  # Maximum slip (m) allowed in the model
-        max_slip_rule = False  # If true, uses a magntidude-depence for max slip
-        shear_wave_fraction_shallow = 0.49  # Shear wave fraction for depths shallower than rise_time_depths[0]
-        shear_wave_fraction_deep = 0.8  # Shear wave fraction for depths depper than rise_time_depths [1] (0.8 is a standard value (Mai and Beroza 2002))
-        source_time_function = 'dreger'  # options are 'triangle' or 'cosine' or 'dreger'
-        stf_falloff_rate = 4  # Only affects Dreger STF, 4-8 are reasonable values
-        num_modes = 3  # Number of modes in K-L expansion
-        slab_name = None  # Slab 2.0 Ascii file for 3D geometry, set to None for simple 2D geometry
-        mesh_name = None  # GMSH output file for 3D geometry, set to None for simple 2D geometry
-
-        #our extra tbfakequakes parameters
-        rise_time_depths0 = rise_time_depths[0]
-        rise_time_depths1 = rise_time_depths[1]
-        tMw = target_Mw[0]
-        slip_tol = 1e-2
-        no_random = False
-        shypo = None
-        use_hypo_fraction = True
-        zvals = [0.0, 0.0, 0.0]
-        stochastic_rake = True
-
-        quake = TBFakequakes.run_parallel_generate_ruptures(home, project_name, run_name, fault_name, slab_name, mesh_name,
-                                                        load_distances, distances_name, UTM_zone, target_Mw, model_name,
-                                                        hurst, Ldip, Lstrike,
-                                                        num_modes, Nrealizations, rake, rise_time, rise_time_depths0,
-                                                        rise_time_depths1,
-                                                        max_slip,
-                                                        source_time_function, lognormal, slip_standard_deviation,
-                                                        scaling_law, ncpus,
-                                                        force_magnitude,
-                                                        force_area, mean_slip_name, hypocenter, slip_tol,
-                                                        force_hypocenter,
-                                                        no_random, shypo, use_hypo_fraction,
-                                                        shear_wave_fraction_shallow,
-                                                        shear_wave_fraction_deep,
-                                                        max_slip_rule, zvals, stochastic_rake)
+        quake = TBFakequakes.run_parallel_generate_ruptures(
+            self.fakequakes_params['strike_path'],
+            self.fakequakes_params['dip_path'],
+            self.fakequakes_params['fault_path'],
+            self.fakequakes_params['mod_path'],
+            self.fakequakes_params['slab_path'],
+            self.fakequakes_params['load_distances'],
+            self.fakequakes_params['UTM_zone'],
+            self.fakequakes_params['tMw'],
+            self.fakequakes_params['hurst'],
+            self.fakequakes_params['Ldip'],
+            self.fakequakes_params['Lstrike'],
+            self.fakequakes_params['num_modes'],
+            self.fakequakes_params['Nrealizations'],
+            self.fakequakes_params['rake'],
+            self.fakequakes_params['rise_time'],
+            self.fakequakes_params['rise_time_depths'][0],
+            self.fakequakes_params['rise_time_depths'][1],
+            self.fakequakes_params['max_slip'],
+            self.fakequakes_params['lognormal'],
+            self.fakequakes_params['slip_standard_deviation'],
+            self.fakequakes_params['scaling_law'],
+            self.fakequakes_params['force_magnitude'],
+            self.fakequakes_params['force_area'],
+            self.fakequakes_params['mean_slip_name'],
+            self.fakequakes_params['hypocenter'],
+            self.fakequakes_params['slip_tol'],
+            self.fakequakes_params['force_hypocenter'],
+            self.fakequakes_params['no_random'],
+            self.fakequakes_params['shypo'],
+            self.fakequakes_params['use_hypo_fraction'],
+            self.fakequakes_params['shear_wave_fraction_shallow'],
+            self.fakequakes_params['shear_wave_fraction_deep'],
+            self.fakequakes_params['max_slip_rule'],
+            self.fakequakes_params['zvals'],
+            self.fakequakes_params['stochastic_rake']
+        )
 
         #TODO: Postprocess the quake to write to the dtopo file
         ruptfile = "ruptfile.txt"
         np.savetxt(ruptfile,quake)
 
-
+        print(os.getcwd())
         # create and write dtopo file
         write_dtopo(subfault_params,self.fault.bounds,self.dtopo_path,ruptfile=ruptfile,verbose=verbose)
         print('Made dtopo file')

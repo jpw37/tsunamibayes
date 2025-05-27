@@ -1,6 +1,6 @@
 import sys
-sys.path.insert(0,'/Users/nephi/tsunamibayes')
-sys.path.insert(0,'/opt/anaconda3/lib/python3.11/site-packages')
+# sys.path.insert(0,'/Users/nephi/tsunamibayes')
+# sys.path.insert(0,'/opt/anaconda3/lib/python3.11/site-packages')
 
 import numpy as np
 from tsunamibayes import BasePrior
@@ -83,6 +83,7 @@ class BandaPrior(BasePrior):
         delta_logw = self.delta_logw.rvs()
         depth_offset = self.depth_offset.rvs()
         params = np.array(latlon+[mag,delta_logl,delta_logw,depth_offset])
+        #TODO add in zvals and save them
         return pd.Series(params,["latitude",
                                  "longitude",
                                  "magnitude",

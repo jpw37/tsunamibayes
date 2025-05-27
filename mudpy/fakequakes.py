@@ -93,7 +93,7 @@ def llz2utm(lon,lat,projection_zone='None'):
 
 
 
-def subfault_distances_3D(home,project_name,fault_name,slab_name,projection_zone):
+def subfault_distances_3D(fault_path,slab_path,projection_zone):
     """
     Estimate the distance between subfaults i and j for every pair in the list
     fault.subfaults. For a 3D fault geometry
@@ -121,9 +121,9 @@ def subfault_distances_3D(home,project_name,fault_name,slab_name,projection_zone
     from pyproj import Geod
     
     #if you want the simplified distances
-    if slab_name==None:
+    if slab_path==None:
         #Read fault geometry data
-        fault=genfromtxt(home+project_name+'/data/model_info/'+fault_name)
+        fault=genfromtxt(fault_path)
         
         #Initalize distance output arrays
         nsubfaults = len(fault)
@@ -202,8 +202,8 @@ def subfault_distances_3D(home,project_name,fault_name,slab_name,projection_zone
     else:
         
         #Load things
-        fault=genfromtxt(home+project_name+'/data/model_info/'+fault_name)
-        slab_model=genfromtxt(home+project_name+'/data/model_info/'+slab_name)    
+        fault=genfromtxt(fault_path)
+        slab_model=genfromtxt(slab_path)
     
         #Initalize distance output arrays
         nsubfaults = len(fault)
@@ -706,7 +706,7 @@ def select_faults(whole_fault,Dstrike,Ddip,target_Mw,num_modes,scaling_law,
     if use_hypo_fraction == True:
         
         #Need to find "center" of the selected faults. To do this look for the subfault
-        #witht he lowest combined maximum along strike and along dip distance to all
+        #with the lowest combined maximum along strike and along dip distance to all
         #other faults
         
         
@@ -870,10 +870,9 @@ def get_rise_times(M0,slip,fault_array,rise_time_depths,stoc_rake,rise_time='MH2
 
     
     
-def get_rupture_onset(home,project_name,slip,fault_array,model_name,hypocenter,
+def get_rupture_onset(slip,fault_array,model_name,hypocenter,
         rise_time_depths,M0,velmod,sigma_rise_time=0.2,shear_wave_fraction_shallow=0.49,shear_wave_fraction_deep=0.8):
     
-    home,project_name,slip,fault_array,model_name,hypocenter,rise_time_depths,M0,velmod,shear_wave_fraction_shallow,shear_wave_fraction_deep
     '''
     Using a custom built tvel file ray trace from hypocenter to determine rupture
     onset times
@@ -894,7 +893,7 @@ def get_rupture_onset(home,project_name,slip,fault_array,model_name,hypocenter,
     warnings.filterwarnings("ignore")
     
     #Load velocity model
-    vel=genfromtxt(home+project_name+'/structure/'+model_name)
+    vel=genfromtxt(model_name)
         
     # Convert from thickness to depth to bottom of layer
     depth_to_top=r_[0,vel[:,0].cumsum()[0:-1]]
@@ -1086,58 +1085,58 @@ def get_stochastic_rake(rake,Nsamples,sigma_rake=10,max_variation=45):
     
     return stoc_rake                                                                                                
    
-def write_all_event_summary(home,project_name,run_name):
-    '''
-    Write a sumamry file with Mw, max slip, rise_time,onset time for all events
-    '''
+# def write_all_event_summary(home,project_name,run_name):
+#     '''
+#     Write a sumamry file with Mw, max slip, rise_time,onset time for all events
+#     '''
+#
+#     from glob import glob
+#     from string import replace
+#     from numpy import array,genfromtxt,sqrt,zeros,savetxt
+#
+#     #How many events?
+#     ruptures=sorted(glob(home+project_name+'/output/ruptures/*.rupt'))
+#     logs=sorted(glob(home+project_name+'/output/ruptures/*.log'))
+#
+#     #where does this go?
+#     fout=home+project_name+'/output/ruptures/_kin_summary.txt'
+#     out=zeros((len(logs),7))
+#
+#     for k in range(len(logs)):
+#
+#         print(k)
+#
+#         #Get info about fault
+#         f=open(logs[k],'r')
+#         loop_go=True
+#         while loop_go:
+#             line=f.readline()
+#             if 'Hypocenter (lon,lat,z[km])' in line:
+#                 s=replace(line.split(':')[-1],'(','')
+#                 s=replace(s,')','')
+#                 hypo=array(s.split(',')).astype('float')
+#                 loop_go=False
+#             if 'Actual magnitude' in line:
+#                 Mw=float(line.split(':')[-1].split(' ')[-1])
+#         f.close()
+#
+#         #Get peak quantities
+#         f=genfromtxt(ruptures[k])
+#         peak_slip=max(sqrt(f[:,8]**2+f[:,9]**2))
+#         peak_rise=max(f[:,7])
+#         peak_onset=max(f[:,12])
+#
+#         out[k,0:3]=hypo
+#         out[k,3]=Mw
+#         out[k,4]=peak_slip
+#         out[k,5]=peak_rise
+#         out[k,6]=peak_onset
+#
+#     savetxt(fout,out,fmt='%8.2f')
+#
     
-    from glob import glob
-    from string import replace
-    from numpy import array,genfromtxt,sqrt,zeros,savetxt
     
-    #How many events?
-    ruptures=sorted(glob(home+project_name+'/output/ruptures/*.rupt'))
-    logs=sorted(glob(home+project_name+'/output/ruptures/*.log'))
-    
-    #where does this go?
-    fout=home+project_name+'/output/ruptures/_kin_summary.txt'
-    out=zeros((len(logs),7))
-    
-    for k in range(len(logs)):
-        
-        print(k)
-        
-        #Get info about fault
-        f=open(logs[k],'r')
-        loop_go=True
-        while loop_go:
-            line=f.readline()
-            if 'Hypocenter (lon,lat,z[km])' in line:                
-                s=replace(line.split(':')[-1],'(','')
-                s=replace(s,')','')
-                hypo=array(s.split(',')).astype('float')
-                loop_go=False       
-            if 'Actual magnitude' in line:
-                Mw=float(line.split(':')[-1].split(' ')[-1])  
-        f.close()        
-        
-        #Get peak quantities
-        f=genfromtxt(ruptures[k])
-        peak_slip=max(sqrt(f[:,8]**2+f[:,9]**2))
-        peak_rise=max(f[:,7])
-        peak_onset=max(f[:,12])
-        
-        out[k,0:3]=hypo
-        out[k,3]=Mw
-        out[k,4]=peak_slip
-        out[k,5]=peak_rise
-        out[k,6]=peak_onset
-        
-    savetxt(fout,out,fmt='%8.2f')
-    
-    
-    
-def build_TauPyModel(home,project_name,vel_mod_file,background_model='PREM'):
+def build_TauPyModel(prem_path,nd_out_path,fq_files_dir,vel_mod_file,background_model='PREM'):
     '''
     This function will take the structure from the .mod file
     and paste it on top of a pre computed mantle structure such as PREM.
@@ -1157,16 +1156,16 @@ def build_TauPyModel(home,project_name,vel_mod_file,background_model='PREM'):
     #load background velocity structure
     if background_model=='PREM':
         
-        bg_model_file=environ['MUD']+'/src/aux/prem.nd'
+        bg_model_file=prem_path
         
         #Q values
         Qkappa=1300
         Qmu=600
         
         #Write new _nd file one line at a time
-        nd_name=path.basename(vel_mod_file).split('.')[0]
-        nd_name=nd_name+'.nd'
-        f=open(home+project_name+'/structure/'+nd_name,'w')
+        # nd_name=path.basename(vel_mod_file).split('.')[0]
+        # nd_name=nd_name+'.nd'
+        f=open(nd_out_path,'w')
         
         #initalize
         ztop=0
@@ -1189,7 +1188,7 @@ def build_TauPyModel(home,project_name,vel_mod_file,background_model='PREM'):
             ztop=zbot
 
         
-        #now read PREM file libe by libne and find appropriate depth tos tart isnerting
+        #now read PREM file line by line and find appropriate depth to start inserting
         fprem=open(bg_model_file,'r')
         found_depth=False
         
@@ -1220,9 +1219,7 @@ def build_TauPyModel(home,project_name,vel_mod_file,background_model='PREM'):
         f.close()
 
         # make TauPy npz
-        taup_in=home+project_name+'/structure/'+nd_name
-        taup_out=home+project_name+'/structure/'
-        taup_create.build_taup_model(taup_in,output_folder=taup_out)
+        taup_create.build_taup_model(nd_out_path,output_folder=fq_files_dir)
         
     else: #To be done later (ha)
         print('ERROR: That background velocity model does not exist')

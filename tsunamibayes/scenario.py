@@ -168,6 +168,7 @@ class BaseScenario:
 
         # evaluate forward model and compute log-likelihood
         if verbose: print("Running forward model...",flush=True)
+        #TODO make sure rake is being read in correctly
         model_params = self.map_to_model_params(u0)
         print('Running geoclaw in init_chain')
         print(model_params)

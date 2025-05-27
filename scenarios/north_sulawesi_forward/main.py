@@ -8,7 +8,6 @@ import json
 from prior import LatLonPrior, BandaPrior
 from gauges import build_gauges
 from scenario import BandaScenario
-from forward import NeuralNetEmulator
 
 
 
@@ -61,7 +60,7 @@ def setup(config):
     # Forward model
     config.fgmax['min_level_check'] = len(config.geoclaw['refinement_ratios'])+1
     forward_model = tb.GeoClawForwardModel(gauges,fault,config.fgmax,
-                                           config.geoclaw['dtopo_path'])
+                                           config.geoclaw['dtopo_path'],config.fakequakes)
     #forward_model = NeuralNetEmulator(gauges, fault)
 
     # Proposal kernel

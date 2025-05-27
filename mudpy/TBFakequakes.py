@@ -1,10 +1,9 @@
-from mudpy.fakequakes import subfault_distances_3D, select_faults, get_mean_slip, vonKarman_correlation, get_covariance, \
-    get_eigen, make_KL_slip, rectify_slip, get_lognormal, get_stochastic_rake, get_rise_times, get_rupture_onset
 
-def run_parallel_generate_ruptures(home, project_name, run_name, fault_name, slab_name, mesh_name,
-                                   load_distances, distances_name, UTM_zone, tMw, model_name, hurst, Ldip, Lstrike,
+
+def run_parallel_generate_ruptures(strike_path, dip_path, fault_path, mod_path, slab_path,
+                                   load_distances, UTM_zone, tMw, hurst, Ldip, Lstrike,
                                    num_modes, Nrealizations, rake, rise_time, rise_time_depths0, rise_time_depths1,
-                                   max_slip, source_time_function, lognormal, slip_standard_deviation, scaling_law, ncpus,
+                                   max_slip, lognormal, slip_standard_deviation, scaling_law,
                                    force_magnitude,
                                    force_area, mean_slip_name, hypocenter, slip_tol, force_hypocenter,
                                    no_random, shypo, use_hypo_fraction, shear_wave_fraction_shallow,
@@ -15,16 +14,21 @@ def run_parallel_generate_ruptures(home, project_name, run_name, fault_name, sla
     '''
     import numpy as np
     from numpy import load, save, genfromtxt, log10, cos, sin, deg2rad, savetxt, zeros, where
-    from time import gmtime, strftime
-    from numpy.random import shuffle
     from mudpy import fakequakes
-    from obspy import UTCDateTime
     from obspy.taup import TauPyModel
-    import geopy.distance
     import warnings
+
+    #Packages not used in the current version, but may be necessary in future
+    # from time import gmtime, strftime
+    # from numpy.random import shuffle
+    # from obspy import UTCDateTime
+    # import geopy.distance
 
     # I don't condone it but this cleans up the warnings
     warnings.filterwarnings("ignore")
+
+    # Get structure model
+    vel_mod_file = mod_path
 
     # Fix input formats
     rise_time_depths = [rise_time_depths0, rise_time_depths1]
@@ -34,22 +38,22 @@ def run_parallel_generate_ruptures(home, project_name, run_name, fault_name, sla
         target_Mw[rMw] = float(tMw[rMw])
 
     # Should I calculate or load the distances?
+    # LOOK Could replace this with one direct path....
     if load_distances == 1:
-        Dstrike = load(home + project_name + '/data/distances/' + distances_name + '.strike.npy')
-        Ddip = load(home + project_name + '/data/distances/' + distances_name + '.dip.npy')
+        Dstrike = load(strike_path)
+        Ddip = load(dip_path)
     else:
-        Dstrike, Ddip = fakequakes.subfault_distances_3D(home, project_name, fault_name, slab_name, UTM_zone)
-        save(home + project_name + '/data/distances/' + distances_name + '.strike.npy', Dstrike)
-        save(home + project_name + '/data/distances/' + distances_name + '.dip.npy', Ddip)
+        Dstrike, Ddip = fakequakes.subfault_distances_3D(fault_path, slab_path, UTM_zone)
+        save(strike_path, Dstrike)
+        save(dip_path, Ddip)
 
     # Read fault and prepare output variable
-    whole_fault = genfromtxt(home + project_name + '/data/model_info/' + fault_name)
+    whole_fault = genfromtxt(fault_path)
 
-    # Get structure model
-    vel_mod_file = home + project_name + '/structure/' + model_name
 
     # Get TauPyModel
-    velmod = TauPyModel(model=home + project_name + '/structure/' + model_name.split('.')[0])
+    #TODO fix path
+    velmod = TauPyModel(model=vel_mod_file.split('.')[0])
 
     # Now loop over the number of realizations
     realization = 0
@@ -234,7 +238,7 @@ def run_parallel_generate_ruptures(home, project_name, run_name, fault_name, sla
             else:  # regular EQs, do nothing
                 pass
 
-            t_onset, length2fault = fakequakes.get_rupture_onset(home, project_name, slip, fault_array, model_name,
+            t_onset, length2fault = fakequakes.get_rupture_onset(slip, fault_array, mod_path,
                                                                  hypocenter, rise_time_depths,
                                                                  M0, velmod,
                                                                  shear_wave_fraction_shallow=shear_wave_fraction_shallow,

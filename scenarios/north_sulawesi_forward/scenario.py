@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from tsunamibayes import BaseScenario
 from tsunamibayes.utils import calc_length, calc_width, calc_slip
-from gradient import dU # , gradient_setup
+#from gradient import dU # , gradient_setup
 import time
 from datetime import timedelta
 
@@ -60,67 +60,68 @@ class BandaScenario(BaseScenario):
         if mode == 'random_walk':
             proposal += np.random.multivariate_normal(
                 np.zeros(len(self.sample_cols)), cov=self.cov)
+
             
-        elif mode == 'mala':
-            v = np.random.multivariate_normal(
-                np.zeros(len(self.sample_cols)), cov=self.cov)
-            proposal += -delta**2 / 2 * dU(q, 
-                                           self.fault.strike_map, 
-                                           self.fault.dip_map, 
-                                           self.fault.depth_map,
-                                           self.config,
-                                           self.fault,
-                                           self.model_params,
-                                           self.model_output) + delta * v
-            
-        elif mode == 'hmc':
-            model_params = self.map_to_model_params(sample)
-            q = sample.copy()
-            p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
-                                         
-            current_p = p.copy()
-#             print('-----------------------------------------------')   
-#             print('COMPUTING dU ONCE')
-            print()
-            curr_dU = dU(q, 
-                         self.fault.strike_map, 
-                         self.fault.dip_map, 
-                         self.fault.depth_map,
-                         self.config,
-                         self.fault,
-                         self.model_params,
-                         self.model_output)
-            
-            p = p - epsilon *  curr_dU/ 2
-            
-            for i in range(time_steps):
-#                 print('-----------------------------------------------') 
-# #                 print('COMPUTING dU IN LOOP')
-              
-                q = q + epsilon * p
-#                 print(q)
-                if i != time_steps - 1:
-                    p = p - epsilon * dU(q, 
-                                         self.fault.strike_map, 
-                                         self.fault.dip_map, 
-                                         self.fault.depth_map,
-                                         self.config,
-                                         self.fault,
-                                         self.model_params,
-                                         self.model_output)
-                                              
-            p = p - epsilon * dU(q, 
-                                 self.fault.strike_map, 
-                                 self.fault.dip_map, 
-                                 self.fault.depth_map,
-                                 self.config,
-                                 self.fault,
-                                 self.model_params,
-                                 self.model_output)/2
-            p = -p
-            
-            return q, current_p, p
-                         
+#         elif mode == 'mala':
+#             v = np.random.multivariate_normal(
+#                 np.zeros(len(self.sample_cols)), cov=self.cov)
+#             proposal += -delta**2 / 2 * dU(q,
+#                                            self.fault.strike_map,
+#                                            self.fault.dip_map,
+#                                            self.fault.depth_map,
+#                                            self.config,
+#                                            self.fault,
+#                                            self.model_params,
+#                                            self.model_output) + delta * v
+#
+#         elif mode == 'hmc':
+#             model_params = self.map_to_model_params(sample)
+#             q = sample.copy()
+#             p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
+#
+#             current_p = p.copy()
+# #             print('-----------------------------------------------')
+# #             print('COMPUTING dU ONCE')
+#             print()
+#             curr_dU = dU(q,
+#                          self.fault.strike_map,
+#                          self.fault.dip_map,
+#                          self.fault.depth_map,
+#                          self.config,
+#                          self.fault,
+#                          self.model_params,
+#                          self.model_output)
+#
+#             p = p - epsilon *  curr_dU/ 2
+#
+#             for i in range(time_steps):
+# #                 print('-----------------------------------------------')
+# # #                 print('COMPUTING dU IN LOOP')
+#
+#                 q = q + epsilon * p
+# #                 print(q)
+#                 if i != time_steps - 1:
+#                     p = p - epsilon * dU(q,
+#                                          self.fault.strike_map,
+#                                          self.fault.dip_map,
+#                                          self.fault.depth_map,
+#                                          self.config,
+#                                          self.fault,
+#                                          self.model_params,
+#                                          self.model_output)
+#
+#             p = p - epsilon * dU(q,
+#                                  self.fault.strike_map,
+#                                  self.fault.dip_map,
+#                                  self.fault.depth_map,
+#                                  self.config,
+#                                  self.fault,
+#                                  self.model_params,
+#                                  self.model_output)/2
+#             p = -p
+#
+#             return q, current_p, p
+#
         else:
             raise ValueError(
                 'Invalid Parameter, use \'random_walk\', \'mala\', or \'hmc\'')
@@ -290,39 +291,39 @@ class BandaScenario(BaseScenario):
                     alpha = np.exp(alpha)
                     accepted = (np.random.rand() < alpha)
 
-                elif mode == 'mala':
-                    # TODO: should it be +logprior +llh or -logprior -llh???
-                    U_0 = - \
-                        self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
-                        self.bayes_data.loc[i - 1]['llh']
-                    U_1 = -prior_logpdf - llh
-                    x1, x0 = proposal, self.samples.loc[i - 1]
-                    alpha = -U_1 - 1 / (2 * delta**2) * np.linalg.norm(x0 - x1 + delta**2 / 2 * dU(x1))**2 +\
-                        U_0 + 1 / (2 * delta**2) * np.linalg.norm(x1 -
-                                                                  x0 + delta**2 / 2 * dU(x0))**2
-                    alpha = min(1, alpha)
-                    accepted = np.log(np.random.uniform()) <= alpha
-
-                elif mode == 'hmc':
-                    current_U = - \
-                        self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
-                        self.bayes_data.loc[i - 1]['llh']
-                    proposed_U = -prior_logpdf - llh
-                    current_K = np.sum(current_p**2) / 2
-                    proposed_K = np.sum(proposal_p**2) / 2
-                    print(f'current_U: {current_U}')
-                    print(f'proposed_U: {proposed_U}')
-                    print(f'current_K: {current_K}')
-                    print(f'proposed_K: {proposed_K}')
-                    
-                    alpha = np.exp(current_U-proposed_U+current_K-proposed_K)
-                    unif_samp = np.random.uniform()
-                    print(f'alpha: {alpha}')
-                    print(f'unif_samp: {unif_samp}')
-
-                    accepted = unif_samp < alpha
-                    print(accepted)
-                    print('------------------------------------')
+                # elif mode == 'mala':
+                #     # TODO: should it be +logprior +llh or -logprior -llh???
+                #     U_0 = - \
+                #         self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
+                #         self.bayes_data.loc[i - 1]['llh']
+                #     U_1 = -prior_logpdf - llh
+                #     x1, x0 = proposal, self.samples.loc[i - 1]
+                #     alpha = -U_1 - 1 / (2 * delta**2) * np.linalg.norm(x0 - x1 + delta**2 / 2 * dU(x1))**2 +\
+                #         U_0 + 1 / (2 * delta**2) * np.linalg.norm(x1 -
+                #                                                   x0 + delta**2 / 2 * dU(x0))**2
+                #     alpha = min(1, alpha)
+                #     accepted = np.log(np.random.uniform()) <= alpha
+                #
+                # elif mode == 'hmc':
+                #     current_U = - \
+                #         self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
+                #         self.bayes_data.loc[i - 1]['llh']
+                #     proposed_U = -prior_logpdf - llh
+                #     current_K = np.sum(current_p**2) / 2
+                #     proposed_K = np.sum(proposal_p**2) / 2
+                #     print(f'current_U: {current_U}')
+                #     print(f'proposed_U: {proposed_U}')
+                #     print(f'current_K: {current_K}')
+                #     print(f'proposed_K: {proposed_K}')
+                #
+                #     alpha = np.exp(current_U-proposed_U+current_K-proposed_K)
+                #     unif_samp = np.random.uniform()
+                #     print(f'alpha: {alpha}')
+                #     print(f'unif_samp: {unif_samp}')
+                #
+                #     accepted = unif_samp < alpha
+                #     print(accepted)
+                #     print('------------------------------------')
 
                 else:
                     raise ValueError(

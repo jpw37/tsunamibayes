@@ -283,6 +283,7 @@ if __name__ == "__main__":
     # parse command line arguments
     args = parser.parse_args()
 
+
     # load defaults and config file
     if args.verbose: print("Reading defaults.cfg")
     config = Config()
