@@ -56,77 +56,17 @@ class BandaScenario(BaseScenario):
             Essentailly the same format as 'sample', we have simply added a multivariate normal
             to produce proposal values for lat, long, mag, etc.
         """
-        proposal = sample.copy()
-        if mode == 'random_walk':
-            proposal += np.random.multivariate_normal(
-                np.zeros(len(self.sample_cols)), cov=self.cov)
+        # Combine samples into a single structure
+        proposal = {
+            'latitude': self.prior.latlon.rvs()[0],
+            'longitude': self.prior.latlon.rvs()[1],	
+            'magnitude': self.prior.mag.rvs(),
+            'delta_logl': self.prior.delta_logl.rvs(),
+            'delta_logw': self.prior.delta_logw.rvs(),
+            'depth_offset': self.prior.depth_offset.rvs()
+        }
 
-            
-#         elif mode == 'mala':
-#             v = np.random.multivariate_normal(
-#                 np.zeros(len(self.sample_cols)), cov=self.cov)
-#             proposal += -delta**2 / 2 * dU(q,
-#                                            self.fault.strike_map,
-#                                            self.fault.dip_map,
-#                                            self.fault.depth_map,
-#                                            self.config,
-#                                            self.fault,
-#                                            self.model_params,
-#                                            self.model_output) + delta * v
-#
-#         elif mode == 'hmc':
-#             model_params = self.map_to_model_params(sample)
-#             q = sample.copy()
-#             p = np.random.multivariate_normal(np.zeros(len(q)), np.eye(len(q)))
-#
-#             current_p = p.copy()
-# #             print('-----------------------------------------------')
-# #             print('COMPUTING dU ONCE')
-#             print()
-#             curr_dU = dU(q,
-#                          self.fault.strike_map,
-#                          self.fault.dip_map,
-#                          self.fault.depth_map,
-#                          self.config,
-#                          self.fault,
-#                          self.model_params,
-#                          self.model_output)
-#
-#             p = p - epsilon *  curr_dU/ 2
-#
-#             for i in range(time_steps):
-# #                 print('-----------------------------------------------')
-# # #                 print('COMPUTING dU IN LOOP')
-#
-#                 q = q + epsilon * p
-# #                 print(q)
-#                 if i != time_steps - 1:
-#                     p = p - epsilon * dU(q,
-#                                          self.fault.strike_map,
-#                                          self.fault.dip_map,
-#                                          self.fault.depth_map,
-#                                          self.config,
-#                                          self.fault,
-#                                          self.model_params,
-#                                          self.model_output)
-#
-#             p = p - epsilon * dU(q,
-#                                  self.fault.strike_map,
-#                                  self.fault.dip_map,
-#                                  self.fault.depth_map,
-#                                  self.config,
-#                                  self.fault,
-#                                  self.model_params,
-#                                  self.model_output)/2
-#             p = -p
-#
-#             return q, current_p, p
-#
-        else:
-            raise ValueError(
-                'Invalid Parameter, use \'random_walk\', \'mala\', or \'hmc\'')
-
-        return proposal
+        return pd.Series(proposal)
 
     def proposal_logpdf(self, u, v):
         """Evaluate the logpdf of the proposal kernel, expressed as the
