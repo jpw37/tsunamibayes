@@ -64,6 +64,7 @@ class BandaScenario(BaseScenario):
             'delta_logl': self.prior.delta_logl.rvs(),
             'delta_logw': self.prior.delta_logw.rvs(),
             'depth_offset': self.prior.depth_offset.rvs()
+            #TODO: Add the sample for the zvals here
         }
 
         return pd.Series(proposal)
