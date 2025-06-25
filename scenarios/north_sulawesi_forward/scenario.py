@@ -5,12 +5,11 @@ from tsunamibayes.utils import calc_length, calc_width, calc_slip
 #from gradient import dU # , gradient_setup
 import time
 from datetime import timedelta
-
-
+import os
 
 class BandaScenario(BaseScenario):
     sample_cols = ['latitude', 'longitude', 'magnitude', 'delta_logl', 'delta_logw',
-                   'depth_offset']
+                   'depth_offset','zvals']
     model_param_cols = ['latitude', 'longitude', 'length', 'width', 'slip', 'strike',
                         'dip', 'depth', 'rake', 'depth_offset']
 
@@ -63,8 +62,8 @@ class BandaScenario(BaseScenario):
             'magnitude': self.prior.mag.rvs(),
             'delta_logl': self.prior.delta_logl.rvs(),
             'delta_logw': self.prior.delta_logw.rvs(),
-            'depth_offset': self.prior.depth_offset.rvs()
-            #TODO: Add the sample for the zvals here
+            'depth_offset': self.prior.depth_offset.rvs(),
+            'zvals': self.prior.zvals.rvs()
         }
 
         return pd.Series(proposal)
@@ -84,6 +83,7 @@ class BandaScenario(BaseScenario):
         """
         return 0
 
+    #TODO: add the zvals and incorporate fakequakes into the model_params
     def map_to_model_params(self, sample):
         """Evaluate the map from sample parameters to forward model parameters.
 
@@ -125,6 +125,10 @@ class BandaScenario(BaseScenario):
         model_params['dip'] = dip
         model_params['depth'] = depth
         model_params['rake'] = rake
+        model_params['zvals'] = sample['zvals']
+        if sample['magnitude'] is not None:
+            model_params['magnitude'] = sample['magnitude']
+
         return model_params
 
     def sample(self, nsamples, mode='random_walk', delta=0.01, time_steps=200, epsilon=.01, output_dir=None, save_freq=1, verbose=False):
@@ -193,6 +197,7 @@ class BandaScenario(BaseScenario):
             if prior_logpdf == np.NINF:
                 # set acceptance probablity to 0
                 alpha = 0
+                accepted = False
 
                 # model_params, model_output and log-likelihood are set to nan values
                 model_params = self.model_params.iloc[0].copy()
@@ -207,7 +212,8 @@ class BandaScenario(BaseScenario):
                 if verbose:
 #                     print('returning dummy for forward model')
                     print("Running forward model...", flush=True)
-                model_output = self.forward_model.run(model_params)
+                #TODO: make sure zvals are included in model_params
+                model_output, _ = self.forward_model.run(model_params)
                 if verbose:
 #                       print('returning dummy for llh')
                     print("Evaluating log-likelihood:")

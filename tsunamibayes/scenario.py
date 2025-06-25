@@ -175,6 +175,7 @@ class BaseScenario:
         print('----------------------------')
         self.model_params.loc[0] = model_params
         #if verbose: print('Returning dummy for forward model')
+        #TODO: Make sure zvals are being passed in correctly
         model_output, arrival_times = self.forward_model.run(model_params,verbose)
         self.model_output.loc[0] = model_output
         self.arrival_times = arrival_times

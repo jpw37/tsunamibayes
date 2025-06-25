@@ -52,7 +52,11 @@ def setup(config):
 
     # depth offset
     depth_offset = stats.norm(scale=config.prior['depth_offset_std']) # in km to avoid numerically singular covariance matrix
-    prior = BandaPrior(latlon,mag,delta_logl,delta_logw,depth_offset)
+
+    #Z-values (stochastic modes of the KL expansion)
+    zvals = stats.multivariate_normal(config.fakequakes['num_modes'] * [0],np.eye(config.fakequakes['num_modes']))
+
+    prior = BandaPrior(latlon,mag,delta_logl,delta_logw,depth_offset,zvals)
 
     # load gauges
     gauges = build_gauges()

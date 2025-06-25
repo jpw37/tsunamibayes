@@ -3,6 +3,7 @@ import glob
 from gauges import build_gauges
 from clawpack.clawutil import data
 from clawpack.geoclaw import fgmax_tools
+import clawpack
 
 try:
     CLAW = os.environ['CLAW']
@@ -314,6 +315,9 @@ def make_setrun(config):
         # location of adjoint solution, must first be created:
         # make symlink for adjoint
         adjointdata.adjoint_outdir = config.geoclaw['adjoint_outdir']
+        #TODO: DELETE print statement
+        print("\n\n\n\nAdjoint output directory:")
+        print(adjointdata.adjoint_outdir,'\n\n\n\n')
 
         # time period of interest:
         adjointdata.t1 = rundata.clawdata.t0
@@ -326,7 +330,6 @@ def make_setrun(config):
             adjointdata.innerprod_index = len(rundata.amrdata.aux_type)
 
         return rundata
-
     return setrun
 
 def write_setrun(config_path=None):

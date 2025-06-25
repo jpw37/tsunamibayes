@@ -9,7 +9,7 @@ from tsunamibayes.utils import calc_length, calc_width, out_of_bounds
 class BandaPrior(BasePrior):
     """The child class of Base Prior that creates a prior distribution,
     specifically for the Banda 1852 event."""
-    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset):
+    def __init__(self,latlon,mag,delta_logl,delta_logw,depth_offset,zvals):
         """Initializes all the necessary variables for the subclass.
         
         Parameters
@@ -27,13 +27,17 @@ class BandaPrior(BasePrior):
             the log of the width, also with fixed parameters. 
         depth_offset : scipy.stats rv_frozen object
             The continous random variable describing the sample's depth offset, 
-            also with fixed parameters. 
+            also with fixed parameters.
+        zvals : scipy.stats rv_frozen object
+            The continous random variable describing the sample's z-values,
+            the stochastic modes of the kl expansion.
         """
         self.latlon = latlon
         self.mag = mag
         self.delta_logl = delta_logl
         self.delta_logw = delta_logw
         self.depth_offset = depth_offset
+        self.zvals = zvals
 
     def logpdf(self,sample):
         """Computes the log of the probability density function. Adds
@@ -58,12 +62,15 @@ class BandaPrior(BasePrior):
         delta_logl = sample["delta_logl"]
         delta_logw = sample["delta_logw"]
         depth_offset = sample["depth_offset"]
+        #TODO: make sure zvals are in sample
+        #zvals = sample["zvals"]
 
         lpdf = self.latlon.logpdf(sample)
         lpdf += self.mag.logpdf(mag)
         lpdf += self.delta_logl.logpdf(delta_logl)
         lpdf += self.delta_logw.logpdf(delta_logw)
         lpdf += self.depth_offset.logpdf(depth_offset)
+        #lpdf += self.zvals.logpdf(zvals)
 
         return lpdf
 
@@ -82,14 +89,17 @@ class BandaPrior(BasePrior):
         delta_logl = self.delta_logl.rvs()
         delta_logw = self.delta_logw.rvs()
         depth_offset = self.depth_offset.rvs()
-        params = np.array(latlon+[mag,delta_logl,delta_logw,depth_offset])
-        #TODO add in zvals and save them
+        #zvals = self.zvals.rvs()
+        params = np.array(latlon+[mag,delta_logl,delta_logw,depth_offset#,zvals
+        ])
         return pd.Series(params,["latitude",
                                  "longitude",
                                  "magnitude",
                                  "delta_logl",
                                  "delta_logw",
-                                 "depth_offset"])
+                                 "depth_offset"
+                                 #"zvals"
+                                 ])
 
 class LatLonPrior(BasePrior):
     def __init__(self,fault,depth_dist):

@@ -249,7 +249,7 @@ class GeoClawForwardModel(BaseForwardModel):
         model_params : dict
             The sample's model parameters. The dictionary whose keys are the okada parameters: 
             'latitude', 'longitude', 'depth_offset', 'strike','length','width','slip','depth',
-            'dip','rake', and whose associated values are floats.
+            'dip','rake','zvals' and whose associated values are floats (excluding zvals, which is an array).
         verbose : bool
             Flag for verbose output, optional. Default is False.
 
@@ -300,7 +300,7 @@ class GeoClawForwardModel(BaseForwardModel):
             self.fakequakes_params['slab_path'],
             self.fakequakes_params['load_distances'],
             self.fakequakes_params['UTM_zone'],
-            self.fakequakes_params['tMw'],
+            [model_params['magnitude'],],
             self.fakequakes_params['hurst'],
             self.fakequakes_params['Ldip'],
             self.fakequakes_params['Lstrike'],
@@ -326,13 +326,35 @@ class GeoClawForwardModel(BaseForwardModel):
             self.fakequakes_params['shear_wave_fraction_shallow'],
             self.fakequakes_params['shear_wave_fraction_deep'],
             self.fakequakes_params['max_slip_rule'],
-            self.fakequakes_params['zvals'],
+            model_params['zvals'],
             self.fakequakes_params['stochastic_rake']
         )
 
-        #TODO: Postprocess the quake to write to the dtopo file
-        ruptfile = "ruptfile.txt"
-        np.savetxt(ruptfile,quake)
+        quake_out = pd.DataFrame(quake, columns=['No', 'lon', 'lat', 'z(km)', 'strike', 'dip', 'rise', 'dura', 'ss-slip(m)', 'ds-slip(m)', 'ss_len(m)', 'ds_len(m)', 'rupt_time(s)', 'rigidity(Pa)', 'velocity(km/s)'])
+        quake_out['No'] = quake_out['No'].astype(int)
+
+        precision_map = {
+            'lon': '{:.6f}',
+            'lat': '{:.6f}',
+            'z(km)': '{:.4f}',
+            'strike': '{:.2f}',
+            'dip': '{:.2f}',
+            'rise': '{:.2f}',
+            'dura': '{:.10e}',
+            'ss-slip(m)': '{:.4e}',
+            'ds-slip(m)': '{:.4e}',
+            'ss_len(m)': '{:.2f}',
+            'ds_len(m)': '{:.2f}',
+            'rupt_time(s)': '{:.4e}',
+            'rigidity(Pa)': '{:.6e}'
+        }
+
+        # Apply precision formatting
+        for col, fmt in precision_map.items():
+            quake_out[col] = quake_out[col].map(lambda x: fmt.format(x))
+
+        ruptfile = self.fakequakes_params['rupt_path']
+        quake_out.to_csv(ruptfile, sep='\t', index=False, header=False)
 
         print(os.getcwd())
         # create and write dtopo file
@@ -405,7 +427,6 @@ class GeoClawForwardModel(BaseForwardModel):
             The loglikelihood of the given sample's model output. A measure of how likely
             that model output is when compared to the actual observation data at each gauge.
         """
-        return -1
         llh = 0
         if verbose: print("Gauge Log\n---------")
         for gauge in self.gauges:

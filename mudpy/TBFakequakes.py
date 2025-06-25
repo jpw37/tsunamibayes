@@ -249,28 +249,26 @@ def run_parallel_generate_ruptures(strike_path, dip_path, fault_path, mod_path, 
             fault_out[:, 14] = 0
             fault_out[ifaults, 14] = length2fault / t_onset
 
-            # Calculate location of moment centroid
-            centroid_lon, centroid_lat, centroid_z = fakequakes.get_centroid(fault_out)
+            #The below functions were not necessary for making the fault_out
 
-            # Calculate average risetime
-            rise = fault_out[:, 7]
-            avg_rise = np.mean(rise)
-
-            # Calculate average rupture velocity
-            lon_array = fault_out[:, 1]
-            lat_array = fault_out[:, 2]
-            vrupt = []
-
-            for i in range(len(fault_array)):
-                if t_onset[i] > 0:
-                    # r = geopy.distance.geodesic((hypocenter[1], hypocenter[0]), (lat_array[i], lon_array[i])).km
-                    # vrupt.append(r/t_onset[i])
-                    vrupt.append(length2fault[i] / t_onset[i])
-
-            avg_vrupt = np.mean(vrupt)
+            # # Calculate location of moment centroid
+            # centroid_lon, centroid_lat, centroid_z = fakequakes.get_centroid(fault_out)
             #
-            # print("THIS IS WHAT WE WANT\n\n\n\n\n")
-            # print(fault_out)
-
-
+            # # Calculate average risetime
+            # rise = fault_out[:, 7]
+            # avg_rise = np.mean(rise)
+            #
+            # # Calculate average rupture velocity
+            # lon_array = fault_out[:, 1]
+            # lat_array = fault_out[:, 2]
+            # vrupt = []
+            #
+            # for i in range(len(fault_array)):
+            #     if t_onset[i] > 0:
+            #         # r = geopy.distance.geodesic((hypocenter[1], hypocenter[0]), (lat_array[i], lon_array[i])).km
+            #         # vrupt.append(r/t_onset[i])
+            #         vrupt.append(length2fault[i] / t_onset[i])
+            #
+            # avg_vrupt = np.mean(vrupt)
+            #
             return fault_out

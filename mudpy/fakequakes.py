@@ -469,7 +469,7 @@ def make_KL_slip(fault,num_modes,eigenvals,V,mean_slip,max_slip,zvals,lognormal=
     while True:
         #Generate random numbers
             #Is there a seed?
-        if zvals == False:
+        if zvals is None:
             if seed != None:
                 random_seed(seed)
             if len(fault)>num_modes:
