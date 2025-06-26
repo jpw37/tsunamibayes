@@ -84,6 +84,9 @@ def make_setrun(config):
         topo_files = glob.glob(topo_dir+"*.tt3")
         for file in topo_files:
             topo_data.topofiles.append([3,1,maxlevel,0.,1.e10, file])
+        asc_topo_files = glob.glob(topo_dir + "*.asc")
+        for file in asc_topo_files:
+            topo_data.topofiles.append([3, 1, maxlevel, 0., 1.e10, file])
 
         dtopo_data = rundata.dtopo_data
         dtopo_data.dtopofiles.append([3,maxlevel,maxlevel,config.geoclaw['dtopo_path']])
@@ -234,7 +237,7 @@ def make_setrun(config):
 
         # Flag using refinement routine flag2refine rather than richardson error
         amrdata.flag_richardson = False    # use Richardson?
-        amrdata.flag2refine = False
+        amrdata.flag2refine = True
         amrdata.flag2refine_tol = 0.5
 
         # steps to take on each level L between regriddings of level L+1:
@@ -310,7 +313,7 @@ def make_setrun(config):
         # Also need to set flagging method and appropriate tolerances above
 
         adjointdata = rundata.adjointdata
-        adjointdata.use_adjoint = True
+        adjointdata.use_adjoint = False
 
         # location of adjoint solution, must first be created:
         # make symlink for adjoint
