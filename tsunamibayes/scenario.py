@@ -139,12 +139,12 @@ class BaseScenario:
         prior_logpdf = self.prior.logpdf(u0)
         if verbose: print(f"Prior logpdf = {prior_logpdf}")
 
-        # raise error if prior density is zero (-infinty logpdf)
-        if prior_logpdf == np.NINF:
-            raise ValueError(
-                "Initial sample must result in a nonzero prior probabiity "
-                "density"
-            )
+        # # raise error if prior density is zero (-infinty logpdf)
+        # if prior_logpdf == np.NINF:
+        #     raise ValueError(
+        #         "Initial sample must result in a nonzero prior probabiity "
+        #         "density"
+        #     )
 
         # evaluate forward model and compute log-likelihood
         #if verbose: print("Running forward model...",flush=True)

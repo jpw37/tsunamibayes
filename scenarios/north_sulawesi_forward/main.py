@@ -29,7 +29,7 @@ def setup(config):
     """
     # Banda Arc fault object
     arrays = np.load(config.fault['grid_data_path'])
-    fault = tb.GridFault(bounds=config.model_bounds,**arrays)
+    fault = tb.GridFault(bounds=config.fault_bounds,**arrays)
 
     # Priors
     # latitude/longitude
@@ -39,7 +39,13 @@ def setup(config):
     maxdepth = config.prior['maxdepth']
     a,b = (mindepth - depth_mu) / depth_std, (maxdepth - depth_mu) / depth_std
     depth_dist = stats.truncnorm(a,b,loc=depth_mu,scale=depth_std)
-    latlon = LatLonPrior(fault,depth_dist)
+
+    lat_trunc = config.prior['lat_trunc']
+    lon_trunc = config.prior['lon_trunc']
+    lat_loc = config.prior['lat_loc']
+    lon_loc = config.prior['lon_loc']
+
+    latlon = LatLonPrior(fault,depth_dist,lat_trunc,lon_trunc,lat_loc,lon_loc)
 
     # magnitude
     mag = stats.truncexpon(b=config.prior['mag_b'],loc=config.prior['mag_loc'])

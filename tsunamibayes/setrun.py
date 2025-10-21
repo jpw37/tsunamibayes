@@ -72,8 +72,7 @@ def make_setrun(config):
         refinement_data = rundata.refinement_data
         refinement_data.variable_dt_refinement_ratios = True
         refinement_data.wave_tolerance = 5.e-1
-        refinement_data.deep_depth = 1e2
-        refinement_data.max_level_deep = 3
+
 
         # index of max AMR level
         maxlevel = len(config.geoclaw["refinement_ratios"])+1
@@ -90,7 +89,7 @@ def make_setrun(config):
 
         dtopo_data = rundata.dtopo_data
         dtopo_data.dtopofiles.append([3,maxlevel,maxlevel,config.geoclaw['dtopo_path']])
-        dtopo_data.dt_max_dtopo = 0.2
+        # dtopo_data.dt_max_dtopo = 0.2
 
         #------------------------------------------------------------------
         # Standard Clawpack parameters to be written to claw.data:
@@ -126,7 +125,7 @@ def make_setrun(config):
 
         clawdata.output_style = 1
         # Output nout frames at equally spaced times up to tfinal:
-        clawdata.num_output_times = 1
+        clawdata.num_output_times = 18
         clawdata.tfinal = config.geoclaw['run_time']
         clawdata.output_t0 = True  # output at initial (or restart) time?
 
@@ -238,7 +237,7 @@ def make_setrun(config):
         # Flag using refinement routine flag2refine rather than richardson error
         amrdata.flag_richardson = False    # use Richardson?
         amrdata.flag2refine = True
-        amrdata.flag2refine_tol = 0.5
+        amrdata.flag2refine_tol = 0.2
 
         # steps to take on each level L between regriddings of level L+1:
         amrdata.regrid_interval = 3
@@ -287,6 +286,7 @@ def make_setrun(config):
         
         rundata.gaugedata.gauges = []
         fg.point_style = 0
+        fg.dx = 15/3600
         fg.min_level_check = amrdata.amr_levels_max
         fg.tstart_max = config.fgmax['tstart_max']
         fg.tend_max = config.fgmax['tend_max']
@@ -299,8 +299,6 @@ def make_setrun(config):
                 ys.append(gauge.lat)
                 rundata.gaugedata.gauges.append([i, gauge.lon, gauge.lat, 0, 1e10])
 
-        print(f'xs: {xs}')
-        print(f'ys: {ys}')
         fg.X = xs
         fg.Y = ys
         fg.npts = len(xs)
@@ -318,9 +316,6 @@ def make_setrun(config):
         # location of adjoint solution, must first be created:
         # make symlink for adjoint
         adjointdata.adjoint_outdir = config.geoclaw['adjoint_outdir']
-        #TODO: DELETE print statement
-        print("\n\n\n\nAdjoint output directory:")
-        print(adjointdata.adjoint_outdir,'\n\n\n\n')
 
         # time period of interest:
         adjointdata.t1 = rundata.clawdata.t0

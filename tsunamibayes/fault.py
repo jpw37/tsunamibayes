@@ -612,6 +612,9 @@ class GridFault(BaseFault):
             is passed in for lat and lon.
         """
         arr = self.strike_interp(np.array([lat,lon]).T)
+        if np.any(np.isnan(arr)):
+            print("Warning: strike_map returning NaN value(s) for "
+                  "lat,lon = ({},{})".format(lat,lon))
         if isinstance(lat,float) or isinstance(lat,int):
             return arr[0]
         else:

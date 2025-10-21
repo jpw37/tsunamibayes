@@ -58,11 +58,11 @@ class BandaScenario(BaseScenario):
         # Combine samples into a single structure
         proposal = {
             'latitude': self.prior.latlon.rvs()[0],
-            'longitude': self.prior.latlon.rvs()[1],	
-            'magnitude': self.prior.mag.rvs(),
-            'delta_logl': self.prior.delta_logl.rvs(),
-            'delta_logw': self.prior.delta_logw.rvs(),
-            'depth_offset': self.prior.depth_offset.rvs(),
+            'longitude': self.prior.latlon.rvs()[1],
+            'magnitude': 8.5,
+            'delta_logl': 0,
+            'delta_logw': 0,
+            'depth_offset': 0,
             'zvals': self.prior.zvals.rvs()
         }
 
@@ -187,130 +187,136 @@ class BandaScenario(BaseScenario):
                 print("Proposal:")
                 print(proposal)
 
-            # evaluate prior logpdf
-            prior_logpdf = self.prior.logpdf(proposal)
+            # evaluate prior logpdf (not necessary for push forward)
+            # prior_logpdf = self.prior.logpdf(proposal)
+            # if verbose:
+            #     print("Prior logpdf = {:.3E}".format(prior_logpdf))
 
-            if verbose:
-                print("Prior logpdf = {:.3E}".format(prior_logpdf))
-
-            # if prior logpdf is -infinity, reject proposal and bypass forward model
-            if prior_logpdf == np.NINF:
-                # set acceptance probablity to 0
-                alpha = 0
-                accepted = False
-
-                # model_params, model_output and log-likelihood are set to nan values
-                model_params = self.model_params.iloc[0].copy()
-                model_params[...] = np.nan
-                model_output = self.model_output.iloc[0].copy()
-                model_output[...] = np.nan
-                llh = np.nan
+            # if prior logpdf is -infinity, reject proposal and bypass forward model (not necessary for push forward)
+            # if prior_logpdf == np.NINF:
+            #     # set acceptance probablity to 0
+            #     alpha = 0
+            #     accepted = False
+            #
+            #     # model_params, model_output and log-likelihood are set to nan values
+            #     model_params = self.model_params.iloc[0].copy()
+            #     model_params[...] = np.nan
+            #     model_output = self.model_output.iloc[0].copy()
+            #     model_output[...] = np.nan
+            #     llh = np.nan
 
             # otherwise run the forward model, calculate the log-likelihood, and calculate
             # the Metropolis-Hastings acceptance probability
-            else:
-                if verbose:
-#                     print('returning dummy for forward model')
-                    print("Running forward model...", flush=True)
-                #TODO: make sure zvals are included in model_params
-                model_output, _ = self.forward_model.run(model_params)
-                if verbose:
-#                       print('returning dummy for llh')
-                    print("Evaluating log-likelihood:")
-#                 print(model_output)
-                llh = self.forward_model.llh(model_output, verbose)
-                if verbose:
-                    print("Total llh = {:.3E}".format(llh))
-
-                # acceptance probability
-                if mode == 'random_walk':
-                    # catch if both loglikelihoods are -inf
-                    if self.bayes_data.loc[i - 1, 'llh'] == np.NINF and llh == np.NINF:
-                        alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i - 1], proposal) - \
-                            self.bayes_data.loc[i - 1, 'prior_logpdf'] - \
-                            self.proposal_logpdf(proposal, self.samples.loc[i - 1])
-                    else:
-                        alpha = prior_logpdf + llh + \
-                            self.proposal_logpdf(self.samples.loc[i - 1], proposal) - \
-                            self.bayes_data.loc[i - 1, 'prior_logpdf'] - \
-                            self.bayes_data.loc[i - 1, 'llh'] - \
-                            self.proposal_logpdf(proposal, self.samples.loc[i - 1])
-                    alpha = np.exp(alpha)
-                    accepted = (np.random.rand() < alpha)
-
-                # elif mode == 'mala':
-                #     # TODO: should it be +logprior +llh or -logprior -llh???
-                #     U_0 = - \
-                #         self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
-                #         self.bayes_data.loc[i - 1]['llh']
-                #     U_1 = -prior_logpdf - llh
-                #     x1, x0 = proposal, self.samples.loc[i - 1]
-                #     alpha = -U_1 - 1 / (2 * delta**2) * np.linalg.norm(x0 - x1 + delta**2 / 2 * dU(x1))**2 +\
-                #         U_0 + 1 / (2 * delta**2) * np.linalg.norm(x1 -
-                #                                                   x0 + delta**2 / 2 * dU(x0))**2
-                #     alpha = min(1, alpha)
-                #     accepted = np.log(np.random.uniform()) <= alpha
-                #
-                # elif mode == 'hmc':
-                #     current_U = - \
-                #         self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
-                #         self.bayes_data.loc[i - 1]['llh']
-                #     proposed_U = -prior_logpdf - llh
-                #     current_K = np.sum(current_p**2) / 2
-                #     proposed_K = np.sum(proposal_p**2) / 2
-                #     print(f'current_U: {current_U}')
-                #     print(f'proposed_U: {proposed_U}')
-                #     print(f'current_K: {current_K}')
-                #     print(f'proposed_K: {proposed_K}')
-                #
-                #     alpha = np.exp(current_U-proposed_U+current_K-proposed_K)
-                #     unif_samp = np.random.uniform()
-                #     print(f'alpha: {alpha}')
-                #     print(f'unif_samp: {unif_samp}')
-                #
-                #     accepted = unif_samp < alpha
-                #     print(accepted)
-                #     print('------------------------------------')
-
-                else:
-                    raise ValueError(
-                        'Invalid Mode, try random_walk or mala instead')
+            #else:
 
             if verbose:
-                print("alpha = {:.3E}".format(alpha))
+#                     print('returning dummy for forward model')
+                print("Running forward model...", flush=True)
+            #TODO: make sure zvals are included in model_params
+            model_output, _ = self.forward_model.run(model_params)
 
-            # prior, likelihood, and posterior logpdf values
-            bayes_data = pd.Series(
-                [prior_logpdf, llh, prior_logpdf + llh], index=self.bayes_data_cols)
+            #not necessary for push forward
+#             if verbose:
+# #                       print('returning dummy for llh')
+#                 print("Evaluating log-likelihood:")
+# #                 print(model_output)
+#             llh = self.forward_model.llh(model_output, verbose)
+#             if verbose:
+#                 print("Total llh = {:.3E}".format(llh))
+#
+#             # acceptance probability
+#             if mode == 'random_walk':
+#                 # catch if both loglikelihoods are -inf
+#                 if self.bayes_data.loc[i - 1, 'llh'] == np.NINF and llh == np.NINF:
+#                     alpha = prior_logpdf + self.proposal_logpdf(self.samples.loc[i - 1], proposal) - \
+#                         self.bayes_data.loc[i - 1, 'prior_logpdf'] - \
+#                         self.proposal_logpdf(proposal, self.samples.loc[i - 1])
+#                 else:
+#                     alpha = prior_logpdf + llh + \
+#                         self.proposal_logpdf(self.samples.loc[i - 1], proposal) - \
+#                         self.bayes_data.loc[i - 1, 'prior_logpdf'] - \
+#                         self.bayes_data.loc[i - 1, 'llh'] - \
+#                         self.proposal_logpdf(proposal, self.samples.loc[i - 1])
+#                 alpha = np.exp(alpha)
+#                 accepted = (np.random.rand() < alpha)
+#
+#             # elif mode == 'mala':
+#             #     # TODO: should it be +logprior +llh or -logprior -llh???
+#             #     U_0 = - \
+#             #         self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
+#             #         self.bayes_data.loc[i - 1]['llh']
+#             #     U_1 = -prior_logpdf - llh
+#             #     x1, x0 = proposal, self.samples.loc[i - 1]
+#             #     alpha = -U_1 - 1 / (2 * delta**2) * np.linalg.norm(x0 - x1 + delta**2 / 2 * dU(x1))**2 +\
+#             #         U_0 + 1 / (2 * delta**2) * np.linalg.norm(x1 -
+#             #                                                   x0 + delta**2 / 2 * dU(x0))**2
+#             #     alpha = min(1, alpha)
+#             #     accepted = np.log(np.random.uniform()) <= alpha
+#             #
+#             # elif mode == 'hmc':
+#             #     current_U = - \
+#             #         self.bayes_data.loc[i - 1]['posterior_logpdf'] - \
+#             #         self.bayes_data.loc[i - 1]['llh']
+#             #     proposed_U = -prior_logpdf - llh
+#             #     current_K = np.sum(current_p**2) / 2
+#             #     proposed_K = np.sum(proposal_p**2) / 2
+#             #     print(f'current_U: {current_U}')
+#             #     print(f'proposed_U: {proposed_U}')
+#             #     print(f'current_K: {current_K}')
+#             #     print(f'proposed_K: {proposed_K}')
+#             #
+#             #     alpha = np.exp(current_U-proposed_U+current_K-proposed_K)
+#             #     unif_samp = np.random.uniform()
+#             #     print(f'alpha: {alpha}')
+#             #     print(f'unif_samp: {unif_samp}')
+#             #
+#             #     accepted = unif_samp < alpha
+#             #     print(accepted)
+#             #     print('------------------------------------')
+#
+#             else:
+#                 raise ValueError(
+#                     'Invalid Mode, try random_walk or mala instead')
+#
+#             if verbose:
+#                 print("alpha = {:.3E}".format(alpha))
+#
+#             # prior, likelihood, and posterior logpdf values
+#             bayes_data = pd.Series(
+#                 [prior_logpdf, llh, prior_logpdf + llh], index=self.bayes_data_cols)
 
             # accept/reject
+            accepted = True
             if accepted:
                 if verbose:
                     print("Proposal accepted", flush=True)
                 self.samples.loc[i] = proposal
                 self.model_params.loc[i] = model_params
                 self.model_output.loc[i] = model_output
-                self.bayes_data.loc[i] = bayes_data
-            else:
-                if verbose:
-                    print("Proposal rejected", flush=True)
-                self.samples.loc[i] = self.samples.loc[i - 1]
-                self.model_params.loc[i] = self.model_params.loc[i - 1]
-                self.model_output.loc[i] = self.model_output.loc[i - 1]
-                self.bayes_data.loc[i] = self.bayes_data.loc[i - 1]
+                #self.bayes_data.loc[i] = bayes_data
 
+            # not necessary for push forward
+            # else:
+            #     if verbose:
+            #         print("Proposal rejected", flush=True)
+            #     self.samples.loc[i] = self.samples.loc[i - 1]
+            #     self.model_params.loc[i] = self.model_params.loc[i - 1]
+            #     self.model_output.loc[i] = self.model_output.loc[i - 1]
+            #     self.bayes_data.loc[i] = self.bayes_data.loc[i - 1]
+
+            # Not necessary for push forward
             # generate data for debug dataframe
-            metro_hastings_data = pd.Series({'alpha': alpha, 'accepted': int(accepted),
-                                             'acceptance_rate': np.nan})
-            self.debug.loc[i - 1] = self.gen_debug_row(self.samples.loc[i - 1],
-                                                       proposal,
-                                                       self.model_params.loc[i - 1],
-                                                       model_params,
-                                                       self.bayes_data.loc[i - 1],
-                                                       bayes_data,
-                                                       metro_hastings_data)
-            self.debug.loc[i - 1,
-                           'acceptance_rate'] = self.debug["accepted"].mean()
+            # metro_hastings_data = pd.Series({'alpha': alpha, 'accepted': int(accepted),
+            #                                  'acceptance_rate': np.nan})
+            # self.debug.loc[i - 1] = self.gen_debug_row(self.samples.loc[i - 1],
+            #                                            proposal,
+            #                                            self.model_params.loc[i - 1],
+            #                                            model_params,
+            #                                            self.bayes_data.loc[i - 1],
+            #                                            bayes_data,
+            #                                            metro_hastings_data)
+            # self.debug.loc[i - 1,
+            #                'acceptance_rate'] = self.debug["accepted"].mean()
 
             if not j % save_freq and (output_dir is not None):
                 if verbose:

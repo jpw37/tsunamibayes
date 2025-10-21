@@ -59,8 +59,8 @@ def build_gauges():
     dists = dict()
     dists['height'] = stats.norm(loc=1.8, scale=0.4)
     gauge = Gauge(name, dists)
-    gauge.lat = 4.2606734 #[4.2606734, 4.2309717, 4.2315381]
-    gauge.lon = 117.9005218 #[117.9005218, 117.8794758, 117.9244083]
+    gauge.lat = 4.2315381 #[4.2606734, 4.2309717, 4.2315381]
+    gauge.lon = 117.9244083 #[117.9005218, 117.8794758, 117.9244083]
     gauge.loc = 1.8
     gauge.scale = 0.4
     gauges.append(gauge)
@@ -153,7 +153,7 @@ def build_gauges():
     gauge.scale = 0.4
     gauges.append(gauge)
 
-    # Genlum
+    # Genluma
     name = 'Genluma'
     dists = dict()
     dists['height'] = stats.norm(loc=1.8, scale=0.4)

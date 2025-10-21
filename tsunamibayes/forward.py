@@ -1,9 +1,10 @@
 import os
 import numpy as np
 import pandas as pd
-from obspy import UTCDateTime
 
-from .fault import BaseFault
+# from obspy import UTCDateTime
+# from .fault import BaseFault
+
 from .maketopo import write_dtopo
 from . import models
 from mudpy import fakequakes, TBFakequakes
@@ -264,6 +265,11 @@ class GeoClawForwardModel(BaseForwardModel):
         print(model_params)
         print(type(model_params))
 
+        # clear the topo file to ensure the correct one is used.
+        ruptfile = self.fakequakes_params['rupt_path']
+        print('clearing dtopo file')
+        os.system('rm ' + str(self.dtopo_path))
+
         ###Pull from scenario and utils to calculate the info you need for this.
 
         #TODO add n and m for the number of subfaults as a parameter
@@ -282,7 +288,7 @@ class GeoClawForwardModel(BaseForwardModel):
         fault_writer = subfault_params.copy()
         fault_writer['type'] = 0.5
         fault_writer['risetime'] = 0.5
-        fault_writer['depth'] = fault_writer['depth'] / 100
+        fault_writer['depth'] = fault_writer['depth'] / 1000
         header = ['longitude', 'latitude', 'depth', 'strike', 'dip', 'type', 'risetime', 'length', 'width']
         fault_writer.to_string(self.fakequakes_params['fault_path'], columns=header,header=False)
 
@@ -291,6 +297,7 @@ class GeoClawForwardModel(BaseForwardModel):
 
         # First build the nd and npz files
         fakequakes.build_TauPyModel(self.fakequakes_params['prem_path'],self.fakequakes_params['nd_out_path'],self.fakequakes_params['fq_files_dir'],self.fakequakes_params['mod_path'], background_model='PREM')
+
 
         quake = TBFakequakes.run_parallel_generate_ruptures(
             self.fakequakes_params['strike_path'],

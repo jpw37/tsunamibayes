@@ -238,16 +238,17 @@ def run_parallel_generate_ruptures(strike_path, dip_path, fault_path, mod_path, 
             else:  # regular EQs, do nothing
                 pass
 
-            t_onset, length2fault = fakequakes.get_rupture_onset(slip, fault_array, mod_path,
-                                                                 hypocenter, rise_time_depths,
-                                                                 M0, velmod,
-                                                                 shear_wave_fraction_shallow=shear_wave_fraction_shallow,
-                                                                 shear_wave_fraction_deep=shear_wave_fraction_deep)
+            # t_onset, length2fault = fakequakes.get_rupture_onset(slip, fault_array, mod_path,
+            #                                                      hypocenter, rise_time_depths,
+            #                                                      M0, velmod,
+            #                                                      shear_wave_fraction_shallow=shear_wave_fraction_shallow,
+            #                                                      shear_wave_fraction_deep=shear_wave_fraction_deep)
+            #SET THE RUPTURE TIMES TO ZERO
             fault_out[:, 12] = 0
-            fault_out[ifaults, 12] = t_onset
+            fault_out[ifaults, 12] = 0
 
             fault_out[:, 14] = 0
-            fault_out[ifaults, 14] = length2fault / t_onset
+            fault_out[ifaults, 14] = 0
 
             #The below functions were not necessary for making the fault_out
 

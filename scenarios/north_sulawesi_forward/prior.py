@@ -1,3 +1,4 @@
+from scipy import stats
 import sys
 # sys.path.insert(0,'/Users/nephi/tsunamibayes')
 # sys.path.insert(0,'/opt/anaconda3/lib/python3.11/site-packages')
@@ -102,7 +103,7 @@ class BandaPrior(BasePrior):
                                  ])
 
 class LatLonPrior(BasePrior):
-    def __init__(self,fault,depth_dist):
+    def __init__(self,fault,depth_dist,lat_trunc=None,lon_trunc=None,lat_loc=None,lon_loc=None):
         """Initializes all the necessary variables for the subclass.
 
         Parameters
@@ -115,6 +116,11 @@ class LatLonPrior(BasePrior):
         """
         self.fault = fault 
         self.depth_dist = depth_dist
+
+        self.lat_trunc = lat_trunc
+        self.lon_trunc = lon_trunc
+        self.lat_loc = lat_loc
+        self.lon_loc = lon_loc
 
     def logpdf(self,sample):
         """Checks to insure that the sample's subfaults are not out of bounds,
@@ -196,7 +202,19 @@ class LatLonPrior(BasePrior):
         lat, lon : (list) of floats
             The random variates for latitude and longitude within the fault's bounds.
         """
+
+        if self.lat_trunc is not None and self.lon_trunc is not None:
+            lat_a = (self.lat_trunc[0] - self.lat_loc)/0.1
+            lat_b = (self.lat_trunc[1] - self.lat_loc)/0.1
+            lon_a = (self.lon_trunc[0] - self.lon_loc)/0.1
+            lon_b = (self.lon_trunc[1] - self.lon_loc)/0.1
+            lat_dist = stats.truncnorm(lat_a,lat_b,loc=self.lat_loc,scale=0.1)
+            lon_dist = stats.truncnorm(lon_a,lon_b,loc=self.lon_loc,scale=0.1)
+            return [lat_dist.rvs(),lon_dist.rvs()]
+
+
         d = self.depth_dist.rvs()
         I,J = np.nonzero((d - 500 < self.fault.depth)&(self.fault.depth < d + 500))
         idx = np.random.randint(len(I))
         return [self.fault.lat[I[idx]],self.fault.lon[J[idx]]]
+
