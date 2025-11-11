@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 def convert_lat_lon(lat, lon):
-    """Converts latitude and longitude from strings to decimals.
+    """Converts latitude and longitude from strings to floats.
     Proper string form: '8-17-43.21S', '118-43-42.00E' etc.
     """
     latitude = sum(float(x) / 60 ** n for n, x in enumerate(lat[:-1].split('-')))  * (1 if 'N' == lat[-1] else -1)
@@ -13,52 +13,59 @@ def load_data():
     #pass in data as arrays
 
     #small referes to 5.0-5.9 magnitude
-    flores_small = pd.read_excel('./1820_fault_data/flores_trench5.0-5.9_filtered.xlsx')
-    flores_lat_small = pd.DataFrame(flores_small, columns = ['lat(deg S)']).to_numpy().flatten()
-    flores_long_small = pd.DataFrame(flores_small, columns = ['log (deg E)']).to_numpy().flatten()
-    flores_mag_small = pd.DataFrame(flores_small, columns = ['Magnitude']).to_numpy().flatten()
-    flores_depth_small = pd.DataFrame(flores_small, columns = ['Depth km']).to_numpy().flatten()
-    flores_plate_boundary_small = pd.DataFrame(flores_small, columns = ['Distance from plate boundary km (estimated)']).to_numpy().flatten()
-    flores_dist_ratio_small = pd.DataFrame(flores_small, columns = ['Calculated distance ratio (depth/TAN(Dip))']).to_numpy().flatten()
-    flores_strike_small = pd.DataFrame(flores_small, columns = ['Stike']).to_numpy().flatten()
-    flores_dip_small = pd.DataFrame(flores_small, columns = ['Dip']).to_numpy().flatten()
-    flores_rake_small = pd.DataFrame(flores_small, columns = ['Rake']).to_numpy().flatten()
+    small = pd.read_excel('Sumatra version 3.xlsx')
+    lat_small = pd.DataFrame(small, columns = ['Lat N']).to_numpy().flatten()
+    long_small = pd.DataFrame(small, columns = ['Long E']).to_numpy().flatten()
+    mag_small = pd.DataFrame(small, columns = ['Magnitude']).to_numpy().flatten()
+    depth_small = pd.DataFrame(small, columns = ['Depth km']).to_numpy().flatten()
+    plate_boundary_small = pd.DataFrame(small, columns = ['Distance from plate boundary km (estimated)']).to_numpy().flatten()
+    dist_ratio_small = pd.DataFrame(small, columns = ['Calculated distance ratio (depth/TAN(Dip))']).to_numpy().flatten()
+    strike_small = pd.DataFrame(small, columns = ['Stike']).to_numpy().flatten()
+    dip_small = pd.DataFrame(small, columns = ['Dip']).to_numpy().flatten()
+    rake_small = pd.DataFrame(small, columns = ['Rake']).to_numpy().flatten()
 
     #large refers to 6.0-7.2 magnitude
-    flores_large = pd.read_excel('./1820_fault_data/flores-trench6-7.2_filtered.xlsx')
-    flores_lat_large = pd.DataFrame(flores_large, columns = ['Lat (S & degree):']).to_numpy().flatten()
-    flores_long_large = pd.DataFrame(flores_large, columns = ['Long (E & degree):']).to_numpy().flatten()
-    flores_mag_large = pd.DataFrame(flores_large, columns = ['Magnitude']).to_numpy().flatten()
-    flores_depth_large = pd.DataFrame(flores_large, columns = ['Depth km']).to_numpy().flatten()
-    flores_plate_boundary_large = pd.DataFrame(flores_large, columns = ['Distance from plate boundary km (estimated)']).to_numpy().flatten()
-    flores_dist_ratio_large = pd.DataFrame(flores_large, columns = ['Calculated distance ratio (depth/TAN(Dip))']).to_numpy().flatten()
-    flores_strike_large = pd.DataFrame(flores_large, columns = ['Stike']).to_numpy().flatten()
-    flores_dip_large = pd.DataFrame(flores_large, columns = ['Dip']).to_numpy().flatten()
-    flores_rake_large = pd.DataFrame(flores_large, columns = ['Rake']).to_numpy().flatten()
+    large = pd.read_excel('Sumatra version 3.xlsx')
+    lat_large = pd.DataFrame(large, columns = ['Lat N']).to_numpy().flatten()
+    long_large = pd.DataFrame(large, columns = ['Long E']).to_numpy().flatten()
+    mag_large = pd.DataFrame(large, columns = ['Magnitude']).to_numpy().flatten()
+    depth_large = pd.DataFrame(large, columns = ['Depth km']).to_numpy().flatten()
+    plate_boundary_large = pd.DataFrame(large, columns = ['Distance from plate boundary km (estimated)']).to_numpy().flatten()
+    dist_ratio_large = pd.DataFrame(large, columns = ['Calculated distance ratio (depth/TAN(Dip))']).to_numpy().flatten()
+    strike_large = pd.DataFrame(large, columns = ['Stike']).to_numpy().flatten()
+    dip_large = pd.DataFrame(large, columns = ['Dip']).to_numpy().flatten()
+    rake_large = pd.DataFrame(large, columns = ['Rake']).to_numpy().flatten()
 
 
-    dataflores_large = [] #a list will be returned of lat and long
-    for i in range(len(flores_lat_large)):
-        dataflores_large.append(convert_lat_lon(flores_lat_large[i], flores_long_large[i]))
+    datalarge = [] #a list will be returned of lat and long
+    for i in range(len(lat_large)):
+        if isinstance(lat_large[i], float) and isinstance(long_large[i], float):
+            datalarge.append((lat_large[i], long_large[i]))            
+        else:
+            datalarge.append(convert_lat_lon(lat_large[i], long_large[i]))
 
-    dataflores_small = [] #a list will be returned of lat and long
-    for i in range(len(flores_lat_small)):
-        dataflores_small.append(convert_lat_lon(flores_lat_small[i], flores_long_small[i]))
 
-    a_dataflores_large = np.array(dataflores_large) #convert list to array
-    a_dataflores_lat_large = a_dataflores_large[:,0]
-    a_dataflores_long_large = a_dataflores_large[:,1]
+    datasmall = [] #a list will be returned of lat and long
+    for i in range(len(lat_small)):
+        if isinstance(lat_small[i], float) and isinstance(long_small[i], float):
+            datasmall.append((lat_small[i], long_small[i]))            
+        else:
+            datasmall.append(convert_lat_lon(lat_small[i], long_small[i]))
 
-    a_dataflores_small = np.array(dataflores_small) #convert list to array
-    a_dataflores_lat_small = a_dataflores_small[:,0]
-    a_dataflores_long_small = a_dataflores_small[:,1]
+    a_datalarge = np.array(datalarge) #convert list to array
+    a_data_lat_large = a_datalarge[:,0]
+    a_data_long_large = a_datalarge[:,1]
+
+    a_datasmall = np.array(datasmall) #convert list to array
+    a_datalat_small = a_datasmall[:,0]
+    a_datalong_small = a_datasmall[:,1]
     
-    lats = np.append(a_dataflores_lat_large, a_dataflores_lat_small)
-    lons = np.append(a_dataflores_long_large, a_dataflores_long_small)
-    depths = np.append(flores_depth_large, flores_depth_small)
-    dips = np.append(flores_dip_large, flores_dip_small)
-    strikes = np.append(flores_strike_large, flores_strike_small)
-    rakes = np.append(flores_rake_large, flores_rake_small)
+    lats = np.append(a_data_lat_large, a_datalat_small)
+    lons = np.append(a_data_long_large, a_datalong_small)
+    depths = np.append(depth_large, depth_small)
+    dips = np.append(dip_large, dip_small)
+    strikes = np.append(strike_large, strike_small)
+    rakes = np.append(rake_large, rake_small)
     
     to_keep = depths < 35 # Only keep the data points where the depth is less than 35 km. We don't trust any other points.
     
