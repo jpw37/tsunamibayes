@@ -182,6 +182,23 @@ class GeoClawForwardModel(BaseForwardModel):
             strike_offset=model_params['strike_offset'],
             rake=model_params['rake']
         )
+
+        mystery_subfault_params = self.fault[2].subfault_split_RefCurve(
+            lat=model_params['mystery_latitude'],
+            lon=model_params['mystery_longitude'],
+            length=model_params['mystery_length'],
+            width=model_params['mystery_width'],
+            slip=model_params['mystery_slip'],
+            depth_offset=model_params['mystery_depth_offset'],
+            dip_offset=model_params['mystery_dip_offset'],
+            rake_offset=model_params['mystery_rake_offset'],
+            strike_offset=model_params['mystery_strike_offset'],
+            rake=model_params['mystery_rake']
+        )
+
+        subfault_params = flores_subfault_params.append(walanae_subfault_params)
+        subfault_params = flores_subfault_params.append(mystery_subfault_params)
+
         ########################################################################
 
         ########################################################################
@@ -202,20 +219,20 @@ class GeoClawForwardModel(BaseForwardModel):
         # load fgmax and bathymetry data
         fgmax_data = np.loadtxt(self.valuemax_path)
         bath_data  = np.loadtxt(self.aux1_path)
-        print('********')
-        print('GeoClawForwardModel.run() data:')
-        with open(self.valuemax_path, 'r') as vm_file:
-            print(self.valuemax_path,':')
-            print(vm_file.read())
-        with open(self.aux1_path, 'r') as aux1_file:
-            print(self.aux1_path,':')
-            print(aux1_file.read())
-        print('PRINTING fgmax_data')
-        print(fgmax_data)
-        print("PRINTING bath_data")
-        print(bath_data)
-        print("Done printing GeoClawForwardModel.run() data.")
-        print("********")
+        #print('********')
+        #print('GeoClawForwardModel.run() data:')
+        #with open(self.valuemax_path, 'r') as vm_file:
+        #    print(self.valuemax_path,':')
+        #    print(vm_file.read())
+        #with open(self.aux1_path, 'r') as aux1_file:
+        #    print(self.aux1_path,':')
+        #    print(aux1_file.read())
+        #print('PRINTING fgmax_data')
+        #print(fgmax_data)
+        #print("PRINTING bath_data")
+        #print(bath_data)
+        #print("Done printing GeoClawForwardModel.run() data.")
+        #print("********")
 
         # this is the arrival time of the first wave, not the maximum wave
         # converting from seconds to minutes

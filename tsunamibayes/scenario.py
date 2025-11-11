@@ -4,6 +4,14 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
+
+# This may be needed (?) to import the write_setrun function
+import sys
+sys.path.insert(0, '/../scenarios/test')
+from tsunamibayes.setrun import write_setrun
+
+
+
 class BaseScenario:
     """Base class for running a tsunamibayes scenario. Contains the essential
     core routines for running the Metropolis-Hastings algorithm, as well as
@@ -18,7 +26,7 @@ class BaseScenario:
     sample_cols = None
     model_param_cols = None
 
-    def __init__(self,prior,forward_model):
+    def __init__(self,prior,forward_model,save_all_data=False):
         """Initializes variables for the base class.
 
         Parameters
@@ -55,6 +63,17 @@ class BaseScenario:
             + proposal_bayes_cols
             + ["alpha","accepted","acceptance_rate"]
         )
+
+        # construct all_data columns
+        self.all_data_cols = (
+            self.model_param_cols
+            + self.model_output_cols
+            + self.bayes_data_cols   # this contains prior_logpdf, llh, posterior_logpdf
+            + ["alpha", "refinement_ratios"]
+        )
+        
+        self.save_all_data = save_all_data
+        
 
     def init_chain(self,u0=None,method=None,verbose=False,**kwargs):
         """Initialize a sampling chain with a given initial sample or a string
@@ -128,6 +147,9 @@ class BaseScenario:
         self.bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
         self.debug = pd.DataFrame(columns=self.debug_cols)
 
+        if self.save_all_data:
+            self.all_data = pd.DataFrame(columns=self.all_data_cols)
+
         # save first sample
         self.samples.loc[0] = u0
 
@@ -142,7 +164,7 @@ class BaseScenario:
         # raise error if prior density is zero (-infinty logpdf)
         if prior_logpdf == np.NINF:
             raise ValueError(
-                "Initial sample must result in a nonzero prior probabiity "
+                "Initial sample must result in a nonzero prior probability "
                 "density"
             )
 
@@ -164,6 +186,28 @@ class BaseScenario:
             index=self.bayes_data_cols
         )
         self.bayes_data.loc[0] = bayes_data
+
+        if self.save_all_data:
+            temp_model_params = pd.DataFrame(columns=self.model_param_cols)
+            temp_model_params.loc[0] = model_params.copy()
+            temp_model_output = pd.DataFrame(columns=self.model_output_cols)
+            temp_model_output.loc[0] = model_output
+            temp_bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
+            temp_bayes_data.loc[0] = bayes_data
+            temp_alpha_ref = pd.DataFrame(columns=["alpha","refinement_ratios"])
+            temp_alpha_ref.loc[0] = [None, None]
+            temp_model_params['tmp'] = 1
+            temp_model_output['tmp'] = 1
+            temp_bayes_data['tmp'] = 1
+            temp_alpha_ref['tmp'] = 1
+            temp_all_df = temp_model_params.merge(temp_model_output, on=['tmp'])\
+                          .merge(temp_bayes_data, on=['tmp'])\
+                          .merge(temp_alpha_ref, on=['tmp'])
+            temp_all_df = temp_all_df.drop('tmp', axis=1)
+
+            self.all_data.loc[0] = temp_all_df.loc[0]
+
+        
 
     def resume_chain(self,output_dir):
         """Reads DataFrames from the .csv files housing the samples, model
@@ -197,6 +241,13 @@ class BaseScenario:
             index_col=0
         ).reset_index(drop=True)
 
+        if self.save_all_data:
+            self.all_data = pd.read_csv(
+                output_dir+"/all_data.csv",
+                index_col=0
+            ).reset_index(drop=True)
+
+
     def save_data(self,output_dir,append_rows=None):
         """Writes the DataFrames for the samples, model parameters & ouput,
         bayes data, and debugging info into .csv files and stores them in the
@@ -217,6 +268,8 @@ class BaseScenario:
             self.model_output.to_csv(output_dir+"/model_output.csv")
             self.bayes_data.to_csv(output_dir+"/bayes_data.csv")
             self.debug.to_csv(output_dir+"/debug.csv")
+            if self.save_all_data:
+                self.all_data.to_csv(output_dir+"/all_data.csv")
         else:
             n = -append_rows
             self.samples.iloc[n:].to_csv(
@@ -244,8 +297,17 @@ class BaseScenario:
                 mode='a+',
                 header=False
             )
+            
+            if self.save_all_data:
+                self.all_data.iloc[n:].to_csv(
+                    output_dir+"/all_data.csv",
+                    mode='a+',
+                    header=False
+                )
 
-    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False):
+
+    def sample(self,nsamples,output_dir=None,save_freq=1,verbose=False,refinement_ratios=None,
+               multi_fidelity=False,ref_rat_max_values=None,config_path=None):
         """Draw samples from the posterior distribution using the
         Metropolis-Hastings algorithm.
 
@@ -264,6 +326,18 @@ class BaseScenario:
             If true, prints gague data for the loglikelihood of the forward
             model. Default is false.
 
+        refinement_ratios : list
+            The Geoclaw refinement ratios, used to run Multi-fidelity sampler
+            and to construct all_data.csv
+        multi_fidelity : bool
+            If true, run Multi-fidelity sampler instead of base sampler
+        ref_rat_max_values : list
+            List of indices that indicate how many refinement leves Geoclaw will
+            run at
+        config_path : string
+            config_path used for constructing setrun file
+
+
         Returns
         -------
         samples : pandas DataFrame
@@ -280,6 +354,7 @@ class BaseScenario:
         if output_dir is not None:
             if not os.path.exists(output_dir): os.mkdir(output_dir)
             self.save_data(output_dir)
+
 
         chain_start = time.time()
         j = 0
@@ -314,45 +389,171 @@ class BaseScenario:
             # Otherwise, run the forward model, calculate the log-likelihood,
             # and calculate the Metropolis-Hastings acceptance probability
             else:
-                if verbose: print("Running forward model...",flush=True)
-                model_output = self.forward_model.run(model_params)
-                if verbose: print("Evaluating log-likelihood:")
-                llh = self.forward_model.llh(model_output,verbose)
-                if verbose: print("Total llh = {}".format(llh))
 
-                # acceptance probability
-                # catch if both loglikelihoods are -inf
-                if (
-                    (self.bayes_data.loc[i-1,'llh'] == np.NINF)
-                    and (llh == np.NINF)
-                ):
-                    alpha = (
-                        prior_logpdf
-                        + self.proposal_logpdf(self.samples.loc[i-1],proposal)
-                        - self.bayes_data.loc[i-1,'prior_logpdf']
-                        - self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                if multi_fidelity:
+                    
+                    alpha_0 = 1
+
+                    # sample from each model of increasing fidelity
+                    for ref_rat_max in ref_rat_max_values:
+
+                        # Rewrite setrun file!
+                        if verbose: print("Rewriting setrun.py")
+                        write_setrun(config_path, ref_rat_max)
+
+                        # With setrun file written with specific fidelity, proceed as normal
+                        if verbose: print("Running forward model...",flush=True)
+                        model_output = self.forward_model.run(model_params)
+                        if verbose: print("Evaluating log-likelihood:")
+                        llh = self.forward_model.llh(model_output,verbose)
+                        if verbose: print("Total llh = {}".format(llh))
+
+                        # acceptance probability
+                        # catch if both loglikelihoods are -inf
+                        if (
+                                (self.bayes_data.loc[i-1,'llh'] == np.NINF)
+                                and (llh == np.NINF)
+                        ):
+                            alpha = (
+                                prior_logpdf
+                                + self.proposal_logpdf(self.samples.loc[i-1],proposal)
+                                - self.bayes_data.loc[i-1,'prior_logpdf']
+                                - self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                            )
+                        else:
+                            alpha = (
+                                prior_logpdf
+                                + llh
+                                + self.proposal_logpdf(self.samples.loc[i-1],proposal)
+                                - self.bayes_data.loc[i-1,'prior_logpdf']
+                                - self.bayes_data.loc[i-1,'llh']
+                                - self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                            )
+
+                        alpha = np.exp(alpha)
+
+                        if verbose: print(f"alpha = alpha_new / alpha_old = {alpha} / {alpha_0} = {alpha/alpha_0}")
+                        alpha = alpha / alpha_0
+
+                        # prior, likelihood, and posterior logpdf values
+                        bayes_data = pd.Series(
+                            [prior_logpdf,llh,prior_logpdf+llh],
+                            index=self.bayes_data_cols
+                        )
+
+                        # accept/reject
+                        accepted = (np.random.rand() < alpha)
+
+                        if self.save_all_data:   # save all proposals
+                            # convert copy of model_params to dataframe (currently a dictionary)
+                            temp_model_params = pd.DataFrame(columns=self.model_param_cols)
+                            temp_model_params.loc[0] = model_params.copy()
+                            temp_model_output = pd.DataFrame(columns=self.model_output_cols)
+                            temp_model_output.loc[0] = model_output
+                            temp_bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
+                            temp_bayes_data.loc[0] = bayes_data
+                            # convert alpha and refinement_ratios data to dataframe
+                            temp_alpha_ref = pd.DataFrame(columns=["alpha","refinement_ratios"])
+                            temp_alpha_ref.loc[0] = [alpha,refinement_ratios[0:ref_rat_max]]
+
+                            # add temporary column to dataframe to merge on
+                            temp_model_params['tmp'] = 1
+                            temp_model_output['tmp'] = 1
+                            temp_bayes_data['tmp'] = 1
+                            temp_alpha_ref['tmp'] = 1
+
+                            # merge dataframes
+                            temp_all_df = temp_model_params.merge(temp_model_output, on=['tmp'])\
+                                                           .merge(temp_bayes_data, on=['tmp'])\
+                                                           .merge(temp_alpha_ref, on=['tmp'])
+
+                            # remove temporary dataframe
+                            temp_all_df = temp_all_df.drop('tmp', axis=1)
+
+                            # append dataframe to all_samples
+                            self.all_data = self.all_data.append(temp_all_df, ignore_index=True)
+
+                        alpha_0 = alpha
+
+                        if not accepted:
+                            break
+
+                
+
+                else:  # Run normal sampler
+                    
+                    if verbose: print("Running forward model...",flush=True)
+                    model_output = self.forward_model.run(model_params)
+                    if verbose: print("Evaluating log-likelihood:")
+                    llh = self.forward_model.llh(model_output,verbose)
+                    if verbose: print("Total llh = {}".format(llh))
+
+                    # acceptance probability
+                    # catch if both loglikelihoods are -inf
+                    if (
+                            (self.bayes_data.loc[i-1,'llh'] == np.NINF)
+                            and (llh == np.NINF)
+                    ):
+                        alpha = (
+                            prior_logpdf
+                            + self.proposal_logpdf(self.samples.loc[i-1],proposal)
+                            - self.bayes_data.loc[i-1,'prior_logpdf']
+                            - self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                        )
+                    else:
+                        alpha = (
+                            prior_logpdf
+                            + llh
+                            + self.proposal_logpdf(self.samples.loc[i-1],proposal)
+                            - self.bayes_data.loc[i-1,'prior_logpdf']
+                            - self.bayes_data.loc[i-1,'llh']
+                            - self.proposal_logpdf(proposal,self.samples.loc[i-1])
+                        )
+                    alpha = np.exp(alpha)
+
+
+                    if verbose: print(f"alpha = {alpha}")
+
+                    # prior, likelihood, and posterior logpdf values
+                    bayes_data = pd.Series(
+                        [prior_logpdf,llh,prior_logpdf+llh],
+                        index=self.bayes_data_cols
                     )
-                else:
-                    alpha = (
-                        prior_logpdf
-                        + llh
-                        + self.proposal_logpdf(self.samples.loc[i-1],proposal)
-                        - self.bayes_data.loc[i-1,'prior_logpdf']
-                        - self.bayes_data.loc[i-1,'llh']
-                        - self.proposal_logpdf(proposal,self.samples.loc[i-1])
-                    )
-                alpha = np.exp(alpha)
 
-            if verbose: print(f"alpha = {alpha}")
+                    # accept/reject
+                    accepted = (np.random.rand() < alpha)
 
-            # prior, likelihood, and posterior logpdf values
-            bayes_data = pd.Series(
-                [prior_logpdf,llh,prior_logpdf+llh],
-                index=self.bayes_data_cols
-            )
+                    if self.save_all_data: # save all proposals
+                        # convert copy of model_params to dataframe
+                        temp_model_params = pd.DataFrame(columns=self.model_param_cols)
+                        temp_model_params.loc[0] = model_params.copy() # model_params is a dictionary
+                        # convert copy of model_output to dataframe
+                        temp_model_output = pd.DataFrame(columns=self.model_output_cols)
+                        temp_model_output.loc[0] = model_output
+                        # convert copy of bayes_data to dataframe
+                        temp_bayes_data = pd.DataFrame(columns=self.bayes_data_cols)
+                        temp_bayes_data.loc[0] = bayes_data
+                        # convert alpha and refinement_ratios data to dataframe
+                        temp_alpha_ref = pd.DataFrame(columns=["alpha","refinement_ratios"])
+                        temp_alpha_ref.loc[0] = [alpha,refinement_ratios]
+                        
+                        # add temporary column to dataframes to merge on
+                        temp_model_params['tmp'] = 1
+                        temp_model_output['tmp'] = 1
+                        temp_bayes_data['tmp'] = 1
+                        temp_alpha_ref['tmp'] = 1
 
-            # accept/reject
-            accepted = (np.random.rand() < alpha)
+                        # merge dataframes
+                        temp_all_df = temp_model_params.merge(temp_model_output, on=['tmp'])\
+                                                       .merge(temp_bayes_data, on=['tmp'])\
+                                                       .merge(temp_alpha_ref, on=['tmp'])
+                        # remove temporary dataframe
+                        temp_all_df = temp_all_df.drop('tmp', axis=1)
+
+                        # append data to all_data
+                        self.all_data = self.all_data.append(temp_all_df, ignore_index=True)
+                        
+
             if accepted:
                 if verbose: print("Proposal accepted",flush=True)
                 self.samples.loc[i] = proposal
@@ -365,6 +566,7 @@ class BaseScenario:
                 self.model_params.loc[i] = self.model_params.loc[i-1]
                 self.model_output.loc[i] = self.model_output.loc[i-1]
                 self.bayes_data.loc[i] = self.bayes_data.loc[i-1]
+
 
             # generate data for debug dataframe
             metro_hastings_data = pd.Series({

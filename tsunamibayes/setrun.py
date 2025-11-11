@@ -10,7 +10,7 @@ except:
 # Scratch directory for storing topo and dtopo files:
 scratch_dir = os.path.join(CLAW, 'geoclaw', 'scratch')
 
-def make_setrun(config):
+def make_setrun(config, ref_rat_max=None):
     """Passes the configuration data into the setrun function.
 
     Parameters
@@ -26,7 +26,7 @@ def make_setrun(config):
         the scenario's topography.
     """
 
-    def setrun(claw_pkg='geoclaw'):
+    def setrun(claw_pkg='geoclaw', ref_rat_max=ref_rat_max):
         """Initializes the necessary phsyics and topograhpy parameters
         in prepare to run Geoclaw.
 
@@ -74,7 +74,10 @@ def make_setrun(config):
         refinement_data.max_level_deep = 3
 
         # index of max AMR level
-        maxlevel = len(config.geoclaw["refinement_ratios"])+1
+        if ref_rat_max == None:
+            maxlevel = len(config.geoclaw["refinement_ratios"])+1
+        else:
+            maxlevel = len(config.geoclaw["refinement_ratios"][0:ref_rat_max])+1
 
         # load all topo files from topo_dir
         topo_data = rundata.topo_data
@@ -227,10 +230,19 @@ def make_setrun(config):
         amrdata.amr_levels_max = maxlevel
 
         # List of refinement ratios at each level (length at least mxnest-1)
-        amrdata.refinement_ratios_x = config.geoclaw['refinement_ratios']
-        amrdata.refinement_ratios_y = config.geoclaw['refinement_ratios']
-        amrdata.refinement_ratios_t = config.geoclaw['refinement_ratios']
 
+        if ref_rat_max is None:
+            ref_ratios = config.geoclaw['refinement_ratios']
+        else:
+            ref_ratios = config.geoclaw['refinement_ratios'][0:ref_rat_max] # used to be 0:ref_rat_max
+        
+        print("\n\n\n Printing ref_ratios", ref_ratios, "\n\n\n")
+
+        amrdata.refinement_ratios_x = ref_ratios
+        amrdata.refinement_ratios_y = ref_ratios
+        amrdata.refinement_ratios_t = ref_ratios
+        
+    
         # Specify type of each aux variable in amrdata.auxtype.
         # This must be a list of length maux, each element of which is one of:
         #   'center',  'capacity', 'xleft', or 'yleft'  (see documentation).
@@ -315,7 +327,7 @@ def make_setrun(config):
 
     return setrun
 
-def write_setrun(config_path=None):
+def write_setrun(config_path=None,ref_rat_max=None):
     """Opens and writes a new setrun.py file for a specific scenario
     containing the tsunamibayes' setrun.py functions and with code
     instructions to read the scenario's default configuration file paths.
@@ -331,7 +343,8 @@ def write_setrun(config_path=None):
         f.write("config.read('defaults.cfg')\n")
         if config_path:
             f.write("config.read('{}')\n".format(config_path))
-        f.write("setrun = make_setrun(config)\n\n")
+        f.write("setrun = make_setrun(config,ref_rat_max={})\n\n".format(ref_rat_max))
         f.write("if __name__ == '__main__':\n")
         f.write("   rundata = setrun()\n")
         f.write("   rundata.write()")
+
